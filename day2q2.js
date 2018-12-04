@@ -11,9 +11,11 @@ function same_letters(word1, word2) {
 var fs = require("fs");
 const boxes = fs.readFileSync("boxes.txt").toString().split("\n");
 
-/* Time for a big ol' O(n^2) nested loop I guess */
-finished = false;
-start = 0;
+/* Time for a big ol' O(n^2) nested loop I guess.
+    I feel like there should be a O(n) or at least O(n*log n) solution
+*/
+var finished = false;
+var start = 0;
 for (var j = 0; j < boxes.length - 1; j++) {
     for (var k = start; k < boxes.length; k++) {
         const result = same_letters(boxes[j], boxes[k]);
