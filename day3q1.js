@@ -13,8 +13,8 @@ function mark_overlays(swatch, overlays) {
     const col = swatch.coords[0] + 1;
     const w = swatch.dimensions[0];
     const h = swatch.dimensions[1];
-    for (var j = row; j < row + h; j++) {
-        for (var k = col; k < col + w; k++) {
+    for (let j = row; j < row + h; j++) {
+        for (let k = col; k < col + w; k++) {
             sq = `${j}x${k}`;
             if (sq in overlays)
                 overlays[sq]++;
@@ -27,12 +27,10 @@ function mark_overlays(swatch, overlays) {
 var fs = require("fs");
 const swatches = fs.readFileSync("swatches.txt").toString().split("\n");
 
-overlays = {};
-for (swatch of swatches) {
-    mark_overlays(parse_swatch(swatch), overlays)
-}
+var overlays = [];
+swatches.forEach(s => mark_overlays(parse_swatch(s), overlays));
 
-sum = 0;
+var sum = 0;
 for (coord in overlays) {
     if (overlays[coord] > 1)
         sum++;
