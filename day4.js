@@ -5,17 +5,6 @@ function parse_schedule_line(line) {
     return { ts:timestamp, action:action.trim() };
 }
 
-function to_min(t) {
-    pcs = t.split(":");
-    return parseInt(pcs[1]) + (pcs[0] == "23" ? 0 : 60);
-}
-
-function to_time(m) {
-    return m < 60
-        ? "23:" + m.toString().padStart(2, "0")
-        : "00:" + (m - 60).toString().padStart(2, "0");
-}
-
 var fs = require("fs");
 var schedule = [];
 fs.readFileSync("schedule.txt").toString().split("\n").forEach(s => {
@@ -48,15 +37,15 @@ for (let j = 0; j < schedule.length; j++) {
         var octo = action.indexOf('#') + 1
         var guard_num = parseInt(action.slice(octo, action.indexOf(' ', octo + 1)));
         if (!(guard_num in guards)) {
-            guards[guard_num] = Array(120).fill(0);
+            guards[guard_num] = Array(60).fill(0);
             sleep_totals[guard_num] = 0;
         }
     }
     else if (action == "falls asleep") {
-        var start_mins = to_min(timestamp.substr(timestamp.indexOf(" ")));
+        var start_mins = parseInt(timestamp.substr(timestamp.indexOf(":") + 1));
     }
     else if (action == "wakes up") {
-        var end_mins = to_min(timestamp.substr(timestamp.indexOf(" ")));
+        var end_mins = parseInt(timestamp.substr(timestamp.indexOf(":") + 1));
         for (let j = start_mins; j < end_mins; j++)
             guards[guard_num][j]++;
 
@@ -78,7 +67,7 @@ for (j = 0; j < 120; j++) {
         most = guards[sg][j];
     }
 }
-console.log("Q1 answer: " + to_time(minute) + " " + sg);
+console.log("Q1 answer: " + minute + " " + sg);
 
 most = 0;
 sleepy_guard_num = 0;
@@ -93,4 +82,4 @@ for (let g in guards) {
     }
 }
 
-console.log("Q2 answer: " + sleepy_guard_num + " " + to_time(sleepiest_minute));
+console.log("Q2 answer: " + sleepy_guard_num + " " + sleepiest_minute);
