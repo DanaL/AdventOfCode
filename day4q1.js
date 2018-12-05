@@ -5,9 +5,20 @@ function parse_schedule_line(line) {
     return { ts:timestamp, action:action.trim() };
 }
 
+function to_min(t) {
+    pcs = t.split(":");
+    return parseInt(pcs[1]) + (pcs[0] == "23" ? 0 : 60);
+}
+
+function to_time(m) {
+    return m < 60
+        ? "23:" + m.toString().padStart(2, "0")
+        : "00:" + (m - 60).toString().padStart(2, "0");
+}
+
 var fs = require("fs");
 var schedule = [];
-fs.readFileSync("schedule_sm.txt").toString().split("\n").forEach(s => {
+fs.readFileSync("schedule.txt").toString().split("\n").forEach(s => {
     schedule.push(parse_schedule_line(s));
 });
 
@@ -18,6 +29,8 @@ schedule.sort(function(a, b){
 });
 
 var guards = [];
+var sleep_totals = [];
+var sleepiest = { total:0 };
 for (let j = 0; j < schedule.length; j++) {
     /*
         Simple state machine:
@@ -29,16 +42,41 @@ for (let j = 0; j < schedule.length; j++) {
         vs the expected state. (Ie., we should never have a Guard line followed
         immediately by a Wakes Up line. Or two Falls Asleep lines in a row, etc)
     */
-    var timestamp = schedule[j].timestamp;
+    var timestamp = schedule[j].ts;
     var action = schedule[j].action;
     if (action.startsWith("Guard")) {
         var octo = action.indexOf('#') + 1
         var guard_num = parseInt(action.slice(octo, action.indexOf(' ', octo + 1)));
         if (!(guard_num in guards)) {
-            guards[guard_num] = Array(60).fill(0);
+            guards[guard_num] = Array(120).fill(0);
+            sleep_totals[guard_num] = 0;
         }
     }
     else if (action == "falls asleep") {
-        console.log("flag " + guard_num);
+        var start_mins = to_min(timestamp.substr(timestamp.indexOf(" ")));
+    }
+    else if (action == "wakes up") {
+        var end_mins = to_min(timestamp.substr(timestamp.indexOf(" ")));
+        for (let j = start_mins; j < end_mins; j++)
+            guards[guard_num][j]++;
+
+        mins = end_mins - start_mins;
+        sleep_totals[guard_num] += mins;
+        if (sleep_totals[guard_num] > sleepiest.total) {
+            sleepiest.total = sleep_totals[guard_num];
+            sleepiest.guard = guard_num;
+        }
     }
 }
+
+sg = sleepiest.guard;
+most = 0;
+minute = 0;
+for (j = 0; j < 120; j++) {
+    if (guards[sg][j] > most) {
+        minute = j;
+        most = guards[sg][j];
+    }
+}
+
+console.log(to_time(minute) + " " + sg);
