@@ -4,13 +4,13 @@ function react(ch1, ch2) {
 
 function do_reaction(polymer, skip) {
     const stack = [];
-    for (j = 0; j < polymer.length; j++) {
-        if (polymer[j].toLowerCase() == skip)
+    for (let p of polymer) {
+        if (p.toLowerCase() == skip)
             continue;
 
         const last = stack.length - 1;
-        if (stack.length == 0 || !react(stack[last], polymer[j]))
-            stack.push(polymer[j]);
+        if (stack.length == 0 || !react(stack[last], p))
+            stack.push(p);
         else
             stack.pop();
     }
