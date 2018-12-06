@@ -28,8 +28,8 @@ fs.readFileSync("mpoints.txt").toString().split("\n").forEach(s => {
     check each point's distance. Award that winner a tally. Point with the
     highest tally is the winner */
 var max_d = manhattan_d(north_limit, west_limit, south_limit, east_limit);
-for (let row = north_limit; row <= south_limit; row++) {
-    for (let col = west_limit; col <= east_limit; col++) {
+for (let row = north_limit + 1; row < south_limit; row++) {
+    for (let col = west_limit + 1; col < east_limit; col++) {
         let smallest = max_d;
         let winner = null;
         for (let pt of points) {
