@@ -32,9 +32,9 @@ sum_child_values = (head) => {
 }
 
 var fs = require("fs");
-nodes = fs.readFileSync("license.txt").toString().split(" ").map(s => parseInt(s)).reverse();
+var nodes = fs.readFileSync("license.txt").toString().split(" ").map(s => parseInt(s)).reverse();
 
-head = parse(nodes);
+const head = parse(nodes);
 
 console.log("Q1: " + sum_metadata(head));
 console.log("Q2: " + sum_child_values(head));
