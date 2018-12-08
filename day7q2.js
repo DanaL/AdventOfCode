@@ -1,9 +1,7 @@
 
-function get_available_tasks(tasks) {
-    return Object.keys(tasks).filter(s => tasks[s].length == 0).sort();
-}
+let get_available_tasks = (tasks) => Object.keys(tasks).filter(s => tasks[s].length == 0).sort();
 
-function get_available_worker(workers) {
+let get_available_worker = (workers) => {
     for (w of workers) {
         if (w.task === '')
             return w;
@@ -12,10 +10,9 @@ function get_available_worker(workers) {
     return null;
 }
 
-function work_remaining(tasks, workers) {
-    return Object.keys(tasks).length > 0 ||
+let work_remaining = (tasks, workers) =>
+    Object.keys(tasks).length > 0 ||
         workers.filter(w => w.task !== '').length > 0;
-}
 
 const tasks = [];
 var fs = require("fs");
