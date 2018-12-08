@@ -11,10 +11,23 @@ parse = (nodes) => {
     return n;
 }
 
-sum_tree = (head) => {
+sum_metadata = (head) => {
     var sum = head.metadata.reduce((acc, curr) => acc + curr);
     for (let child of head.children)
-        sum += sum_tree(child);
+        sum += sum_metadata(child);
+
+    return sum;
+}
+
+sum_child_values = (head) => {
+    if (head.children.length == 0)
+        return head.metadata.reduce((acc, curr) => acc + curr);
+
+    var sum = 0;
+    for (let m of head.metadata) {
+        if (m <= head.children.length)
+            sum += sum_child_values(head.children[m - 1]);
+    }
 
     return sum;
 }
@@ -24,4 +37,5 @@ nodes = fs.readFileSync("license.txt").toString().split(" ").map(s => parseInt(s
 
 head = parse(nodes);
 
-console.log(sum_tree(head));
+console.log("Q1: " + sum_metadata(head));
+console.log("Q2: " + sum_child_values(head));
