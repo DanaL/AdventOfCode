@@ -13,9 +13,8 @@ parse = (nodes) => {
 
 sum_metadata = (head) => {
     var sum = head.metadata.reduce((acc, curr) => acc + curr);
-    for (let child of head.children)
-        sum += sum_metadata(child);
-
+    head.children.forEach(c => sum += sum_metadata(c));
+    
     return sum;
 }
 
