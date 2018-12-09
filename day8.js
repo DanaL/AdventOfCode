@@ -13,9 +13,8 @@ parse = (nodes) => {
 
 sum_metadata = (head) => {
     var sum = head.metadata.reduce((acc, curr) => acc + curr);
-    for (let child of head.children)
-        sum += sum_metadata(child);
-
+    head.children.forEach(c => sum += sum_metadata(c));
+    
     return sum;
 }
 
@@ -33,9 +32,9 @@ sum_child_values = (head) => {
 }
 
 var fs = require("fs");
-nodes = fs.readFileSync("license.txt").toString().split(" ").map(s => parseInt(s)).reverse();
+var nodes = fs.readFileSync("license.txt").toString().split(" ").map(s => parseInt(s)).reverse();
 
-head = parse(nodes);
+const head = parse(nodes);
 
 console.log("Q1: " + sum_metadata(head));
 console.log("Q2: " + sum_child_values(head));
