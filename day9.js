@@ -4,8 +4,8 @@ const new_node = (val) =>  {
 };
 
 const insert = (curr, val) => {
-    curr = curr.next;
     nn = new_node(val);
+    curr = curr.next;
     nn.next = curr.next;
     nn.prev = curr;
     curr.next = nn;
@@ -33,7 +33,7 @@ head.prev = head;
 var curr = head;
 
 for (let curr_marble = 1; curr_marble <= last_marble; curr_marble++) {
-    p = curr_marble % num_of_elves;
+    const p = curr_marble % num_of_elves;
     if (curr_marble % 23 == 0) {
         var result = find_and_cut(curr);
         scores[p] += curr_marble + result.cut.val;
