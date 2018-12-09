@@ -15,14 +15,7 @@ const insert = (curr, val) => {
 };
 
 const find_and_cut = (curr) => {
-    curr = curr.prev;
-    curr = curr.prev;
-    curr = curr.prev;
-    curr = curr.prev;
-    curr = curr.prev;
-    curr = curr.prev;
-    curr = curr.prev;
-
+    curr = curr.prev.prev.prev.prev.prev.prev.prev;
     curr.prev.next = curr.next;
     curr.next.prev = curr.prev;
 
