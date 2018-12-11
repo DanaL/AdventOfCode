@@ -41,19 +41,37 @@ const dump_matrix_section = (m, x, y, size) => {
     Of course, if we have a situation were we want the 2x2 matrix whose lower
     right corner is 1, 3, we only need to subtract m[y, x - 2] from its total.
 */
-const sum_of_matrix(sub_sums, x, y, size) {
+const sum_of_matrix = (sub_sums, x, y, size) => {
     var sum = sub_sums[y][x];
-    const ya = y - 2;
-    const xb = x - 2;
+    const ya = y - size;
+    const xb = x - size;
     if (ya >= 0) sum -= sub_sums[ya][x];
     if (xb >= 0) sum -= sub_sums[y][xb];
-    if (ya >= 0 && xb >= 0) sum == sub_sumbs[ya][xb];
+    if (ya >= 0 && xb >= 0) sum += sub_sums[ya][xb];
 
     return sum;
 }
 
+const max_sum_of_size_n = (sub_sums, matrix_size, size) => {
+    var highest_sum = 0;
+    var X = -1, Y = -1;
+    const start = size - 1;
+    for (let r = start; r < matrix_size; r++) {
+        for (let c = start; c < matrix_size; c++) {
+            s = sum_of_matrix(sub_sums, c, r, size);
+            if (s > highest_sum) {
+                highest_sum = s;
+                X = c;
+                Y = r;
+            }
+        }
+    }
+
+    return { max:highest_sum, X:X - size + 1, Y:Y - size + 1, size:size };
+}
+
 const serial_num = 1133;
-const matrix_size = 5;
+const matrix_size = 300;
 
 /* Calculate our matrix of power levels */
 const grid = [];
@@ -72,14 +90,18 @@ for (let r = 0; r < matrix_size; r++) {
     let row_sum = 0;
     for (let c = 0; c < matrix_size; c++) {
         row_sum += grid[r][c];
-        //if (r > 0)
-        //    row_sum += sub_sums[r-1][c];
         row.push(r == 0 ? row_sum : row_sum + sub_sums[r-1][c]);
     }
     sub_sums.push(row);
 }
 
-dump_matrix_section(grid, 0, 0, 5);
-console.log("");
-dump_matrix_section(sub_sums, 0, 0, 5);
-//console.log(calc_sub_matrix_sum(grid, 3, 4, 3));
+var res = max_sum_of_size_n(sub_sums, matrix_size, 3)
+console.log(`Q1: ${res.max} at X:${res.X} Y:${res.Y}`);
+
+var max_res = res;
+for (let s = 4; s <= matrix_size; s++) {
+    res = max_sum_of_size_n(sub_sums, matrix_size, s);
+    if (res.max > max_res.max)
+        max_res = res;
+}
+console.log(`Q2: ${max_res.X},${max_res.Y},${max_res.size}`);
