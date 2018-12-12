@@ -1,4 +1,24 @@
 
+/* Advent of Code 2018 Day 9 (https://adventofcode.com/2018/day/9)
+
+This puzzle involved a game where Christmas elves placed marbles in a ring
+following paricular rules. The marbles added were numbered sequentially and if
+a placed marble was divisble by 23, instead of being added to the ring, that
+player would earn points equal to the # of the marble and it would not be added.
+Additionally, the 7th marble counter-clockwise to where the marble should have
+been placed is removed and those points scored as well.
+
+My first version of the code (with 416 players and nearly 72,000 marbles placed)
+used built-in JS lists. But that was going to be way too inefficenct for part
+2, which called for 10x as many marbles. So instead I went with a doubly-linked
+list (a circular queue). I was gobsmacked at just how much faster the linked
+list version was over the array version was.
+
+I didn't formally definte a link node class, just a function that returns an
+anonymous object with references to the next and previous nodes.
+
+*/
+
 const new_node = (val) =>  {
     return { val:val, next:null, prev:null };
 };
