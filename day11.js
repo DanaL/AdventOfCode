@@ -1,3 +1,18 @@
+
+/* Advent of Code 2018 Day 11 (https://adventofcode.com/2018/day/11)
+
+All of the puzzle flavour text aside, what we are looking for here is the
+largest square sub-matrix (ie., the sum of the elements in the sub-matrix) in a
+300x300 matrix. Q1 wanted the largest 3x3 matrix and I just wrote a brute force
+loop. Q2 wanted the square sub-matrix with the largest sum.
+
+I knew there had to be a more efficienct way to sovle this beyond brute force
+and after a bit of research I found Summed-area Tables
+(https://en.wikipedia.org/wiki/Summed-area_table). I liked this explanation:
+https://www.codeproject.com/Articles/441226/Haar-feature-Object-Detection-in-Csharp
+
+*/
+
 const calc_power_lvl = (serial_num, x , y) => {
     const rack_id = x + 10;
     var pwr_lvl = (rack_id * y + serial_num) * rack_id;
