@@ -19,7 +19,7 @@ const count_score = (ca, offset) => {
 }
 
 var fs = require("fs");
-const lines = fs.readFileSync("plants.txt").toString().split("\n");
+const lines = fs.readFileSync("plants_tri.txt").toString().split("\n");
 
 const initial_state = lines[0].substr(15).trim();
 rules = lines.slice(2).map(l => {
