@@ -27,13 +27,11 @@ rules = lines.slice(2).map(l => {
 });
 
 const padding = ".........................";
-var ca = padding + initial_state + padding;// + "...........";
+var ca = "....." + initial_state + padding + "................................................................................................................";
 
-console.log(ca);
-for (let j = 0; j < 20; j ++) {
+for (let j = 0; j < 131; j ++) {
     ca = apply_rules(rules, ca);
-
+    let a = ca.substr(ca.indexOf('#')).padEnd(ca.length, '.');
+    let s = `${ca} ${j + 1} ${ca.split("").filter(c => c == "#").length} ${count_score(ca, 5)}`;
+    console.log(s);
 }
-
-console.log(count_score(ca, padding.length));
-//console.log(ca);
