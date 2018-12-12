@@ -7,15 +7,6 @@ const calc_power_lvl = (serial_num, x , y) => {
         return Math.floor((pwr_lvl % 1000) / 100) - 5;
 };
 
-const dump_matrix_section = (m, x, y, size) => {
-    for (let r = y; r < y + size; r++) {
-        var s = "";
-        for (let c = x; c < x + size; c++)
-            s += m[r][c].toString().padStart(3, ' ');
-        console.log(s);
-    }
-}
-
 /* So what we are doing is this: y, x (y is row, x is column) form the bottom
     right corner of the sub-matrix we are checking and its length/width is size.
 
@@ -73,23 +64,13 @@ const max_sum_of_size_n = (sub_sums, matrix_size, size) => {
 const serial_num = 1133;
 const matrix_size = 300;
 
-/* Calculate our matrix of power levels */
-const grid = [];
-for (let r = 0; r < matrix_size; r++) {
-    let row = [];
-    for (let c = 0; c < matrix_size; c++) {
-        row.push(calc_power_lvl(serial_num, c, r));
-    }
-    grid.push(row);
-}
-
 /* Now calcuate our sub-matrix sums */
 const sub_sums = [];
 for (let r = 0; r < matrix_size; r++) {
     let row = [];
     let row_sum = 0;
     for (let c = 0; c < matrix_size; c++) {
-        row_sum += grid[r][c];
+        row_sum += calc_power_lvl(serial_num, c, r);
         row.push(r == 0 ? row_sum : row_sum + sub_sums[r-1][c]);
     }
     sub_sums.push(row);
