@@ -64,7 +64,6 @@ const max_sum_of_size_n = (sub_sums, matrix_size, size) => {
 const serial_num = 1133;
 const matrix_size = 300;
 
-/* Now calcuate our sub-matrix sums */
 const sub_sums = [];
 for (let r = 0; r < matrix_size; r++) {
     let row = [];
