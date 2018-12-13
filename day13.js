@@ -19,11 +19,20 @@ const add_cart_to_queue = (q, cart, row, col) => {
     q.splice(spot, 0, cart);
 };
 
+const remove_cart = (q, cart) => {
+    for (var j = 0; j < q.length; j++) {
+        if (cart.id === q[j].id) {
+            q.splice(j, 1);
+            break;
+        }
+    }
+};
+
 const dump_map = (map) => {
     for (let j = 0; j < map.length; j++) {
         let s = "";
         for (let k = 0; k < map[j].length; k++) {
-    	       s += map[j][k].cart == "" ? map[j][k].track : map[j][k].cart.tile;
+    	       s += map[j][k].cart === "" ? map[j][k].track : map[j][k].cart.tile;
         }
         console.log(s);
     }
@@ -84,7 +93,7 @@ const do_turn = (map, cart, sq) => {
     }
 }
 
-const do_tick = (world) => {
+const do_tick = (world, q2) => {
     var next_q = [];
     for (let cart of world.carts) {
         world.map[cart.row][cart.col].cart = "";
@@ -106,14 +115,23 @@ const do_tick = (world) => {
 
         /* Was there a collision? */
         if (next_sq.cart !== "") {
-            world.map[cart.row][cart.col].track = "X";
-            world.map[cart.row][cart.col].cart = "";
-            return { collision:true, row:cart.row, col:cart.col };
+            if (!q2) {
+                next_sq.cart = "";
+                next_sq.track = "X";
+                return { collision:true, row:cart.row, col:cart.col };
+            }
+            else {
+                let victim = next_sq.cart;
+                next_sq.cart = "";
+                remove_cart(next_q, victim);
+                world.map[victim.row][victim.col].cart = "";
+                continue;
+            }
         }
 
         if (!(next_sq == "|" || next_sq == "-"))
             do_turn(world.map, cart, next_sq);
-        world.map[cart.row][cart.col].cart = cart;
+        next_sq.cart = cart;
         add_cart_to_queue(next_q, cart, cart.row, cart.col);
         world.carts = next_q;
     }
@@ -124,7 +142,7 @@ const do_tick = (world) => {
 var carts = [];
 const map = [];
 var fs = require("fs");
-const lines = fs.readFileSync("tracks_sm.txt").toString().split("\n");
+const lines = fs.readFileSync("tracks.txt").toString().split("\n");
 for (let r = 0; r < lines.length; r++) {
     var sqs = lines[r].split("");
     var row = [];
@@ -153,22 +171,48 @@ for (let r = 0; r < lines.length; r++) {
 
 const world = { map:map, carts:carts };
 
-dump_map(map);
+var interactive = false;
+var q2 = false;
+for (let arg of process.argv) {
+    if (arg === "--interactive")
+        interactive = true;
+    if (arg === "--q2")
+        q2 = true;
+}
 
-const rl = require('readline');
-rl.emitKeypressEvents(process.stdin);
-process.stdin.setRawMode(true);
-process.stdin.on("keypress", (str, key) => {
-    if (key.name === "q") {
-        process.exit();
-    }
-    else {
-        let res = do_tick(world);
-        dump_map(map);
-
-        if (res.collision) {
-            console.log("Collision!", res.col, res.row);
+if (interactive) {
+    dump_map(map);
+    const rl = require('readline');
+    rl.emitKeypressEvents(process.stdin);
+    process.stdin.setRawMode(true);
+    process.stdin.on("keypress", (str, key) => {
+        if (key.name === "q")
             process.exit();
+        else {
+            let res = do_tick(world, q2);
+            dump_map(map);
+            if (res.collision) {
+                console.log("Collision!", res.col, res.row);
+                process.exit();
+            }
+            else if (q2 && world.carts.length == 1) {
+                console.log("One cart remaining!", world.carts[0].col, world.carts[0].row);
+                process.exit();
+            }
         }
+    });
+}
+else {
+    while (true) {
+        let res = do_tick(world, q2);
+        if (!q2 && res.collision) {
+            console.log("Collision!", res.col, res.row);
+            break;
+        }
+        else if (q2 && world.carts.length == 1) {
+            console.log("One cart remaining!", world.carts[0].col, world.carts[0].row);
+            break;
+        }
+        console.log("Carts remaining: ", world.carts.length);
     }
-});
+}
