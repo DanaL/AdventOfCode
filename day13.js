@@ -29,29 +29,52 @@ const dump_map = (map) => {
     }
 };
 
+const left_turn = (cart) => {
+    if (cart.tile == "^")
+        cart.tile = "<";
+    else if (cart.tile == "v")
+        cart.tile = ">";
+    else if (cart.tile == ">")
+        cart.tile = "^";
+    else
+        cart.tile = "v";
+};
+
+const right_turn = (cart) => {
+    if (cart.tile == "^")
+        cart.tile = ">";
+    else if (cart.tile == "v")
+        cart.tile = "<";
+    else if (cart.tile == ">")
+        cart.tile = "v";
+    else
+        cart.tile = "^";
+};
+
 const do_turn = (map, cart, sq) => {
     switch (sq.track) {
         case "/":
             if (cart.tile == "^")
-                cart.tile = ">";
+                right_turn(cart);
             else if (cart.tile == ">")
-                cart.tile = "^";
+                left_turn(cart);
             else if (cart.tile == "v")
-                cart.tile = "<";
+                right_turn(cart);
             else
-                cart.tile = "v";
+                left_turn(cart);
             break;
         case "\\":
             if (cart.tile == "^")
-                cart.tile = "<";
+                left_turn(cart);
             else if (cart.tile == "<")
-                cart.tile = "^";
+                right_turn(cart);
             else if (cart.tile == "v")
-                cart.tile = ">";
+                left_turn(cart);
             else
-                cart.tile = "v";
+                right_turn(cart);
             break;
         case "+":
+            break;
     }
 }
 
