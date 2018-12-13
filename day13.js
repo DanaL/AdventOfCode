@@ -74,6 +74,12 @@ const do_turn = (map, cart, sq) => {
                 right_turn(cart);
             break;
         case "+":
+            /* A junction -- the slightly complicated case */
+            if (cart.turns == 0)
+                left_turn(cart);
+            else if (cart.turns == 2)
+                right_turn(cart);
+            cart.turns = (cart.turns + 1) % 3;
             break;
     }
 }
@@ -161,7 +167,7 @@ process.stdin.on("keypress", (str, key) => {
         dump_map(map);
 
         if (res.collision) {
-            console.log("Collision!", res.row, res.col);
+            console.log("Collision!", res.col, res.row);
             process.exit();
         }
     }
