@@ -55,22 +55,9 @@ const do_turn = (map, cart, sq) => {
     }
 }
 
-const is_cart = (ch) => {
-    switch (ch) {
-        case "^":
-        case "v":
-        case ">":
-        case "<":
-            return true;
-        default:
-            return false;
-    }
-}
-
 const do_tick = (world) => {
     var next_q = [];
     for (let cart of world.carts) {
-        console.log(cart.id);
         world.map[cart.row][cart.col].cart = "";
         switch (cart.tile) {
             case "^":
@@ -88,12 +75,21 @@ const do_tick = (world) => {
         }
         var next_sq = world.map[cart.row][cart.col];
 
+        /* Was there a collision? */
+        if (next_sq.cart !== "") {
+            world.map[cart.row][cart.col].track = "X";
+            world.map[cart.row][cart.col].cart = "";
+            return { collision:true, row:cart.row, col:cart.col };
+        }
+
         if (!(next_sq == "|" || next_sq == "-"))
             do_turn(world.map, cart, next_sq);
         world.map[cart.row][cart.col].cart = cart;
         add_cart_to_queue(next_q, cart, cart.row, cart.col);
         world.carts = next_q;
     }
+
+    return { collision:false };
 }
 
 var carts = [];
@@ -138,7 +134,12 @@ process.stdin.on("keypress", (str, key) => {
         process.exit();
     }
     else {
-        do_tick(world);
+        let res = do_tick(world);
         dump_map(map);
+
+        if (res.collision) {
+            console.log("Collision!", res.row, res.col);
+            process.exit();
+        }
     }
 });
