@@ -93,9 +93,13 @@ const do_turn = (map, cart, sq) => {
     }
 }
 
-const do_tick = (world, q2) => {
+const do_tick = (world, q2, ticks) => {
     var next_q = [];
-    for (let cart of world.carts) {
+
+    for (let j = 0; j < world.carts.length; j++) {
+	let cart = world.carts[j];
+	if (cart.collided)
+	    continue;
         world.map[cart.row][cart.col].cart = "";
         switch (cart.tile) {
             case "^":
@@ -123,19 +127,21 @@ const do_tick = (world, q2) => {
             else {
                 let victim = next_sq.cart;
                 next_sq.cart = "";
+		victim.collided = true;
                 remove_cart(next_q, victim);
-                world.map[victim.row][victim.col].cart = "";
-                continue;
             }
         }
-
-        if (!(next_sq == "|" || next_sq == "-"))
-            do_turn(world.map, cart, next_sq);
-        next_sq.cart = cart;
-        add_cart_to_queue(next_q, cart, cart.row, cart.col);
-        world.carts = next_q;
+	else {
+	    cart.collided = false;
+	    next_sq.cart = cart;
+            if (!(next_sq == "|" || next_sq == "-"))
+		do_turn(world.map, cart, next_sq);
+	    add_cart_to_queue(next_q, cart, cart.row, cart.col);
+        }
     }
-
+    
+    world.carts = next_q.filter(c => !c.collided);
+        
     return { collision:false };
 }
 
@@ -203,8 +209,10 @@ if (interactive) {
     });
 }
 else {
+    var ticks = 0;
     while (true) {
-        let res = do_tick(world, q2);
+        let res = do_tick(world, q2, ticks);
+	++ticks;
         if (!q2 && res.collision) {
             console.log("Collision!", res.col, res.row);
             break;
@@ -212,7 +220,6 @@ else {
         else if (q2 && world.carts.length == 1) {
             console.log("One cart remaining!", world.carts[0].col, world.carts[0].row);
             break;
-        }
-        console.log("Carts remaining: ", world.carts.length);
+        }	
     }
 }
