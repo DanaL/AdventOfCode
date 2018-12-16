@@ -1,9 +1,13 @@
 from collections import deque
+import sys
+
+class NoFoes(Exception):
+    pass
 
 class Agent:
     def __init__(self, elf, r, c):
         self.elf = elf
-        self.hp = 20
+        self.hp = 200
         self.row = r
         self.col = c
 
@@ -24,40 +28,35 @@ class Vertex:
         self.col = c
         self.path = None
         self.distance = d
-
-def dump_agents(agents):
-    s = ""
-    for a in agents:
-        ch = "E" if a.elf else "G"
-        s += f"{ch}: {a.hp} r={a.row} c={a.col}, \n"
-    print(s[0:-2])
     
 def dump_map(cave):
     for row in cave:
-        print("".join([c.tile if c.occ == None else "E" if c.occ.elf else "G" for c in row]))
+        s = ""
+        a = []
+        for sq in row:
+            s+= sq.tile if sq.occ == None else "E" if sq.occ.elf else "G"
+            if sq.occ != None:
+                a.append(sq.occ)
+        if len(a) > 0:
+            s += "  "
+            for m in a:
+                s += ("E" if m.elf else "G") + "(" + str(m.hp) + "), "
+            s = s[0:-2]
+        print(s)
 
-# Search for all squares that are in-range of enemies
-def find_enemies(cave, agents, agent):
+# Find open sqaures adjacent to enemies
+def find_enemies(cave, foes, agent):
     in_range = []
-    for e in agents:
-        if e.hp > 0 and e.is_enemy(agent):
-            if cave[e.row-1][e.col].clear():
-                in_range.append((e.row-1, e.col))
-            if cave[e.row+1][e.col].clear():
-                in_range.append((e.row+1, e.col))
-            if cave[e.row][e.col-1].clear():
-                in_range.append((e.row, e.col-1))
-            if cave[e.row][e.col+1].clear():
-                in_range.append((e.row, e.col+1))
+    for e in foes:        
+        if cave[e.row-1][e.col].clear():
+            in_range.append((e.row-1, e.col))
+        if cave[e.row+1][e.col].clear():
+            in_range.append((e.row+1, e.col))
+        if cave[e.row][e.col-1].clear():
+            in_range.append((e.row, e.col-1))
+        if cave[e.row][e.col+1].clear():
+            in_range.append((e.row, e.col+1))
     return in_range
-
-def crappy_pq(q, agent):
-    loc = 0
-    while loc < len(q):
-        if agent.row < q[loc].row or (agent.row == q[loc].row and agent.col < q[loc].col):
-            break
-        loc += 1
-    q.insert(loc, agent)
 
 # Unweighted Shortest Path algorithm from Data Structures & Algorithm Analysis In C++ 2nd Ed
 # by Mark Allen Weiss (pages 335-339)
@@ -76,11 +75,6 @@ def shortest_path(cave, start_r, start_c):
             w.path = v
             vertexes[(w.row, w.col)] = w
             q.append(w)
-        if not (v.row + 1, v.col) in vertexes and cave[v.row + 1][v.col].clear():
-            w = Vertex(v.row + 1, v.col, d)
-            w.path = v
-            vertexes[(w.row, w.col)] = w
-            q.append(w)
         if not (v.row, v.col - 1) in vertexes and cave[v.row][v.col - 1].clear():
             w = Vertex(v.row, v.col - 1, d)
             w.path = v
@@ -91,11 +85,19 @@ def shortest_path(cave, start_r, start_c):
             w.path = v
             vertexes[(w.row, w.col)] = w
             q.append(w)
+        if not (v.row + 1, v.col) in vertexes and cave[v.row + 1][v.col].clear():
+            w = Vertex(v.row + 1, v.col, d)
+            w.path = v
+            vertexes[(w.row, w.col)] = w
+            q.append(w)
     return vertexes
 
 def pick_movement(cave, agents, agent):
+    foes = [f for f in agents if f.hp > 0 and f.elf != agent.elf]
+    if len(foes) == 0:
+        raise NoFoes()
     vertexes = shortest_path(cave, agent.row, agent.col)
-    enemy_sqs = find_enemies(cave, agents, agent)
+    enemy_sqs = find_enemies(cave, foes, agent)
     shortest = Vertex(-1, -1, 10_000)
     for sq in enemy_sqs:
         if not sq in vertexes:
@@ -109,7 +111,7 @@ def pick_movement(cave, agents, agent):
                 shortest = v
 
     if shortest.distance == 10_000:
-        print("No viable move found!")
+        #print("No viable move found!")
         return None
     else:
         goal = vertexes[(shortest.row, shortest.col)]
@@ -121,10 +123,10 @@ def pick_movement(cave, agents, agent):
 def attack(cave, victim):
     victim.hp -= 3
     if victim.hp <= 0:
-        if victim.elf:
-            print("Elf killed!", victim.row, victim.col)
-        else:
-            print("Goblin killed!", victim.row, victim.col)
+        #if victim.elf:
+        #    print("Elf killed!", victim.row, victim.col)
+        #else:
+        #    print("Goblin killed!", victim.row, victim.col)
         cave[victim.row][victim.col].occ = None
         
 def evaluate_target(curr, new_v):
@@ -143,11 +145,11 @@ def pick_victim(cave, agent):
     victim = None
     if agent.is_enemy(cave[agent.row - 1][agent.col].occ):
         victim = evaluate_target(victim, cave[agent.row - 1][agent.col].occ)
-    elif agent.is_enemy(cave[agent.row][agent.col - 1].occ):
+    if agent.is_enemy(cave[agent.row][agent.col - 1].occ):
         victim = evaluate_target(victim, cave[agent.row][agent.col - 1].occ)
-    elif agent.is_enemy(cave[agent.row][agent.col + 1].occ):
+    if agent.is_enemy(cave[agent.row][agent.col + 1].occ):
         victim = evaluate_target(victim, cave[agent.row][agent.col + 1].occ)
-    elif agent.is_enemy(cave[agent.row + 1][agent.col].occ):
+    if agent.is_enemy(cave[agent.row + 1][agent.col].occ):
         victim = evaluate_target(victim, cave[agent.row + 1][agent.col].occ)
     return victim
         
@@ -170,9 +172,15 @@ def action(cave, agents, agent):
             agent.col = mv.col
             cave[agent.row][agent.col].occ = agent
 
+            # After moving, check to see if we can now attack someone
+            victim = pick_victim(cave, agent)
+            if victim != None:
+                print("Attack target at:", victim.row, victim.col, victim.elf)
+                attack(cave, victim)
+
 agents = []
 cave = []
-with open("cave_sm.txt") as file:
+with open("cave.txt") as file:
     lines = file.readlines()
 
 for r in range(len(lines)):
@@ -182,36 +190,24 @@ for r in range(len(lines)):
             row.append(Sqr(lines[r][c], None))
         elif lines[r][c] in ('G', 'E'):
             agent = Agent(lines[r][c] == 'E', r, c)
-            crappy_pq(agents, agent)
+            agents.append(agent)
             row.append(Sqr('.', agent))
     cave.append(row)
-
-dump_map(cave)
+    
 turn = 0
 while True:
-    for agent in agents:
-        action(cave, agents, agent)
+    try:
+        for agent in agents:
+            action(cave, agents, agent)
 
-    new_q = []
-    elf_count = 0
-    goblin_count = 0
-    for agent in agents:
-        if agent.hp > 0:
-            crappy_pq(new_q, agent)
-            if agent.elf:
-                elf_count += 1
-            else:
-                goblin_count += 1
-
-    if elf_count == 0 or goblin_count == 0:
-        # Battle is over!
+        agents = [a for a in agents if a.hp > 0]                     
+        agents = sorted(agents, key=lambda a:(a.row, a.col))
+        turn += 1
+        print("After turn:", turn)
+        dump_map(cave)
+    except NoFoes:
+        print("Final score:", sum([a.hp for a in agents if a.hp > 0], 0) * turn, "after", turn)
+        dump_map(cave)
+        print(len(agents))
         break
 
-    agents = new_q
-    print("Fighters remaining:", len(agents))
-    turn += 1
-    dump_agents(agents)
-    dump_map(cave)
-    input()
-    
-print("Final score:", sum([a.hp for a in agents], 0) * turn)
