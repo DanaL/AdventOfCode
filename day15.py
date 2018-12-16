@@ -1,5 +1,4 @@
 from collections import deque
-import sys
 
 class NoFoes(Exception):
     pass
@@ -111,7 +110,6 @@ def pick_movement(cave, agents, agent):
                 shortest = v
 
     if shortest.distance == 10_000:
-        #print("No viable move found!")
         return None
     else:
         goal = vertexes[(shortest.row, shortest.col)]
@@ -123,10 +121,6 @@ def pick_movement(cave, agents, agent):
 def attack(cave, victim):
     victim.hp -= 3
     if victim.hp <= 0:
-        #if victim.elf:
-        #    print("Elf killed!", victim.row, victim.col)
-        #else:
-        #    print("Goblin killed!", victim.row, victim.col)
         cave[victim.row][victim.col].occ = None
         
 def evaluate_target(curr, new_v):
