@@ -3,13 +3,17 @@ from collections import deque
 class NoFoes(Exception):
     pass
 
+class ElfKilled(Exception):
+    pass
+
 class Agent:
     def __init__(self, elf, r, c):
         self.elf = elf
         self.hp = 200
         self.row = r
         self.col = c
-
+        self.power = 3
+        
     def is_enemy(self, agent):
         return agent != None and self.elf != agent.elf
     
@@ -118,10 +122,12 @@ def pick_movement(cave, agents, agent):
 
         return goal
 
-def attack(cave, victim):
-    victim.hp -= 3
+def attack(cave, attacker, victim):
+    victim.hp -= attacker.power
     if victim.hp <= 0:
         cave[victim.row][victim.col].occ = None
+        if Q2 and victim.elf:
+            raise ElfKilled()
         
 def evaluate_target(curr, new_v):
     if curr == None:
@@ -148,6 +154,7 @@ def pick_victim(cave, agent):
     return victim
         
 def action(cave, agents, agent):
+    global VERBOSE
     if agent.hp <= 0:
         return
     
@@ -155,12 +162,12 @@ def action(cave, agents, agent):
     # them. Otherwise, move toward the nearest opponent and failing that, do nothing.
     victim = pick_victim(cave, agent)
     if victim != None:
-        print("Attack target at:", victim.row, victim.col, victim.elf)
-        attack(cave, victim)
+        if VERBOSE: print("Attack target at:", victim.row, victim.col, victim.elf)
+        attack(cave, agent, victim)
     else:
         mv = pick_movement(cave, agents, agent)
         if mv != None:
-            print("Move to:", mv.row, mv.col)
+            if VERBOSE: print("Move to:", mv.row, mv.col)
             cave[agent.row][agent.col].occ = None
             agent.row = mv.row
             agent.col = mv.col
@@ -169,39 +176,53 @@ def action(cave, agents, agent):
             # After moving, check to see if we can now attack someone
             victim = pick_victim(cave, agent)
             if victim != None:
-                print("Attack target at:", victim.row, victim.col, victim.elf)
-                attack(cave, victim)
+                if VERBOSE: print("Attack target at:", victim.row, victim.col, victim.elf)
+                attack(cave, agent, victim)
 
-agents = []
-cave = []
-with open("cave.txt") as file:
-    lines = file.readlines()
+def load_initial_state(filename, elf_power):
+    agents = []
+    cave = []
+    with open(filename) as file:
+        lines = file.readlines()
 
-for r in range(len(lines)):
-    row = []
-    for c in range(len(lines[r])):
-        if lines[r][c] in ('#', '.'):
-            row.append(Sqr(lines[r][c], None))
-        elif lines[r][c] in ('G', 'E'):
-            agent = Agent(lines[r][c] == 'E', r, c)
-            agents.append(agent)
-            row.append(Sqr('.', agent))
-    cave.append(row)
-    
-turn = 0
-while True:
-    try:
-        for agent in agents:
-            action(cave, agents, agent)
+    for r in range(len(lines)):
+        row = []
+        for c in range(len(lines[r])):
+            if lines[r][c] in ('#', '.'):
+                row.append(Sqr(lines[r][c], None))
+            elif lines[r][c] in ('G', 'E'):
+                agent = Agent(lines[r][c] == 'E', r, c)
+                agent.power = elf_power if agent.elf else 3
+                agents.append(agent)
+                row.append(Sqr('.', agent))
+        cave.append(row)
 
-        agents = [a for a in agents if a.hp > 0]                     
-        agents = sorted(agents, key=lambda a:(a.row, a.col))
-        turn += 1
-        print("After turn:", turn)
-        dump_map(cave)
-    except NoFoes:
-        print("Final score:", sum([a.hp for a in agents if a.hp > 0], 0) * turn, "after", turn)
-        dump_map(cave)
-        print(len(agents))
-        break
+    return (agents, cave)
+
+Q2 = True
+VERBOSE = False
+elf_power = 3
+game_complete = False
+while not game_complete:
+    turn = 0
+    agents, cave = load_initial_state("cave.txt", elf_power)
+    while True:
+        try:
+            for agent in agents:
+                action(cave, agents, agent)
+            agents = [a for a in agents if a.hp > 0]                     
+            agents = sorted(agents, key=lambda a:(a.row, a.col))
+            turn += 1
+            if VERBOSE:
+                print("After turn:", turn)
+                dump_map(cave)
+        except NoFoes:
+            print("Final score:", sum([a.hp for a in agents if a.hp > 0], 0) * turn, "after", turn)
+            dump_map(cave)
+            game_complete = True
+            break
+        except ElfKilled:
+            elf_power += 1
+            print("Elf was killed. Bumping elf power to", elf_power)
+            break
 
