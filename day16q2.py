@@ -13,105 +13,60 @@ class Machine:
                      12 : self.ex_addi, 13 : self.ex_eqri, 14 : self.ex_mulr,
                      15 : self.ex_gtrr}
         
-    def ex_addr(self, instr):
-        output_reg = instr[3]
-        reg_a = instr[1]
-        reg_b = instr[2]
-        self.regs[output_reg] = self.regs[reg_a] + self.regs[reg_b]
+    def ex_addr(self, a, b, r):
+        self.regs[r] = self.regs[a] + self.regs[b]
         
-    def ex_addi(self, instr):
-        output_reg = instr[3]
-        reg_a = instr[1]
-        val_b = instr[2]
-        self.regs[output_reg] = self.regs[reg_a] + val_b
+    def ex_addi(self, a, b, r):
+        self.regs[r] = self.regs[a] + b
         
-    def ex_mulr(self, instr):
-        output_reg = instr[3]
-        reg_a = instr[1]
-        reg_b = instr[2]
-        self.regs[output_reg] = self.regs[reg_a] * self.regs[reg_b]
+    def ex_mulr(self, a, b, r):
+        self.regs[r] = self.regs[a] * self.regs[b]
         
-    def ex_muli(self, instr):
-        output_reg = instr[3]
-        reg_a = instr[1]
-        val_b = instr[2]
-        self.regs[output_reg] = self.regs[reg_a] * val_b
+    def ex_muli(self, a, b, r):
+        self.regs[r] = self.regs[a] * b
 
-    def ex_banr(self, instr):
-        output_reg = instr[3]
-        reg_a = instr[1]
-        reg_b = instr[2]
-        self.regs[output_reg] = self.regs[reg_a] & self.regs[reg_b]
+    def ex_banr(self, a, b, r):
+        self.regs[r] = self.regs[a] & self.regs[b]
 
-    def ex_bani(self, instr):
-        output_reg = instr[3]
-        reg_a = instr[1]
-        val_b = instr[2]
-        self.regs[output_reg] = self.regs[reg_a] & val_b
+    def ex_bani(self, a, b, r):
+        self.regs[r] = self.regs[a] & b
 
-    def ex_borr(self, instr):
-        output_reg = instr[3]
-        reg_a = instr[1]
-        reg_b = instr[2]
-        self.regs[output_reg] = self.regs[reg_a] | self.regs[reg_b]
+    def ex_borr(self, a, b, r):
+        self.regs[r] = self.regs[a] | self.regs[b]
 
-    def ex_bori(self, instr):
-        output_reg = instr[3]
-        reg_a = instr[1]
-        val_b = instr[2]
-        self.regs[output_reg] = self.regs[reg_a] | val_b
+    def ex_bori(self, a, b, r):
+        self.regs[r] = self.regs[a] | b
 
-    def ex_setr(self, instr):
-        output_reg = instr[3]
-        reg_a = instr[1]
-        self.regs[output_reg] = self.regs[reg_a]
+    def ex_setr(self, a, b, r):
+        self.regs[r] = self.regs[a]
 
-    def ex_seti(self, instr):
-        output_reg = instr[3]
-        val_a = instr[1]
-        self.regs[output_reg] = val_a
+    def ex_seti(self, a, b, r):
+        self.regs[r] = a
         
-    def ex_gtir(self, instr):
-        output_reg = instr[3]
-        val_a = instr[1]
-        reg_b = instr[2]
-        self.regs[output_reg] = 1 if val_a > self.regs[reg_b] else 0
+    def ex_gtir(self, a, b, r):
+        self.regs[r] = 1 if a > self.regs[b] else 0
 
-    def ex_gtri(self, instr):
-        output_reg = instr[3]
-        reg_a = instr[1]
-        val_b = instr[2]
-        self.regs[output_reg] = 1 if self.regs[reg_a] > val_b else 0
+    def ex_gtri(self, a, b, r):
+        self.regs[r] = 1 if self.regs[a] > b else 0
 
-    def ex_gtrr(self, instr):
-        output_reg = instr[3]
-        reg_a = instr[1]
-        reg_b = instr[2]
-        self.regs[output_reg] = 1 if self.regs[reg_a] > self.regs[reg_b] else 0
+    def ex_gtrr(self, a, b, r):
+        self.regs[r] = 1 if self.regs[a] > self.regs[b] else 0
 
-    def ex_eqir(self, instr):
-        output_reg = instr[3]
-        val_a = instr[1]
-        reg_b = instr[2]
-        self.regs[output_reg] = 1 if val_a == self.regs[reg_b] else 0
+    def ex_eqir(self, a, b, r):
+        self.regs[r] = 1 if a == self.regs[b] else 0
 
-    def ex_eqri(self, instr):
-        output_reg = instr[3]
-        reg_a = instr[1]
-        val_b = instr[2]
-        self.regs[output_reg] = 1 if self.regs[reg_a] == val_b else 0
+    def ex_eqri(self, a, b, r):
+        self.regs[r] = 1 if self.regs[a] == b else 0
 
-    def ex_eqrr(self, instr):
-        output_reg = instr[3]
-        reg_a = instr[1]
-        reg_b = instr[2]
-        self.regs[output_reg] = 1 if self.regs[reg_a] == self.regs[reg_b] else 0
+    def ex_eqrr(self, a, b, r):
+        self.regs[r] = 1 if self.regs[a] == self.regs[b] else 0
 
     def ex_instr(self, instr):
-        if instr[0] not in self.ops:
-            raise Exception(f"Opcode {instr[0]} not defined!")
+        op, a, b, r = instr
+        if op not in self.ops:
+            raise Exception(f"Opcode {op} not defined!")
 
-        self.ops[instr[0]](instr)
+        self.ops[op](a, b, r)
 
 m = Machine()
 with open("program.txt") as file:
