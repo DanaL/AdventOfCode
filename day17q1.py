@@ -8,9 +8,27 @@ def replace_ch_at_index(s, ch, index):
 
 def count_water(scan):
     total = 0
-    for j in range(5, len(scan)):
-        total += sum([1 for ch in scan[j] if ch in ("~", "|")])
+    for row in scan[5:]:
+        total += sum([1 for ch in row if ch in ("~", "|")])
 
+    return total
+
+def count_standing_water(scan):
+    total = 0
+    for row in scan:
+        c = 0
+        while c < len(row):
+            if row[c] == "#" and row[c+1] == "~":
+                c += 1
+                start = c
+                while c < len(row) and row[c] == "~":
+                    row = replace_ch_at_index(row, "*", c)
+                    c += 1
+                if row[c] == "#":
+                    total += (c - start)
+                    c -= 1
+            c += 1
+        print(row)
     return total
 
 def in_resevoir(scan, r, c):
@@ -32,13 +50,6 @@ def in_resevoir(scan, r, c):
 
     return right and left and sand > 0
 
-def fill_resevoir(scan, r, source_col, left, bottom, spill_points):
-    while in_resevoir(scan, r, source_col - left):
-        spill_points.extend(flow_sideways(scan, r, source_col, left, bottom))
-        if len(spill_points) > 0: break
-        r -= 1
-    return r
-
 def pump_water(scan, r, source_col, left, bottom):
     while r <= bottom and scan[r][source_col-left] in (".", "|"):
         scan[r] = replace_ch_at_index(scan[r], "|", source_col-left)
@@ -52,6 +63,7 @@ def pump_water(scan, r, source_col, left, bottom):
         while True:
             r -= 1
             overflow = False
+            is_res = in_resevoir(scan, r, col)
             # flow right
             for j in range(col, len(scan[r])):
                 if scan[r][j] == "#": break
@@ -71,7 +83,8 @@ def pump_water(scan, r, source_col, left, bottom):
                     overflow = True
                     break
                 else:
-                    scan[r] = replace_ch_at_index(scan[r], "~", j)
+                    ch = "~" if is_res else "~"
+                    scan[r] = replace_ch_at_index(scan[r], ch, j)
             if overflow: return
         
 clay = set()
@@ -114,6 +127,6 @@ for sq in clay:
 
 pump_water(scan, 1, col_of_spring, left, bottom)
 
-#dump_scan(scan)
-print(top, bottom)
 print(count_water(scan))
+print(count_standing_water(scan))
+#dump_scan(scan)
