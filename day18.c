@@ -28,19 +28,6 @@ void dump_grid(char **grid, int row_count) {
         puts(grid[j]);
 }
 
-int calc_q1_score(char **grid, int height, int width) {
-    int trees = 0, ly = 0;
-
-    for (int r = 0; r < height; r++) {
-        for (int c = 0; c < width; c++) {
-            if (grid[r][c] == TREES) ++trees;
-            if (grid[r][c] == LUMBER_YARD) ++ly;
-        }
-    }
-
-    return trees * ly;
-}
-
 int calc_score(char **grid, int height, int width) {
     int trees = 0, ly = 0;
 
@@ -52,18 +39,6 @@ int calc_score(char **grid, int height, int width) {
     }
 
     return trees * ly;
-}
-
-int calc_lumber(char **grid, int height, int width) {
-    int trees = 0;
-
-    for (int r = 0; r < height; r++) {
-        for (int c = 0; c < width; c++) {
-            if (grid[r][c] == TREES) ++trees;
-        }
-    }
-
-    return trees;
 }
 
 int count_adj(char **grid, char target, int r, int c, int height, int width) {
@@ -135,18 +110,24 @@ int main(int argc, char **argv) {
     }
     fclose(f);
 
-    int num_of_generations = 100;
+    int num_of_generations = 1000;
     char **copy;
-    int lumber, prev_lumber;
+    int score, prev_score;
     for (int j = 0; j < num_of_generations; j++) {
         copy = copy_grid(grid, row_count);
         do_generation(grid, copy, row_count, strlen(grid[0]));
         free_grid(grid, row_count);
         grid = copy;
+
+        if (j > 1) {
+            prev_score = score;
+            score = calc_score(grid, row_count, strlen(grid[0]));
+            printf("%d, %d, %d\n", j, score, score - prev_score);
+        }
     }
 
-    dump_grid(grid, row_count);
-    
+    //dump_grid(grid, row_count);
+
     free_grid(grid, row_count);
 
     return 0;
