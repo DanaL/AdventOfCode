@@ -28,7 +28,6 @@ def count_standing_water(scan):
                     total += (c - start)
                     c -= 1
             c += 1
-        print(row)
     return total
 
 def in_resevoir(scan, r, c):
@@ -56,7 +55,7 @@ def pump_water(scan, r, source_col, left, bottom):
         r += 1
 
     if r > bottom: return
-    
+
     col = source_col - left
     sq = scan[r][col]
     if sq == "#" or (sq == "~" and in_resevoir(scan, r - 1, col)):
@@ -85,7 +84,7 @@ def pump_water(scan, r, source_col, left, bottom):
                 else:
                     scan[r] = replace_ch_at_index(scan[r], "~", j)
             if overflow: return
-        
+
 clay = set()
 top = 10_000
 bottom = 0
@@ -128,4 +127,4 @@ pump_water(scan, 1, col_of_spring, left, bottom)
 
 print(count_water(scan))
 print(count_standing_water(scan))
-#dump_scan(scan)
+dump_scan(scan)
