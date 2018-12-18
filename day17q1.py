@@ -83,8 +83,7 @@ def pump_water(scan, r, source_col, left, bottom):
                     overflow = True
                     break
                 else:
-                    ch = "~" if is_res else "~"
-                    scan[r] = replace_ch_at_index(scan[r], ch, j)
+                    scan[r] = replace_ch_at_index(scan[r], "~", j)
             if overflow: return
         
 clay = set()
