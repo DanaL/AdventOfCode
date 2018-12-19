@@ -7,7 +7,8 @@ class Example:
 class Machine:
     def __init__(self):
         self.regs = [0, 0, 0, 0, 0, 0]
-        self.instruction_ptr = 0
+        self.instr_ptr = 0
+        self.instr_val = 0
         self.ops = { "gtri" : self.ex_gtri, "bani" : self.ex_bani, "eqrr" : self.ex_eqrr, "gtir" : self.ex_gtir,
                      "eqir" : self.ex_eqir, "bori" : self.ex_bori, "seti" : self.ex_seti, "setr" : self.ex_setr,
                      "addr" : self.ex_addr, "borr" : self.ex_borr, "muli" : self.ex_muli, "banr" : self.ex_banr,
@@ -67,17 +68,31 @@ class Machine:
         if op not in self.ops:
             raise Exception(f"Opcode {op} not defined!")
 
+        print(instr, m.instr_val, m.regs,)
+        m.regs[m.instr_ptr] = m.instr_val
         self.ops[op](a, b, r)
-
+        m.instr_val = m.regs[m.instr_ptr]
+        m.instr_val += 1
+        print("                   ",m.regs)
+        
+    def execute_program(self, program):
+        while m.instr_val < len(program):
+            self.ex_instr(program[m.instr_val])
+                    
 m = Machine()
+program = []
 with open("program2.txt") as file:
     for line in file.readlines():
         if line[0:3] == "#ip":
-            m.instruction_ptr = int(line[line.find(" "):])
+            m.instr_ptr = int(line[line.find(" "):])
+            m.instr_val = 0
         else:
             pieces = line.strip().split(" ")
             instr = [pieces[0]]
             instr.extend([int(c) for c in pieces[1:]])
-            m.ex_instr(instr)
+            program.append(instr)
+
+
+m.execute_program(program)
 
 print(m.regs)
