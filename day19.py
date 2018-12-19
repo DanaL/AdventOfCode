@@ -92,7 +92,6 @@ with open("program2.txt") as file:
             instr.extend([int(c) for c in pieces[1:]])
             program.append(instr)
 
-
 m.execute_program(program)
 
 print(m.regs)
