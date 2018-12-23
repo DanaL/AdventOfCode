@@ -2,13 +2,6 @@ import sys
 from enum import Enum
 from heapq import *
 
-class Vertex:
-    def __init__(self):
-        self.adj = []
-        self.known = False
-        self.distance = sys.maxsize
-        self.prev = None
-        
 class ToolState(Enum):
     TORCH = 0
     GEAR = 1
@@ -19,184 +12,80 @@ class ToolState(Enum):
     
 moves = [(0, -1), (1, 0), (0, 1), (-1, 0)]
 
-def calc_edges(next_sq, state, nr, nc):
-    edges = []
-    if state == ToolState.TORCH:
-        if next_sq == "=":
-            # Using a torch, have to switch to move to water
-            edges.append((ToolState.NONE, 8, (nc, nr)))
-            edges.append((ToolState.GEAR, 8, (nc, nr)))
-        elif next_sq == ".":
-            edges.append((ToolState.TORCH, 1, (nc ,nr)))
-            edges.append((ToolState.GEAR, 8, (nc, nr)))
-        elif next_sq == "|":
-            edges.append((ToolState.TORCH, 1, (nc, nr)))
-            edges.append((ToolState.NONE, 8, (nc, nr)))
-    elif state == ToolState.GEAR:
-        if next_sq == "=":
-            edges.append((ToolState.GEAR, 1, (nc, nr)))
-            edges.append((ToolState.NONE, 8, (nc, nr)))
-        elif next_sq == "|":
-            edges.append((ToolState.TORCH, 8, (nc, nr)))
-            edges.append((ToolState.NONE, 8, (nc, nr)))
-        elif next_sq == ".":
-            edges.append((ToolState.GEAR, 1, (nc, nr)))
-            edges.append((ToolState.TORCH, 8, (nc, nr)))
-    elif state == ToolState.NONE:
-        if next_sq == "=":
-            edges.append((ToolState.NONE, 1, (nc, nr)))
-            edges.append((ToolState.GEAR, 8, (nc, nr)))
-        elif next_sq == ".":
-            edges.append((ToolState.GEAR, 8, (nc, nr)))
-            edges.append((ToolState.TORCH, 8, (nc, nr)))
-        elif next_sq == "|":
-            edges.append((ToolState.NONE, 1, (nc, nr)))
-            edges.append((ToolState.TORCH, 8, (nc, nr)))
+erosion = { }
+def g_index(x, y):
+    global erosion
+    if x == 0 and y == 0: return 0
+    if x == 13 and y == 704: return 0
+    if y == 0: return x * 16807
+    if x == 0: return y * 48271
 
-    return edges
+    e1 = e_lvl_from_gi(x-1,y)
+    e2 = e_lvl_from_gi(x, y-1)
+    return e1 * e2
 
-def in_bounds(x, y, depth, width):
-    if x < 0 or y < 0 or x >= width or y >= depth:
-        return False
-    return True
-                        
-def gen_adjacencies(cave, vertexes):
+def e_lvl_from_gi(x, y):
+    global erosion
+    if (x, y) in erosion:
+        return erosion[(x, y)]
+
+    e = (g_index(x, y) + 9465) % 20183
+    erosion[(x, y)] = e
+    return e
+
+def get_ch(x, y):
+    global erosion
+    e = e_lvl_from_gi(x, y)        
+    em = e % 3
+    if em == 0: return "."
+    elif em == 1: return "="
+    elif em == 2: return "|"
+    
+def get_adj(q, visited, cost, tool, coord):
     global moves
-    depth = len(cave)
-    width = len(cave[0])
-    
-    for r in range(len(cave)):
-        for c in range(len(cave[r])):
-            # For each of the terrain types, we can be in two tool states.
-            # Each of the two tool states can have two vertexes to the adjoining squares
-            sq = cave[r][c]
-            if sq == ".":
-                states = (ToolState.GEAR, ToolState.TORCH)
-            elif sq == "|":
-                states = (ToolState.NONE, ToolState.TORCH)
-            elif sq == "=":
-                states = (ToolState.NONE, ToolState.GEAR)
+    for mv in moves:
+        new_coord = (coord[0] + mv[0], coord[1] + mv[1])
+        if new_coord[0] < 0 or new_coord[1] < 0: continue
+        sq = get_ch(new_coord[0], new_coord[1])
+        if sq == "." and tool == ToolState.NONE: continue
+        if sq == "|" and tool == ToolState.GEAR: continue
+        if sq == "=" and tool == ToolState.TORCH: continue
+        if (tool, new_coord) in visited and visited[(tool, new_coord)] <= cost: continue
 
-            for state in states:
-                v = (state, (c, r))
-                for mv in moves:
-                    nr, nc = r+mv[1], c+mv[0]
-                    if not in_bounds(nc, nr, depth, width): continue
-                    if v not in vertexes:
-                        vertexes[v] = Vertex()
-                    vertexes[v].adj.extend(calc_edges(cave[nr][nc], state, nr, nc))
+        visited[(tool, new_coord)] = cost
+        heappush(q, [cost, tool, new_coord])
+        
+def find_path(goal, initial):
+    visited = { initial:0 }
+    q = [(0, initial[0], initial[1])] # cost, tool, co-ord
 
-def dijkstra(vertexes, initial, goal):
-    q = [[0, initial]]
-    shortest = sys.maxsize
-    prev_node = None
-    
     while q:
-        n = heappop(q)
-        v = vertexes[n[1]]
-        v.known = True
-
-        #print(n[1])
-        for edge in v.adj:
-            # adjacencies stored as (ToolState, distance, coord)
-            key = (edge[0], edge[2])
-            kv = vertexes[key]
-            cost = v.distance + edge[1]
-            
-            if cost < kv.distance:
-                kv.distance = cost
-                kv.prev = n[1]
-                #print("   ", key, cost)
-            if kv.known: continue
-            kv.known = True
-
-            if edge[2] == goal:
-                print("Cost:", n[1], cost, edge)
-            if edge[2] == goal and cost < shortest:
-                shortest = cost
-                vertexes[key].prev = n[1]
-                prev_node = key
-            heappush(q, [cost, key])
-            
-            """
-            
-            
-            
-            
-            kv.prev = n[1]
-            
-            if edge[2] == goal and cost < shortest:
-                print("Goal?", edge, goal)
-                print("  ", n)
-                prev_node = k
-                shortest = cost
-                vertexes[k].prev = n[1]
-            if kv.distance > shortest:
-                # Don't bother continuing if a path is going to
-                # be bigger than the currently known shortest path
-                continue
-
-            heap_item = [cost, k]
-            
-            """
-    return (shortest, prev_node)
-
-def dump_map(cave):
-    for r in cave:
-        print(r)
+        cost, tool, coord = heappop(q)
+        sq = get_ch(coord[0], coord[1])
+        if (tool, coord) == (ToolState.TORCH, goal):
+            return cost
         
-def dump_map_with_path(cave, vertexes, v, goal):
-    path = set()
-    nodes = []
-    while v != None:
-        path.add(v[1])
-        node = vertexes[v]
-        nodes.append(v)
-        v = node.prev
-    nodes.reverse()
+        get_adj(q, visited, cost + 1, tool, coord)
 
-    for n in nodes:
-        print(n, vertexes[n].distance)
-
-
-    
-    for r in range(len(cave)):
-        s = ""
-        for c in range(len(cave[r])):
-            if (c, r) == goal:
-                s += 'X'
-            elif (c, r) == (0, 0):
-                s += 'M'
-            elif (c, r) in path:
-                s += '*'
-            else:
-                s += cave[r][c]
-        print(s)
+        if sq == "." and tool == ToolState.TORCH:
+            get_adj(q, visited, cost + 8, ToolState.GEAR, coord)
+        elif sq == "." and tool == ToolState.GEAR:
+            get_adj(q, visited, cost + 8, ToolState.TORCH, coord)
+        elif sq == "|" and tool == ToolState.NONE:
+            get_adj(q, visited, cost + 8, ToolState.TORCH, coord)
+        elif sq == "|" and tool == ToolState.TORCH:
+            get_adj(q, visited, cost + 8, ToolState.NONE, coord)
+        elif sq == "=" and tool == ToolState.GEAR:
+            get_adj(q, visited, cost + 8, ToolState.NONE, coord)
+        elif sq == "=" and tool == ToolState.NONE:
+            get_adj(q, visited, cost + 8, ToolState.GEAR, coord)
         
-with open("rescue_cave_sm.txt", "r") as f:
-    cave = [line.strip() for line in f.readlines()]
 
-cave = ['.=|', '.=.', '=|.']
-tx = 2
-ty = 2
+tx = 13
+ty = 704
 
 initial = (ToolState.TORCH, (0, 0))
-vertexes = {}
-gen_adjacencies(cave, vertexes)
 
-v = vertexes[initial]
-v.distance = 0
+result = find_path((tx, ty), initial)
+print(result)
 
-res = dijkstra(vertexes, initial, (tx, ty))
-print("Shortest:", res[0], res[1])
-dump_map(cave)
-print("")
-dump_map_with_path(cave, vertexes, res[1], (tx, ty))
-#for edge in vertexes[(ToolState.GEAR, (1, 0))]:
-#    print(edge)
-
-#for e in vertexes[(ToolState.TORCH, (0, 0))].adj:
-#    print(e)
-#print("")
-#for e in vertexes[(ToolState.NONE, (1, 0))].adj:
-#    print(e)
