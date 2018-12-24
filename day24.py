@@ -1,3 +1,8 @@
+from copy import deepcopy
+
+class Stalemate(Exception):
+    pass
+
 class Group:
     def __init__(self, type):
         self.weaknesses = set()
@@ -56,7 +61,7 @@ def dump_group(g):
     print("  ", g.weaknesses)
     print("  ", g.immunities)
 
-def fight(immunes, infections, verbose):
+def fight(immunes, infections, verbose, q2):
     x = 1
     while True:
         prev_targets = set()
@@ -67,6 +72,7 @@ def fight(immunes, infections, verbose):
             pick_target(tori, immunes, prev_targets)
 
         # Step 2, do the attacks
+        total_casualties = 0
         fighters = sorted(immunes + infections, key=lambda t: t.init, reverse=True)
         for tori in fighters:
             if tori.target == None: continue
@@ -75,12 +81,18 @@ def fight(immunes, infections, verbose):
             killed = aa // tori.target.hp
             units_before = tori.target.units
             tori.target.units -= killed
+            total_casualties += killed # I don't think I need to worry about overkill in this count
+                                       # ie., 17 units killed in a group that has only 10 left
             if verbose:
                 print("Round:", x)
                 print(f"{tori.type} {tori.id} attacks {tori.target.type} {tori.target.id} for {aa}, \
                     {killed} of {units_before} killed.")
             tori.target.effective_power = tori.target.dmg * tori.target.units
 
+        if total_casualties == 0:
+            print("Immunes:", sum([i.units for i in immunes if i.units]))
+            raise Stalemate()
+        
         # after round, remove dead groups, check effective power
         immunes = [i for i in immunes if i.units > 0]
         infections = [i for i in infections if i.units > 0]
@@ -89,7 +101,10 @@ def fight(immunes, infections, verbose):
         x += 1
         if not immunes or not infections: break
 
-    return sum([i.units for i in immunes + infections if i.units > 0])
+    if q2:
+        return sum([i.units for i in immunes if i.units > 0])
+    else:
+        return sum([i.units for i in immunes + infections if i.units > 0])
 
 immunes = []
 infections = []
@@ -126,4 +141,21 @@ with open("armies.txt", "r") as f:
         else: infections.append(g)
         group_id += 1
 
-print("Q1:",fight(immunes, infections, False))
+curr_immunes = deepcopy(immunes)
+curr_infections = deepcopy(infections)
+print("Q1:",fight(curr_immunes, curr_infections, False, False))
+
+survivors = 0
+boost = 0
+while not survivors:
+    boost += 1
+    curr_immunes = deepcopy(immunes)
+    curr_infections = deepcopy(infections)
+    for i in curr_immunes:
+        i.dmg += boost
+        i.effective_power = i.dmg * i.units
+    try:
+        survivors = fight(curr_immunes, curr_infections, False, True)
+    except Stalemate:
+        print("Stalemate at boost:,", boost)
+print("Q2:", survivors, " survivors at", boost, "boost")
