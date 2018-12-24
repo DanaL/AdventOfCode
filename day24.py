@@ -56,10 +56,9 @@ def dump_group(g):
     print("  ", g.weaknesses)
     print("  ", g.immunities)
 
-def fight(immunes, infections):
+def fight(immunes, infections, verbose):
     x = 1
     while True:
-        print("Round:", x)
         prev_targets = set()
         # Step 1, pick targets
         for tori in sorted(immunes, key=lambda t: (t.effective_power, t.init), reverse=True):
@@ -76,7 +75,10 @@ def fight(immunes, infections):
             killed = aa // tori.target.hp
             units_before = tori.target.units
             tori.target.units -= killed
-            print(f"{tori.type} {tori.id} attacks {tori.target.type} {tori.target.id} for {aa}, {killed} of {units_before} killed.")
+            if verbose:
+                print("Round:", x)
+                print(f"{tori.type} {tori.id} attacks {tori.target.type} {tori.target.id} for {aa}, \
+                    {killed} of {units_before} killed.")
             tori.target.effective_power = tori.target.dmg * tori.target.units
 
         # after round, remove dead groups, check effective power
@@ -87,11 +89,11 @@ def fight(immunes, infections):
         x += 1
         if not immunes or not infections: break
 
-    print(sum([i.units for i in immunes + infections if i.units > 0]))
+    return sum([i.units for i in immunes + infections if i.units > 0])
 
 immunes = []
 infections = []
-x = 0
+group_id = 0
 with open("armies.txt", "r") as f:
     imm = False
     for line in f.readlines():
@@ -101,12 +103,12 @@ with open("armies.txt", "r") as f:
             imm = True
             continue
         if line == "Infection:":
-            x = 0
+            group_id = 0
             imm = False
             continue
         pieces = line.split(" ")
         g = Group("Immume" if imm else "Infection")
-        g.id = x
+        g.id = group_id
         g.units = int(pieces[0])
         g.hp = int(pieces[4])
         g.init = int(pieces[-1])
@@ -122,6 +124,6 @@ with open("armies.txt", "r") as f:
             find_weaknesses(line[line.find("(")+1:line.find(")")], g)
         if imm: immunes.append(g)
         else: infections.append(g)
-        x += 1
+        group_id += 1
 
-fight(immunes, infections)
+print("Q1:",fight(immunes, infections, False))
