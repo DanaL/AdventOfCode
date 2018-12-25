@@ -32,13 +32,11 @@ pts = set()
 with open("4d_pts.txt", "r") as f:
     for line in f.readlines():
         p = tuple([int(n) for n in line.strip().split(",")])
-        pts.add(DSNode(p))
-
-
-for pt1 in pts:
-    for pt2 in pts:
-        if pt1.value != pt2.value and manhattan(pt1.value, pt2.value) <= 3:
-            union(pt1, pt2)
+        node = DSNode(p)
+        for pt in pts:
+            if node.value != pt.value and manhattan(node.value, pt.value) <= 3:
+                union(node, pt)
+        pts.add(node)
 
 constellations = set()
 for pt in pts:
