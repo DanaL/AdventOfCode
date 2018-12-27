@@ -1,7 +1,6 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 
 #define NUM_OF_BOTS 1000
 
@@ -68,7 +67,6 @@ int cmp_searchboxes(searchbox *a, searchbox *b) {
 }
 
 void heap_push(heapq *q, searchbox *box) {
-	/* need to check if the heap is full */
 	if (q->heap_size >= HEAP_LENGTH) {
 		puts("Oops...heap exceeded max size");
 		exit(0);
@@ -116,21 +114,6 @@ typedef struct ranges {
     long min_z, max_z;
 } ranges;
 
-typedef struct candidate {
-    long x, y, z;
-    int nearby;
-    int prev;
-    int delta;
-    int best;
-} candidate;
-
-long rand_coord(long min, long max) {
-    /* Straight out of the comp.lang.c faq */
-    long r = min + rand() / (RAND_MAX / (max - min + 1) + 1);
-
-    return r;
-}
-
 void q2(coord bots[], int num_of_bots) {
     ranges r;
     r.min_x = LONG_MAX, r.max_x = LONG_MIN;
@@ -152,7 +135,7 @@ void q2(coord bots[], int num_of_bots) {
             r.max_z = bots[j].z;
     }
 
-	// And now, the search boxes. I need to start with a cube big enough to cover the full
+	// Make the search boxes. I need to start with a cube big enough to cover the full
 	// set of points, then split it into smaller and smaller boxes until I find a box whose
 	// side length is 1 and which covers the most bots. Search boxes are stored as an (x, y)
 	// point and a side-length. The (x, y) point are the "bottom-left" corner of the box.
@@ -190,7 +173,7 @@ void q2(coord bots[], int num_of_bots) {
 
 		long new_side_length = box->side_length / 2;
 
-		/* Now create the eight sub-boxes */
+		/* Split the box into eight sub-boxes if it wasn't the one we were looking for */
 		searchbox *nb;
 
 		nb = malloc(sizeof(searchbox));
@@ -244,17 +227,11 @@ void q2(coord bots[], int num_of_bots) {
 		free(box);
 	}
 
-	/*
-	puts("Remaining:\n");
+	/* Gonna be polite and free up any leftover cubes */
 	while (q.heap_size > 0) {
 		searchbox *b = heap_pop(&q);
-		if (b->points_covered == 977) {
-			printf("Points covered: %d (%ld %ld %ld)\n", b->points_covered, b->x, b->y, b->z);
-			printf("        Distance from origin: %ld\n", manhattan(b->x, b->y, b->z, 0, 0, 0));
-		}
+		free(b);
 	}
-	*/
-	/* Free any remaining boxes on the heap */
 }
 
 void q1(coord bots[], int num_of_bots) {
