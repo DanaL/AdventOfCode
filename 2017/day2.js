@@ -35,7 +35,7 @@ let main = async () => {
 
 	sheet = [];	
 	lines.forEach((row) => {
-		sheet.push(row.split("\t").map(c => parseInt(c)));
+		sheet.push(row.split("\t").map(Number));
 	});
 
 	q1(sheet);
