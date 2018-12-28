@@ -7,6 +7,20 @@ let readInput = async () => {
     return lines;
 }
 
+let q2 = (jmps) => {
+	var steps = 0;
+	var pos = 0;
+	while (pos >= 0 && pos < jmps.length) {
+		let prev = pos;
+		let offset = jmps[pos]
+		pos += jmps[pos]; 
+		jmps[prev] += offset >= 3 ? -1 : 1;
+		++steps;
+	}
+
+	console.log("Q2: ", steps);
+}
+
 let q1 = (jmps) => {
 	var steps = 0;
 	var pos = 0;
@@ -22,9 +36,9 @@ let q1 = (jmps) => {
 
 let main = async () => {
     const lines = await readInput();
-	const jmps = lines.map(Number);
 
-	q1(jmps);
+	q1(lines.map(Number));
+	q2(lines.map(Number));
 }
 
 main();
