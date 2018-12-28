@@ -19,7 +19,7 @@ let redistribute = (mem_banks, index) => {
 	}
 }
 
-let q1 = (mem_banks) => {
+let q = (mem_banks) => {
 	const seen_configs = new Set();
 	let config_id = mem_banks.join(",");
 	seen_configs.add(config_id);
@@ -37,7 +37,7 @@ let q1 = (mem_banks) => {
 			seen_configs.add(config_id);
 	} while (true); 
 
-	console.log("Q2: " + cycles);
+	return cycles;
 }
 
 let main = async () => {
@@ -46,7 +46,11 @@ let main = async () => {
 	//const initial = "0	2	7	0";
 	const mem_banks = initial.split("\t").map(Number);
 	
-	q1(mem_banks);
+	console.log("Q1: 1st cycle after: " +q(mem_banks));
+
+	// For q2 we just need to redistribute again, starting where we left off
+	// in q1??
+	console.log("Q2: 2nd cycle after: " +q(mem_banks));
 }
 
 main();
