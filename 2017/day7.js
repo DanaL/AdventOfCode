@@ -8,9 +8,12 @@ let readInput = async () => {
     return lines;
 }
 
-let add_program = (programs, prgm) => {
-	if (!programs.includes(prgm))
+let add_program = (programs, prgm, weight) => {
+	if (!(prgm in programs)) 
 		programs[prgm] = { name:prgm, dependencies:[] };
+
+	if (weight > 0)
+		programs[prgm].weight = weight;
 }
 
 // Format will be:
@@ -19,15 +22,21 @@ let q1 = (prgrms) => {
 	programs = [];
 	for (line of prgrms) {
 		let words = line.split(" ");
-		add_program(programs, words[0]);
+		weight = parseInt(line.match(/(\d+)/g));
+		add_program(programs, words[0], weight);
 		words.slice(3).forEach(w => {
-			let depends_on = w.slice(0, 4);
+			let comma = w.indexOf(",");
+			let depends_on = w.slice(0, comma > -1 ? comma : w.length);
 			add_program(programs, depends_on);
 			programs[depends_on].dependencies.push(words[0]);
 		});
 	}
-	
-	console.log(programs);
+
+	for (k in programs) {
+		if (programs[k].dependencies.length === 0)
+			var bottom = k;	
+	}
+	console.log("Q1: " + bottom);
 }
 
 let main = async () => {
