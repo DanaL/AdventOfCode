@@ -5,11 +5,11 @@ DSNode = (val) => {
         value:val,
 
         find() {
-            if (this.parent === null)
+            if (this.parent === null || this.parent === this)
                 return this;
             else {
                 let n = this.parent;
-                while (n.parent != null)
+                while (n.parent !== null && n.parent !== n)
                     n = n.parent;
                 this.parent = n;
                 return n;
