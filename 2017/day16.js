@@ -43,6 +43,23 @@ let dance = (dancers, steps) => {
 	return dancers;
 }
 
+/* Look for where the dances cycle and then figure out
+	which one will be the billionth ieration */
+let dance_dance_dance = (dancers, steps) => {
+	let seen = new Set();
+	seen.add(dancers.join(""));
+	let dances = ["abcdefghijklmnop"];
+	while (true) {
+		dancers = dance(dancers, steps);
+		if (seen.has(dancers.join("")))
+			break;
+		seen.add(dancers.join(""));
+		dances.push(dancers.join(""));
+	}
+
+	console.log("Q2: " + dances[1000000000 % 60]);
+}
+
 let main = async () => {
     const lines = await readInput("dance_steps.txt");
 	//let steps = "s1,x3/4,pe/b".split(",");
@@ -51,6 +68,7 @@ let main = async () => {
 
 	dancers = dance(dancers, steps);
 	console.log("Q1: " + dancers.join(""));
+	dance_dance_dance(Array.from("abcdefghijklmnop"), steps);
 }
 
 main();
