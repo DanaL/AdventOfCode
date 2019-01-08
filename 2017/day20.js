@@ -60,8 +60,17 @@ let q1 = (particles) => {
 	console.log("Q1: " + closest_index + " " + closest);
 }
 
+let update_distances = (pt) => {
+	const d = dis_from_origin(pt);
+	pt.prev_distance = pt.distance;
+	pt.distance = d;
+}
+
 let q2 = (particles) => {
-	console.log(particles[144]);
+	/* Set initial distances */
+	particles.map(update_distances);
+	particles.map(pt => pt.prev_distance = pt.distance);
+	console.log(particles[0]);
 }
 
 let main = async () => {
