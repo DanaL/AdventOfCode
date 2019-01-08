@@ -52,5 +52,6 @@ module.exports = {
 		}
 
 		return dh.map(d => d < 16 ? "0" + d.toString(16) : d.toString(16)).join("");
-	}
+	},
+	copy_obj: obj => JSON.parse(JSON.stringify(obj))
 }
