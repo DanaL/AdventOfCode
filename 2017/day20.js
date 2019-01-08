@@ -1,4 +1,5 @@
 const fs = require('fs').promises;
+const util = require("./common.js");
 
 let readInput = async (f) => {
     let stuff = await fs.readFile(f);
@@ -13,7 +14,8 @@ let parse = (lines) => {
 		const m = line.match(/^p=<(-?\d+),(-?\d+),(-?\d+)>, v=<(-?\d+),(-?\d+),(-?\d+)>, a=<(-?\d+),(-?\d+),(-?\d+)>$/);
 		parsed.push({ p:{x:parseInt(m[1]), y:parseInt(m[2]), z:parseInt(m[3])},
 						v:{x:parseInt(m[4]), y:parseInt(m[5]), z:parseInt(m[6])}, 
-						a:{x:parseInt(m[7]), y:parseInt(m[8]), z:parseInt(m[9])} });
+						a:{x:parseInt(m[7]), y:parseInt(m[8]), z:parseInt(m[9])},
+						distance:0, prev_distance:0 });
 	}
 
 	return parsed;
@@ -58,11 +60,16 @@ let q1 = (particles) => {
 	console.log("Q1: " + closest_index + " " + closest);
 }
 
+let q2 = (particles) => {
+	console.log(particles[144]);
+}
+
 let main = async () => {
     const lines = await readInput("particles.txt");
 	const parsed = parse(lines);
 
-	q1(parsed);
+	q1(util.copy_obj(parsed));
+	q2(util.copy_obj(parsed));
 }
 
 main();
