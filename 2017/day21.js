@@ -8,26 +8,36 @@ let readInput = async (f) => {
     return lines;
 }
 
+/* rule is of the form, [pattern, result]. We want to store the verticle and horizontal flips
+	of the rule in our dictionary of transforms */
+let transform = (transforms, rule) => {
+	transforms.add(rule[0], rule[1]);
+	let pieces = rule[0].split("/");
+	let flipped_h = util.copy_obj(pieces).map(p => p.split("").reverse().join("")).join("/");
+	transforms.add(flipped_h, rule[1]);
+	let flipped_v = util.copy_obj(pieces).reverse().join("/");
+	transforms.add(flipped_v, rule[1]);
+}
+
 let expand_rules = (rules) => {
-	const expanded = util.copy_obj(rules);
+	const expanded = util.dict();
+
 	for (let rule of rules) {
-		let pieces = rule[0].split("/");
-		let flipped_h = util.copy_obj(pieces).map(p => p.split("").reverse().join("")).join("/");
-		let flipped_v = util.copy_obj(pieces).reverse().join("/");
-		/* now for rotation */
-		let rot = new Array(pieces.length).fill("");
-		let rev = util.copy_obj(pieces).reverse();
-		for (let r = 0; r < rev.length; r++) {
-			for (let c = 0; c < rev.length; c++) {
-				rot[c] += rev[r][c];
+		transform(expanded, rule);
+		/* now for each rotation */
+		let r = rule[0];
+		for (let j = 0; j < 3; j++) {
+			let pieces = r.split("/");
+			let rot = new Array(pieces.length).fill("");
+			let rev = util.copy_obj(pieces).reverse();
+			for (let r = 0; r < rev.length; r++) {
+				for (let c = 0; c < rev.length; c++) {
+					rot[c] += rev[r][c];
+				}
 			}
+			r = rot.join("/");
+			transform(expanded, [r, rule[1]]);
 		}
-		let rotated = rot.join("/");
-		console.log(rule[0]);
-		console.log(flipped_h);
-		console.log(flipped_v);
-		console.log(rotated);
-		console.log("");
 	}
 
 	return expanded;
@@ -37,8 +47,8 @@ let main = async () => {
     const lines = await readInput("transforms.txt");
 	
 	let rules = [["../.#", "##./#../..."], [".#./..#/###", "#..#/..../..../#..#"]];
-	//console.log(rules);
 	rules = expand_rules(rules);
+	console.log(rules);
 }
 
 main();
