@@ -39,6 +39,10 @@ let update_pos = (particle) => {
 
 let dis_from_origin = (pt) => Math.abs(pt.p.x) + Math.abs(pt.p.y) + Math.abs(pt.p.z);
 
+/* I didn't actually need to simulate Q1. I thought the correct answer would (over the long haul)
+	simply be the particle with the slowest acceleration. Turns out I was correct, but I misunderstood
+	how the answer was supposed to be submitted, so I thought my guess was wrong and wrote it as a 
+	simulation anyhow... */
 let q1 = (particles) => {
 	for (let j = 0; j < 1000; j++) {
 		for (let p = 0; p < particles.length; p++)
