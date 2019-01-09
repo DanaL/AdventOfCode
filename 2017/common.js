@@ -53,5 +53,18 @@ module.exports = {
 
 		return dh.map(d => d < 16 ? "0" + d.toString(16) : d.toString(16)).join("");
 	},
-	copy_obj: obj => JSON.parse(JSON.stringify(obj))
+	copy_obj: obj => JSON.parse(JSON.stringify(obj)),
+	dict: () => {
+		return {
+			items: [],
+			add(key, val) {
+				let k = JSON.stringify(key);
+				this.items[k] = val;
+			},
+			get(key) {
+				let k = JSON.stringify(key);
+				return this.items[k];
+			}
+		}
+	}
 }
