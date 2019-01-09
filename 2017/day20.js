@@ -25,49 +25,35 @@ let update_velocity = (particle) => {
 	particle.v.x += particle.a.x; 
 	particle.v.y += particle.a.y; 
 	particle.v.z += particle.a.z; 
-
-	return particle;
 }
 
 let update_pos = (particle) => {
 	particle.p.x += particle.v.x; 
 	particle.p.y += particle.v.y; 
 	particle.p.z += particle.v.z; 
+}
 
-	return particle;
+let update_distance = (pt) => {
+	const d = dis_from_origin(pt);
+	pt.prev_distance = pt.distance;
+	pt.distance = d;
 }
 
 let dis_from_origin = (pt) => Math.abs(pt.p.x) + Math.abs(pt.p.y) + Math.abs(pt.p.z);
 
-/* I didn't actually need to simulate Q1. I thought the correct answer would (over the long haul)
-	simply be the particle with the slowest acceleration. Turns out I was correct, but I misunderstood
-	how the answer was supposed to be submitted, so I thought my guess was wrong and wrote it as a 
-	simulation anyhow... */
+/* Don't actually need to simulate Q1. Over the long haul, the point closest to the origin will be 
+	the one with the slowest acceleration */
 let q1 = (particles) => {
-	for (let j = 0; j < 1000; j++) {
-		for (let p = 0; p < particles.length; p++)
-			particles[p] = update_velocity(particles[p]);
-		for (let p = 0; p < particles.length; p++)
-			particles[p] = update_pos(particles[p]);
-	}
-	
-	let closest = dis_from_origin(particles[0]);
-	let closest_index;
-	for (let j = 0; j < particles.length; j++) {
-		let d = dis_from_origin(particles[j]);
-		if (d < closest) {
-			closest = d;
-			closest_index = j;
+	let lowest_acceleration = 999999;
+	for (let p = 0; p < particles.length; p++) {
+		let acc = Math.abs(particles[p].a.x) + Math.abs(particles[p].a.y) + Math.abs(particles[p].a.z);
+		if (acc < lowest_acceleration) {
+			lowest_acceleration = acc;
+			var slowest = p;
 		}
 	}
 
-	console.log("Q1: " + closest_index + " " + closest);
-}
-
-let update_distances = (pt) => {
-	const d = dis_from_origin(pt);
-	pt.prev_distance = pt.distance;
-	pt.distance = d;
+	console.log("Q1: " + slowest);
 }
 
 let detect_collisions = (particles) => {
@@ -79,15 +65,14 @@ let detect_collisions = (particles) => {
 		positions[coord].push(pt);
 	}
 
-	for (pos in positions) {
+	for (let pos in positions) {
 		if (positions[pos].length > 1)
 			positions[pos].map(pt => pt.collided = true);
 	}
 }
 
 let q2 = (particles) => {
-	/* Set initial distances */
-	particles.map(update_distances);
+	particles.map(update_distance);
 	particles.map(pt => pt.prev_distance = pt.distance);
 
 	/* Loop over the particles, updating their positions and looking for collisions.
@@ -96,13 +81,14 @@ let q2 = (particles) => {
 		to test that there will be no more collisions. */
 	do {
 		let alive = particles.filter(p => !p.collided);
-		for (let pt of alive)
-			pt = update_velocity(pt);
-		for (let pt of alive)
-			pt = update_pos(pt);
-		particles.map(update_distances);
-		detect_collisions(particles);
-	} while (particles.filter(p => p.distance < p.prev_distance).length > 0);
+		for (let pt of alive) {
+			update_velocity(pt);
+			update_pos(pt);
+			update_distance(pt);
+		}
+
+		detect_collisions(alive);
+	} while (particles.filter(p => !p.collided && p.distance < p.prev_distance).length > 0);
 
 	console.log("Q2: " + particles.filter(p => !p.collided).length);
 }
