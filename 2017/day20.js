@@ -15,7 +15,7 @@ let parse = (lines) => {
 		parsed.push({ p:{x:parseInt(m[1]), y:parseInt(m[2]), z:parseInt(m[3])},
 						v:{x:parseInt(m[4]), y:parseInt(m[5]), z:parseInt(m[6])}, 
 						a:{x:parseInt(m[7]), y:parseInt(m[8]), z:parseInt(m[9])},
-						distance:0, prev_distance:0 });
+						distance:0, prev_distance:0, collided:false });
 	}
 
 	return parsed;
@@ -70,11 +70,41 @@ let update_distances = (pt) => {
 	pt.distance = d;
 }
 
+let detect_collisions = (particles) => {
+	const positions = { };
+	for (let pt of particles) {
+		const coord = `${pt.p.x},${pt.p.y},${pt.p.z}`;
+		if (!(coord in positions))
+			positions[coord] = [];
+		positions[coord].push(pt);
+	}
+
+	for (pos in positions) {
+		if (positions[pos].length > 1)
+			positions[pos].map(pt => pt.collided = true);
+	}
+}
+
 let q2 = (particles) => {
 	/* Set initial distances */
 	particles.map(update_distances);
 	particles.map(pt => pt.prev_distance = pt.distance);
-	console.log(particles[0]);
+
+	/* Loop over the particles, updating their positions and looking for collisions.
+		Proposed stopping condition: when all points are moving away from the origin. (Ie., all points 
+		have distances that are greater than their previous distance. Not sure if that's a valid way
+		to test that there will be no more collisions. */
+	do {
+		let alive = particles.filter(p => !p.collided);
+		for (let pt of alive)
+			pt = update_velocity(pt);
+		for (let pt of alive)
+			pt = update_pos(pt);
+		particles.map(update_distances);
+		detect_collisions(particles);
+	} while (particles.filter(p => p.distance < p.prev_distance).length > 0);
+
+	console.log("Q2: " + particles.filter(p => !p.collided).length);
 }
 
 let main = async () => {
