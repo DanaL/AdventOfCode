@@ -12,13 +12,21 @@ let expand_rules = (rules) => {
 	const expanded = util.copy_obj(rules);
 	for (let rule of rules) {
 		let pieces = rule[0].split("/");
-		let mirrored = pieces.map(p => p.split("").reverse().join("")).join("/")
+		let flipped_h = util.copy_obj(pieces).map(p => p.split("").reverse().join("")).join("/");
+		let flipped_v = util.copy_obj(pieces).reverse().join("/");
+		/* now for rotation */
+		let rot = new Array(pieces.length).fill("");
+		let rev = util.copy_obj(pieces).reverse();
+		for (let r = 0; r < rev.length; r++) {
+			for (let c = 0; c < rev.length; c++) {
+				rot[c] += rev[r][c];
+			}
+		}
+		let rotated = rot.join("/");
 		console.log(rule[0]);
-		let flipped = pieces.reverse().join("/");
-		//let mirrored = pieces.map(p => p.split("").reverse().join("")).join("/")
-		let mirrored_flipped = flipped.split("/").map(p => p.split("").reverse().join("")).join("/")
-		console.log(flipped);
-		console.log(mirrored);
+		console.log(flipped_h);
+		console.log(flipped_v);
+		console.log(rotated);
 		console.log("");
 	}
 
