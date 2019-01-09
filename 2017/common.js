@@ -64,6 +64,9 @@ module.exports = {
 			get(key) {
 				let k = JSON.stringify(key);
 				return this.items[k];
+			},
+			has(key) {
+				return JSON.stringify(key) in this.items;
 			}
 		}
 	}
