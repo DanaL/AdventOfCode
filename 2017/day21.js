@@ -29,7 +29,7 @@ let expand_rules = (rules) => {
 
 	for (let rule of rules) {
 		transform(expanded, rule);
-		/* now for each rotation */
+
 		let r = rule[0];
 		for (let j = 0; j < 3; j++) {
 			let pieces = r.split("/");
@@ -77,7 +77,6 @@ let dump = (grid) => grid.split("/").map(l => console.log(l));
 
 let q1 = (rules) => {
 	const initial = ".#./..#/###";
-	//const initial = "#..#/..../..../#..#";
 	
 	/* I need to do five generations of transforming the initial state by the rules:
 		if the current state's size is divisible by 2, I need to look up the transform of each 
@@ -104,9 +103,7 @@ let q1 = (rules) => {
 
 let main = async () => {
     const lines = await readInput("transforms.txt");
-	rules = lines.map(parse);
-	//let rules = [["../.#", "##./#../..."], [".#./..#/###", "#..#/..../..../#..#"]];
-	rules = expand_rules(rules);
+	rules = expand_rules(lines.map(parse));
 	q1(rules);
 }
 
