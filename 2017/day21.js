@@ -8,6 +8,11 @@ let readInput = async (f) => {
     return lines;
 }
 
+let parse = (line) => {
+	const m = line.match(/^([\.#\/]+) => ([\.#\/]+)$/);
+	return [m[1], m[2]];
+}
+
 /* rule is of the form, [pattern, result]. We want to store the verticle and horizontal flips
 	of the rule in our dictionary of transforms */
 let transform = (transforms, rule) => {
@@ -58,38 +63,49 @@ let get_sub_sq = (grid, row, col, size) => {
 	return sq.join("/");
 }
 
+let merge = (a, b) => {
+	const arr_a = a.split("/");
+	const arr_b = b.split("/");
+	const m = []
+	for (let j = 0; j < arr_a.length; j++)
+		m.push(arr_a[j] + arr_b[j]);
+		
+	return m.join("/");
+}
+
+let dump = (grid) => grid.split("/").map(l => console.log(l));
+
 let q1 = (rules) => {
-	//const initial = ".#./..#/###";
-	const initial = "#..#/..../..../#..#";
+	const initial = ".#./..#/###";
+	//const initial = "#..#/..../..../#..#";
 	
 	/* I need to do five generations of transforming the initial state by the rules:
 		if the current state's size is divisible by 2, I need to look up the transform of each 
 		2x2 block, and likewise if it is divisible by 3. Essentially, the size is either
 		the height or the width of the block. */
 	let curr_state = initial;
-	for (let gen = 0; gen < 1; gen++) {
+	for (let gen = 0; gen < 18; gen++) {
 		const pieces = curr_state.split("/");
 		const divvy = pattern_size(curr_state) % 2 === 0 ? 2 : 3;
+		const next_state = []
 		for (let r = 0; r < pieces[0].length; r += divvy) {
+			let replacement = "";
 			for (let c = 0; c < pieces[0].length; c += divvy) {
-				let next = get_sub_sq(pieces, r, c, divvy); 
-				console.log("(" + r + ", " + c + ") " + next + ": ");
-				console.log("   " + rules.get(next));
+				let next = rules.get(get_sub_sq(pieces, r, c, divvy)); 
+				replacement = replacement.length === 0 ? next : merge(replacement, next);
 			}
+			next_state.push(replacement);
 		}
+		curr_state = next_state.join("/");
+		console.log(curr_state.split("").filter(c => c === "#").length);
 	}
-
-	if (rules.has(initial)) {
-		console.log(rules.get(initial));
-		console.log(pattern_size(rules.get(initial)));
-	}
-
+	console.log("Q1: " + curr_state.split("").filter(c => c === "#").length);
 }
 
 let main = async () => {
     const lines = await readInput("transforms.txt");
-	
-	let rules = [["../.#", "##./#../..."], [".#./..#/###", "#..#/..../..../#..#"]];
+	rules = lines.map(parse);
+	//let rules = [["../.#", "##./#../..."], [".#./..#/###", "#..#/..../..../#..#"]];
 	rules = expand_rules(rules);
 	q1(rules);
 }
