@@ -75,7 +75,6 @@ let q2 = (coords) => {
 	for (let j = 0; j < 10000000; j++ ) {
 		if (coords.has(virus.co)) {
 			let loc = coords.get(virus.co);
-			coords.delete(virus.co);
 			switch (loc) {
 				case "W":
 					coords.add(virus.co, "#");
@@ -86,6 +85,7 @@ let q2 = (coords) => {
 					virus.dir = turn(virus.dir, "right");
 					break;
 				case "F":
+					coords.delete(virus.co);
 					virus.dir = turn(virus.dir, "rev");
 					break;
 			}
