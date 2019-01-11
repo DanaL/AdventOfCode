@@ -56,14 +56,10 @@ let q1 = (coords) => {
 			++infections;
 		}
 
-		if (virus.dir === "n")
-			virus.co[0] -= 1;
-		else if (virus.dir === "s")
-			virus.co[0] += 1;
-		else if (virus.dir === "w")
-			virus.co[1] -= 1;
-		else if (virus.dir === "e")
-			virus.co[1] += 1;
+		if (virus.dir === "n") virus.co[0] -= 1;
+		else if (virus.dir === "s") virus.co[0] += 1;
+		else if (virus.dir === "w") virus.co[1] -= 1;
+		else if (virus.dir === "e") virus.co[1] += 1;
 	}
 	
 	console.log("Q1: " + infections);
@@ -74,8 +70,7 @@ let q2 = (coords) => {
 	let infections = 0;
 	for (let j = 0; j < 10000000; j++ ) {
 		if (coords.has(virus.co)) {
-			let loc = coords.get(virus.co);
-			switch (loc) {
+			switch (coords.get(virus.co)) {
 				case "W":
 					coords.add(virus.co, "#");
 					++infections;
@@ -95,14 +90,10 @@ let q2 = (coords) => {
 			coords.add(virus.co, "W");
 		}
 
-		if (virus.dir === "n")
-			virus.co[0] -= 1;
-		else if (virus.dir === "s")
-			virus.co[0] += 1;
-		else if (virus.dir === "w")
-			virus.co[1] -= 1;
-		else if (virus.dir === "e")
-			virus.co[1] += 1;
+		if (virus.dir === "n") virus.co[0] -= 1;
+		else if (virus.dir === "s") virus.co[0] += 1;
+		else if (virus.dir === "w") virus.co[1] -= 1;
+		else if (virus.dir === "e") virus.co[1] += 1;
 	}
 	
 	console.log("Q2: " + infections);
