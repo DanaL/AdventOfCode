@@ -8,33 +8,31 @@ let readInput = async (f) => {
     return lines;
 }
 
-let pick_strongest = (connector, components) => {
+let best_path = (components, connector) => {
 	const options = components.filter(c => c.a === connector || c.b === connector);
-	options.sort((x, y) => y.total - x.total);
-	return options.length > 0 ? options[0] : null;
+	
+	if (options.length === 0)
+		return 0;
+
+	const results = [];
+	for (let op of options) {
+		results.push(op.total + best_path(
+			components.filter(c => c.a !== op.a || c.b !== op.b),
+				op.a === connector ? op.b : op.a));
+	}
+
+	return Math.max(...results);
 }
 
 let q1 = (components) => {
-	let best = 0;
+	const results = []
 	for (let start of components.filter(c => c.a === 0 || c.b === 0)) {
-		let arr = components.slice(0).filter(c => !(c.a === start.a && c.b === start.b));
-		const bridge = [start];
-		let match = start.a === 0 ? start.b : start.a;
-
-		do {
-			let next = pick_strongest(match, arr);
-			if (next === null) break;
-			arr = arr.filter(c => c.a !== next.a && c.b !== next.b);
-			bridge.push(next);
-			match = next.a === match ? next.b : next.a; 
-		} while (true);
-
-		const str = bridge.map(c => c.total).reduce((total, c) => total + c);
-		console.log(str);
-		if (str > best) best = str;
+		results.push(start.total + 
+			best_path(components.filter(c=>c.a !== start.a || c.b !== start.b), 
+				start.a === 0 ? start.b : start.a));
 	}
 
-	console.log("Q1: " + best);
+	console.log("Q1: " + Math.max(...results));
 }
 
 let parse = (line) => {
