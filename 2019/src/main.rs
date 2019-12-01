@@ -19,7 +19,7 @@ fn main() {
 	let mut sum_q1 = 0;
 	let mut sum_q2 = 0;
 
-	for line in contents.trim().split("\n") {
+	for line in contents.trim().lines() {
 		let mod_weight: i32 = line.parse()
 			.expect("Invalid integer!");
 
