@@ -1,3 +1,8 @@
+// I think what I'll want to do is change solve() to be run_prog()
+// It'll take a vector of integers, the noun, the verb and run as below
+// I can use the basic test input with noun, verb = 0, q1 has noun and verb of 12, 2
+// Q2 I gotta find a specific noun and verb
+// From the solve_q2() I'll need to pass a copy of the vector I guess
 pub fn solve(input_str: &str) {
 	let mut prog: Vec<usize> = input_str.trim().split(",")
 		.map(|a| a.parse::<usize>().unwrap()).collect();
