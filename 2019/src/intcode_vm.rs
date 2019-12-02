@@ -3,8 +3,8 @@
 
 #[derive(Debug)]
 pub struct IntcodeVM {
-	memory: Vec<usize>,
-	ptr: usize,
+	memory: Vec<i32>,
+	ptr: i32,
 }
 
 impl IntcodeVM {
@@ -13,15 +13,15 @@ impl IntcodeVM {
 		println!("{:?}", self.memory);
 	}
 
-	pub fn read(&self, loc: usize) -> usize {
-		self.memory[loc]
+	pub fn read(&self, loc: i32) -> i32 {
+		self.memory[loc as usize]
 	}
 
-	fn write (&mut self, loc: usize, val: usize) {
-		self.memory[loc] = val;
+	fn write (&mut self, loc: i32, val: i32) {
+		self.memory[loc as usize] = val;
 	}
 
-	pub fn run(&mut self, noun: usize, verb: usize) {
+	pub fn run(&mut self, noun: i32, verb: i32) {
 		self.write(1, noun);
 		self.write(2, verb);
 	
@@ -57,6 +57,6 @@ impl IntcodeVM {
 
 	pub fn load(&mut self, prog_txt: &str) {
 		self.memory = prog_txt.split(",")
-			.map(|a| a.parse::<usize>().unwrap()).collect();		
+			.map(|a| a.parse::<i32>().unwrap()).collect();		
 	}
 }
