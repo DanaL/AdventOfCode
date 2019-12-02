@@ -1,5 +1,8 @@
-mod day_one;
+use std::fs;
+
+mod day_two;
 
 fn main() {
-	day_one::solve("./inputs/day1.txt");
+	let day2_input = fs::read_to_string("./inputs/day2.txt").unwrap();
+	day_two::solve(day2_input.trim());
 }
