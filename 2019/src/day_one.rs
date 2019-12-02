@@ -13,8 +13,7 @@ fn recurse_calc(a: i32) -> i32 {
 }
 
 pub fn solve(filename: &str) {
-	let contents = fs::read_to_string(filename)
-		.expect("Something went wrong with the file.");
+	let contents = fs::read_to_string(filename).unwrap();
 
 	let mut sum_q1 = 0;
 	let mut sum_q2 = 0;
@@ -29,8 +28,7 @@ pub fn solve(filename: &str) {
 	//println!("Q1: {}", sw);
 
 	for line in contents.trim().lines() {
-		let mod_weight: i32 = line.parse()
-			.expect("Invalid integer!");
+		let mod_weight: i32 = line.parse().unwrap();
 
 		let fuel_req = calc_fuel_req(mod_weight);
 		sum_q1 += fuel_req;
