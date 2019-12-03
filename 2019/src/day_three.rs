@@ -23,7 +23,23 @@ fn write_wire_path(wire_path: &str, wire_num: u32, wire: &mut HashMap<(i32, i32)
 			x += dir.0;
 			y += dir.1;
 			let key = (x, y);
-			wire.insert((x, y), wire_num);
+
+			if wire.contains_key(&key) && wire.get(&key).unwrap() != &wire_num {
+				println!("wires cross {:?}", key);
+			} else {
+				wire.insert((x, y), wire_num);
+			}
+			//match wire.get(&key) {
+			//	Some(v) => println!("fuck off {}", v),
+			//	None => wire.insert(&key, wire_num),
+			//}
+			//	Some(v) => {
+			//		if v != wire_num {
+			//			println!("Wire {} crossed with {} at {:?}", wire_num, v, key);
+			//		}
+			//	},
+			//	None => wire.insert((x, y), wire_num),
+			//}
 		}
 	}
 }
@@ -40,6 +56,12 @@ pub fn solve_q1() {
 	//write_wire_path(wires[0], 1);
 	let mut wire = HashMap::new();
 	write_wire_path("R8,U5,L5,D3", 1, &mut wire);
-	println!("{:?}", wire);
+	write_wire_path("U7,R6,D4,L4", 2, &mut wire);
+	
+	let v = wire.get(&(0,6));
+	println!("{:?}", v.unwrap());
+	let w = wire.get(&(1000,6));
+	println!("{:?}", w);
+	//println!("{:?}", wire);
 	//println!("{}", util::manhattan_d(1, 1, 4, 4));
 }
