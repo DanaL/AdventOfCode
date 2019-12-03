@@ -1,5 +1,32 @@
+use std::collections::HashMap;
 use std::fs;
 use crate::util;
+
+fn write_wire_path(wire_path: &str, wire_num: u32, wire: &mut HashMap<(i32, i32), u32>) {
+	// We don't care about wires crossing themselves
+	let mut x = 0;
+	let mut y = 0;
+	for mv in wire_path.split(",") {
+		let a = &mv[..1];
+		let d = &mv[1..].parse::<i32>().unwrap();
+
+		// Make a tuple for which direction we are moving in
+		let dir = match a {
+			"U" => (1, 0),
+			"D" => (-1, 0),
+			"L" => (0, -1),
+			"R" => (0, 1),
+			_ => (0, 0), // this shouldn't happen :o
+		};
+
+		for j in (0..*d) {
+			x += dir.0;
+			y += dir.1;
+			let key = (x, y);
+			wire.insert((x, y), wire_num);
+		}
+	}
+}
 
 pub fn solve_q1() {
 	let input = fs::read_to_string("./inputs/day3.txt").unwrap();
@@ -10,12 +37,9 @@ pub fn solve_q1() {
 	// the hashmap, then it's an intersection. Store those in a vector
 	// and then after I've processed both wires, find which intersection
 	// is closest to the origin.
-	
-	// We don't care about wires crossing themselves
-	for mv in wires[0].split(",") {
-		let a = &mv[..1];
-		let d = &mv[1..].parse::<i32>().unwrap();
-		println!("{} -> {}", a, d);
-	}
+	//write_wire_path(wires[0], 1);
+	let mut wire = HashMap::new();
+	write_wire_path("R8,U5,L5,D3", 1, &mut wire);
+	println!("{:?}", wire);
 	//println!("{}", util::manhattan_d(1, 1, 4, 4));
 }
