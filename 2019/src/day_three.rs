@@ -35,19 +35,17 @@ fn write_wire_path(wire_path: &str, wire_num: u32, visited: &mut HashMap<(i32, i
 			let key = (x, y);
 			let loc = Loc { wire_num, steps, };
 
-			if visited.contains_key(&key) && visited.get(&key).unwrap().wire_num != wire_num {				
+			let v = visited.entry(key).or_insert(Loc { wire_num, steps });
+			if v.wire_num != wire_num {
 				let vd = util::manhattan_d(0, 0, key.0, key.1);
 				if vd < nearest {
 					nearest = vd;
 				}
-				let steps_to_here = visited.get(&key).unwrap().steps + steps;
+				let steps_to_here = v.steps + steps;
 				if steps_to_here < fewest_steps
 				{
 					fewest_steps = steps_to_here;
 				}				
-			} else {
-				let mut loc = Loc { wire_num, steps, };
-				visited.insert(key, loc);
 			}
 		}
 	}
