@@ -5,7 +5,9 @@ pub fn solve_q1() {
 	let prog_txt = fs::read_to_string("./inputs/day2.txt").unwrap();
 	let mut vm = intcode_vm::IntcodeVM::new();
 	vm.load(prog_txt.trim());
-	vm.run(12, 2);
+	vm.write(1, 12);
+	vm.write(2, 2);
+	vm.run();
 
 	println!("Q1: {}", vm.read(0));
 }
@@ -24,9 +26,9 @@ pub fn solve_q2() {
 	// output is just 530607 + (248832 * noun) + verb. So it was just simple 
 	// calculation that my answers would be 77 and 49.
 	vm.load(prog_txt.trim());
-	let noun = 77;
-	let verb = 49;
-	vm.run(noun, verb);
+	vm.write(1, 77);
+	vm.write(2, 49);
+	vm.run();
 	println!("{}", vm.read(0)); // Just verify that that's what we wanted
-	println!("Q2: {}", 100 * noun + verb);
+	println!("Q2: {}", 100 * 77 + 49);
 }
