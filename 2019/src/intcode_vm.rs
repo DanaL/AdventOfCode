@@ -26,6 +26,10 @@ impl IntcodeVM {
 		if param_mode == 1 { p } else { self.read(p) }
 	}
 
+	fn fetch_three_params(&self, loc: i32) -> (i32, i32, i32) {
+		(self.read(loc + 1), self.read(loc + 2), self.read(loc + 3))
+	}
+
 	// how do determine the mode? 1002 is 
 	// multiply with param 1 in address mode, param 2 in immediate mode.
 	// 1102 has both parameters in immediate mode
@@ -41,43 +45,38 @@ impl IntcodeVM {
 			let opcode = instr - instr / 100 * 100;
 			let mode1 = instr / 100 % 2; 	
 			let mode2 = instr / 1000 % 2; 	
-			println!("{} {} {}", opcode, mode1, mode2);
+			//println!("{} {} {}", opcode, mode1, mode2);
 			
 			match opcode {
 				// add and write back
 				1  => {
-					let a = self.read(self.ptr+1);
-					let b = self.read(self.ptr+2);
-					let dest = self.read(self.ptr+3);
+					let (a, b, dest) = self.fetch_three_params(self.ptr);
 					self.write(dest, self.get_val(a, mode1) + self.get_val(b, mode2));
-					jmp = 4;
+					self.ptr += 4;
 				},
 				// multiply and write back
 				2  => {
-					let a = self.read(self.ptr+1);
-					let b = self.read(self.ptr+2);
-					let dest = self.read(self.ptr+3);
+					let (a, b, dest) = self.fetch_three_params(self.ptr);
 					self.write(dest, self.get_val(a, mode1) * self.get_val(b, mode2));
-					jmp = 4;
+					self.ptr += 4;
 				},
 				// read the input buffer
 				3 => {
 					let dest = self.read(self.ptr+1);
 					self.write(dest, self.input_buffer);
-					jmp = 2;
+					self.ptr += 2;
 				},
 				// write to the output buffer
 				4 => {
 					let a = self.read(self.ptr+1);
 					self.output_buffer = self.read(a);
-					jmp = 2;
+					self.ptr += 2;
 				}
 				// halt!
 				99 => break,
 				// I don't think this should ever happen with our input?
 				_  => panic!("Hmm this shouldn't happen..."),
-			}
-			self.ptr += jmp;
+			}			
 		}
 	}
 
