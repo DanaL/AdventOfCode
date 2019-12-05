@@ -34,6 +34,12 @@ impl IntcodeVM {
 		self.ptr = 0;
 		loop {
 			let mut jmp = 0;
+			let instr = self.read(self.ptr);
+			let opcode = instr - instr / 100 * 100;
+			let mode1 = instr / 100 % 2; 	
+			let mode2 = instr / 1000 % 2; 	
+			println!("{} {} {}", opcode, mode1, mode2);
+			break;
 			match self.read(self.ptr) {
 				// add and write back
 				1  => {
