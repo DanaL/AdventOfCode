@@ -1,6 +1,6 @@
-mod util;
-mod day_four;
+mod day_five;
+mod intcode_vm;
 
 fn main() {
-	day_four::solve_q1();	
+	day_five::solve_q1();
 }
