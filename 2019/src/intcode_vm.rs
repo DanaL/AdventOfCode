@@ -26,26 +26,22 @@ impl IntcodeVM {
 		if param_mode == 1 { p } else { self.read(p) }
 	}
 
+	fn fetch_two_params(&self, loc:i32) -> (i32, i32) {
+		(self.read(loc + 1), self.read(loc + 2))
+	}
+
 	fn fetch_three_params(&self, loc: i32) -> (i32, i32, i32) {
 		(self.read(loc + 1), self.read(loc + 2), self.read(loc + 3))
 	}
 
-	// how do determine the mode? 1002 is 
-	// multiply with param 1 in address mode, param 2 in immediate mode.
-	// 1102 has both parameters in immediate mode
-	// The write parameter CANNOT be in immediate mode
-	// opcode: instr - (inst / 100 * 100)
-	// if inst / 100 is odd, immediate mode for param 1
-	// if inst / 1000 is odd, immediate mode for param 2
 	pub fn run(&mut self) {
 		self.ptr = 0;
 		loop {
-			let mut jmp = 0;
 			let instr = self.read(self.ptr);
 			let opcode = instr - instr / 100 * 100;
 			let mode1 = instr / 100 % 2; 	
 			let mode2 = instr / 1000 % 2; 	
-			//println!("{} {} {}", opcode, mode1, mode2);
+			println!("{} {} {}", opcode, mode1, mode2);
 			
 			match opcode {
 				// add and write back
@@ -71,6 +67,27 @@ impl IntcodeVM {
 					let a = self.read(self.ptr+1);
 					self.output_buffer = self.read(a);
 					self.ptr += 2;
+				}
+				
+				// less than 
+				7 => {
+					let (a, b, dest) = self.fetch_three_params(self.ptr);
+					if self.get_val(a, mode1) < self.get_val(b, mode2) {
+						self.write(dest, 1);
+					} else {
+						self.write(dest, 0);
+					}
+					self.ptr += 4;
+				}
+				// equals 
+				8 => {
+					let (a, b, dest) = self.fetch_three_params(self.ptr);
+					if self.get_val(a, mode1) == self.get_val(b, mode2) {
+						self.write(dest, 1);
+					} else {
+						self.write(dest, 0);
+					}
+					self.ptr += 4;
 				}
 				// halt!
 				99 => break,
