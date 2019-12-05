@@ -10,8 +10,7 @@ pub struct IntcodeVM {
 }
 
 impl IntcodeVM {
-	pub fn dump(self) {
-		println!("{}", self.memory.len());
+	pub fn dump(&self) {
 		println!("{:?}", self.memory);
 	}
 
@@ -21,6 +20,10 @@ impl IntcodeVM {
 
 	pub fn write (&mut self, loc: i32, val: i32) {
 		self.memory[loc as usize] = val;
+	}
+
+	fn get_val(&self, p: i32, param_mode: i32) -> i32 {
+		if param_mode == 1 { p } else { self.read(p) }
 	}
 
 	// how do determine the mode? 1002 is 
@@ -39,14 +42,14 @@ impl IntcodeVM {
 			let mode1 = instr / 100 % 2; 	
 			let mode2 = instr / 1000 % 2; 	
 			println!("{} {} {}", opcode, mode1, mode2);
-			break;
-			match self.read(self.ptr) {
+			
+			match opcode {
 				// add and write back
 				1  => {
 					let a = self.read(self.ptr+1);
 					let b = self.read(self.ptr+2);
 					let dest = self.read(self.ptr+3);
-					self.write(dest, self.read(a) + self.read(b));
+					self.write(dest, self.get_val(a, mode1) + self.get_val(b, mode2));
 					jmp = 4;
 				},
 				// multiply and write back
@@ -54,7 +57,7 @@ impl IntcodeVM {
 					let a = self.read(self.ptr+1);
 					let b = self.read(self.ptr+2);
 					let dest = self.read(self.ptr+3);
-					self.write(dest, self.read(a) * self.read(b));
+					self.write(dest, self.get_val(a, mode1) * self.get_val(b, mode2));
 					jmp = 4;
 				},
 				// read the input buffer
