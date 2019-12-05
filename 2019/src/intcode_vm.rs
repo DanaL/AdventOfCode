@@ -41,7 +41,6 @@ impl IntcodeVM {
 			let opcode = instr - instr / 100 * 100;
 			let mode1 = instr / 100 % 2; 	
 			let mode2 = instr / 1000 % 2; 	
-			println!("{} {} {}", opcode, mode1, mode2);
 			
 			match opcode {
 				// add and write back
@@ -65,10 +64,27 @@ impl IntcodeVM {
 				// write to the output buffer
 				4 => {
 					let a = self.read(self.ptr+1);
-					self.output_buffer = self.read(a);
+					self.output_buffer = self.get_val(a, mode1);
 					self.ptr += 2;
 				}
-				
+				// jump-if-true
+				5 => {
+					let (a, jmp) = self.fetch_two_params(self.ptr);
+					if self.get_val(a, mode1) != 0 {
+						self.ptr = self.get_val(jmp, mode2);
+					} else {
+						self.ptr += 3;
+					}
+				}
+				// jump-if-false
+				6 => {					
+					let (a, jmp) = self.fetch_two_params(self.ptr);
+					if self.get_val(a, mode1) == 0 {
+						self.ptr = self.get_val(jmp, mode2);
+					} else {
+						self.ptr += 3;
+					}
+				}
 				// less than 
 				7 => {
 					let (a, b, dest) = self.fetch_three_params(self.ptr);
