@@ -1,7 +1,8 @@
 use std::collections::HashMap;
+use std::collections::HashSet;
 use std::fs;
 
-static TEST_MAP: &str = "COM)B\nB)C\nC)D\nD)E\nE)F\nB)G\nG)H\nD)I\nE)J\nJ)K\nK)L\n";
+static TEST_MAP: &str = "COM)B\nB)C\nC)D\nD)E\nE)F\nB)G\nG)H\nD)I\nE)J\nJ)K\nK)L\nK)YOU\nI)SAN";
 
 // For Part 1, my first instinct was to put a top-down tree that 
 // starts at the root node and each node has a list of child nodes
@@ -41,18 +42,48 @@ fn split_orbit(s: String) -> (String, String) {
 	(pieces[0].trim().to_string(), pieces[1].trim().to_string())
 }
 
+fn make_pairs(input : &str) -> Vec<(String, String)> {
+	input.split("\n")
+		.map(|a| split_orbit(a.to_string()))
+		.collect()
+}
+
 pub fn solve_q1() {
 	let lines =  fs::read_to_string("./inputs/day6.txt").unwrap();
-	//let lines = TEST_MAP;
-	let m: Vec<(String, String)> = lines.trim().split("\n")
-		.map(|a| split_orbit(a.to_string()))
-		.collect();
-
 	let mut orbits: HashMap<String, Node> = HashMap::new();	
-	for a in m {		
+	for a in make_pairs(lines.trim()) {		
 		orbits.entry(a.0.to_string())
 			.or_insert(Node::new(a.0.to_string()))
 			.children.push(a.1);	
 	}
 	println!("Q1: {}", walk_graph(&orbits, "COM", 0));	
+}
+
+fn upward_path(uptree: &HashMap<String, String>, node: &str) -> HashMap<String, u32> {
+	let mut path: HashMap<String, u32> = HashMap::new();
+	let mut steps = 0;
+	let mut x: String = node.to_string();
+
+	while uptree.contains_key(&x.to_string()) {
+		let n = uptree.get(&x.to_string()).unwrap();
+		path.insert(n.to_string(), steps);
+		steps += 1;
+		x = n.to_string();
+	}
+
+	path
+}
+
+pub fn solve_q2() {
+	let lines = TEST_MAP;
+	//let lines =  fs::read_to_string("./inputs/day6.txt").unwrap();
+	let mut uptree: HashMap<String, String> = HashMap::new();
+	for leaf in make_pairs(lines.trim()) {
+		uptree.insert(leaf.1, leaf.0);
+	}
+	let you: HashSet<_> = upward_path(&uptree, "YOU").iter().collect();
+	let santa: HashSet<_> = upward_path(&uptree, "SAN").iter().collect();
+	//println!("{:?}", you);
+	//let intersections: HashSet<_> = you.intersection(&santa).collect();
+	//println!("{:?}", intersections);
 }
