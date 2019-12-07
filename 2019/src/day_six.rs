@@ -86,10 +86,9 @@ pub fn solve_q2() {
 	let santa = upward_path(&uptree, "SAN");
 	let you_set: HashSet<_> = you.keys().collect();
 	let santa_set: HashSet<_> = santa.keys().collect();
-	let common: HashSet<_> = you_set.intersection(&santa_set).collect();
 	let mut shortest = 1_000_000;
 
-	for k in common {
+	for k in you_set.intersection(&santa_set) {
 		let sum = you.get(*k).unwrap() + santa.get(*k).unwrap();
 		if sum < shortest {
 			shortest = sum;
