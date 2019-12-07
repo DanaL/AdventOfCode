@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 // A "VM" for the intcode machine, which sounds like it's going to be a thing
 // in at least a few of the problems this year
 
@@ -5,7 +7,7 @@
 pub struct IntcodeVM {
 	memory: Vec<i32>,
 	ptr: i32,
-	pub input_buffer: i32,
+	pub input_buffer: VecDeque<i32>,
 	pub output_buffer: i32,
 }
 
@@ -16,6 +18,10 @@ impl IntcodeVM {
 
 	pub fn read(&self, loc: i32) -> i32 {
 		self.memory[loc as usize]
+	}
+
+	pub fn write_to_buff(&mut self, v: i32) {
+		self.input_buffer.push_front(v);
 	}
 
 	pub fn write (&mut self, loc: i32, val: i32) {
@@ -58,7 +64,10 @@ impl IntcodeVM {
 				// read the input buffer
 				3 => {
 					let dest = self.read(self.ptr+1);
-					self.write(dest, self.input_buffer);
+					match self.input_buffer.pop_back() {
+						Some(v) => self.write(dest, v),
+						None => panic!("Attempted to read from empty input buffer!"),
+					}
 					self.ptr += 2;
 				},
 				// write to the output buffer
@@ -115,7 +124,7 @@ impl IntcodeVM {
 
 	pub fn new() -> IntcodeVM {
 		IntcodeVM { ptr: 0, memory: Vec::new(),
-			input_buffer: 0, output_buffer: 0 }
+			input_buffer: VecDeque::new(), output_buffer: 0 }
 	}
 
 	pub fn load(&mut self, prog_txt: &str) {
