@@ -9,6 +9,7 @@ pub struct IntcodeVM {
 	ptr: i32,
 	pub input_buffer: VecDeque<i32>,
 	pub output_buffer: i32,
+	pub halted: bool
 }
 
 impl IntcodeVM {
@@ -41,7 +42,6 @@ impl IntcodeVM {
 	}
 
 	pub fn run(&mut self) {
-		self.ptr = 0;
 		loop {
 			let instr = self.read(self.ptr);
 			let opcode = instr - instr / 100 * 100;
@@ -75,6 +75,7 @@ impl IntcodeVM {
 					let a = self.read(self.ptr+1);
 					self.output_buffer = self.get_val(a, mode1);
 					self.ptr += 2;
+					return;
 				}
 				// jump-if-true
 				5 => {
@@ -115,7 +116,10 @@ impl IntcodeVM {
 					self.ptr += 4;
 				}
 				// halt!
-				99 => break,
+				99 => {
+					self.halted = true;
+					break;
+				},
 				// I don't think this should ever happen with our input?
 				_  => panic!("Hmm this shouldn't happen..."),
 			}			
@@ -124,11 +128,14 @@ impl IntcodeVM {
 
 	pub fn new() -> IntcodeVM {
 		IntcodeVM { ptr: 0, memory: Vec::new(),
-			input_buffer: VecDeque::new(), output_buffer: 0 }
+			input_buffer: VecDeque::new(), output_buffer: 0,
+			halted: false }
 	}
 
 	pub fn load(&mut self, prog_txt: &str) {
 		self.memory = prog_txt.split(",")
-			.map(|a| a.parse::<i32>().unwrap()).collect();		
+			.map(|a| a.parse::<i32>().unwrap()).collect();
+		self.ptr = 0;
+		self.halted = false;
 	}
 }

@@ -7,11 +7,15 @@ pub fn solve() {
 
 	vm.load(prog_txt.trim());
 	vm.write_to_buff(1);
-	vm.run();
+	while !vm.halted {
+		vm.run();
+	}
 	println!("Q1: {}", vm.output_buffer);
-
+	
 	vm.load(prog_txt.trim());
 	vm.write_to_buff(5);
-	vm.run();
+	while !vm.halted {
+		vm.run();
+	}
 	println!("Q2: {}", vm.output_buffer);	
 }
