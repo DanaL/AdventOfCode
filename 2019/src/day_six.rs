@@ -75,15 +75,25 @@ fn upward_path(uptree: &HashMap<String, String>, node: &str) -> HashMap<String, 
 }
 
 pub fn solve_q2() {
-	let lines = TEST_MAP;
-	//let lines =  fs::read_to_string("./inputs/day6.txt").unwrap();
+	//let lines = TEST_MAP;
+	let lines =  fs::read_to_string("./inputs/day6.txt").unwrap();
 	let mut uptree: HashMap<String, String> = HashMap::new();
 	for leaf in make_pairs(lines.trim()) {
 		uptree.insert(leaf.1, leaf.0);
 	}
-	let you: HashSet<_> = upward_path(&uptree, "YOU").iter().collect();
-	let santa: HashSet<_> = upward_path(&uptree, "SAN").iter().collect();
-	//println!("{:?}", you);
-	//let intersections: HashSet<_> = you.intersection(&santa).collect();
-	//println!("{:?}", intersections);
+
+	let you = upward_path(&uptree, "YOU");
+	let santa = upward_path(&uptree, "SAN");
+	let you_set: HashSet<_> = you.keys().collect();
+	let santa_set: HashSet<_> = santa.keys().collect();
+	let common: HashSet<_> = you_set.intersection(&santa_set).collect();
+	let mut shortest = 1_000_000;
+
+	for k in common {
+		let sum = you.get(*k).unwrap() + santa.get(*k).unwrap();
+		if sum < shortest {
+			shortest = sum;
+		}
+	}
+	println!("Q2: {}", shortest);	
 }
