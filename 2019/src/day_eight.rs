@@ -23,10 +23,7 @@ pub fn solve_q2() {
 		if pixels[i] == '@' {
 			pixels[i] = ch;
 		}
-		i += 1;
-		if i == 150 {
-			i = 0;
-		}	
+		i = (i + 1) % 150;
 	}
 
 	for n in 1..7 {
