@@ -1,5 +1,9 @@
 use std::fs;
 
+const IMG_WIDTH: usize = 25;
+const IMG_LENGTH: usize = 6;
+const IMG_SIZE: usize = IMG_WIDTH * IMG_LENGTH;
+
 fn count_ch(v: &[char], t: char) -> u32 {
 	v.iter().filter(|&&ch| ch == t).count() as u32
 }
@@ -13,7 +17,7 @@ pub fn solve_q1() {
 	// chunks() splits my vector into a list of vectors of the size passed to it, next iterate 
 	// over it and call min_by_key(), which takes a lambda expression that calculates the score
 	// for the particular element. The element with the lowest score is returned.
-	let layers: Vec<_> = pixels.chunks(25 * 6).collect();
+	let layers: Vec<_> = pixels.chunks(IMG_SIZE).collect();
 	let fewest_zeroes = layers.iter().min_by_key(|l| count_ch(&l, '0')).unwrap();
 	println!("Q1: {:?}", count_ch(&fewest_zeroes, '1') * count_ch(&fewest_zeroes, '2'));
 }
@@ -28,17 +32,17 @@ pub fn solve_q2() {
 	// I encounter a clear pixel (2 in the input) in final pixels array, copy the character
 	// in the same position from the input string. (The input string is given with the top
 	// layer at the beginning of the string)
-	let mut pixels = vec!['2'; 150];
+	let mut pixels = vec!['2'; IMG_SIZE];
 	let mut i = 0;
 	for ch in img.chars() {
 		if pixels[i] == '2' {
 			pixels[i] = ch;
 		}
-		i = (i + 1) % 150;
+		i = (i + 1) % IMG_SIZE;
 	}
 
-	for n in 1..7 {
-		pixels.insert(n * 25 + n - 1, '\n');
+	for n in 1..IMG_LENGTH+1 {
+		pixels.insert(n * IMG_WIDTH + n - 1, '\n');
 	}
 
 	println!("{}", pixels.iter().collect::<String>());
