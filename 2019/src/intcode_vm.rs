@@ -17,6 +17,11 @@ impl IntcodeVM {
 		println!("{:?}", self.memory);
 	}
 
+	pub fn init(&mut self, prog_txt: &str, initial_input: i32) {
+		self.load(prog_txt);
+		self.write_to_buff(initial_input);
+	}
+
 	pub fn read(&self, loc: i32) -> i32 {
 		self.memory[loc as usize]
 	}
