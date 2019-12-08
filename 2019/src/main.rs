@@ -1,9 +1,6 @@
-mod day_five;
-mod day_seven;
-mod intcode_vm;
+mod day_eight;
 
 fn main() {
-	//day_five::solve();
-	//day_seven::solve_q1();
-	day_seven::solve_q2();
+	day_eight::solve_q1();
+	day_eight::solve_q2();
 }
