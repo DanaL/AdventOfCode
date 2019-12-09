@@ -1,13 +1,12 @@
+use std::collections::HashMap;
 use std::collections::VecDeque;
 
 // A "VM" for the intcode machine, which sounds like it's going to be a thing
 // in at least a few of the problems this year
 
-const MAX_MEM_SIZE: usize = 10000;
-
 #[derive(Debug)]
 pub struct IntcodeVM {
-	memory: Vec<i64>,
+	memory: HashMap<u64, i64>,
 	ptr: i64,
 	pub input_buffer: VecDeque<i64>,
 	pub output_buffer: i64,
@@ -16,17 +15,13 @@ pub struct IntcodeVM {
 }
 
 impl IntcodeVM {
-	pub fn dump(&self) {
-		println!("{:?}", self.memory);
-	}
-
 	pub fn init(&mut self, prog_txt: &str, initial_input: i64) {
 		self.load(prog_txt);
 		self.write_to_buff(initial_input);
 	}
 
 	pub fn read(&self, loc: i64) -> i64 {
-		self.memory[loc as usize]
+		*self.memory.get(&(loc as u64)).unwrap()
 	}
 
 	pub fn write_to_buff(&mut self, v: i64) {
@@ -34,7 +29,7 @@ impl IntcodeVM {
 	}
 
 	pub fn write (&mut self, loc: i64, val: i64) {
-		self.memory[loc as usize] = val;
+		*self.memory.entry(loc as u64).or_insert(val) = val;
 	}
 
 	// Still assuming there's no immediate mode for writing
@@ -63,7 +58,7 @@ impl IntcodeVM {
 		loop {
 			let instr = self.read(self.ptr);
 			let opcode = instr - instr / 100 * 100;
-			let mode1 = (instr - instr / 1000 * 1000) / 100 % 3; 	
+			let mode1 = (instr - instr / 1000 * 1000) / 100 % 3;
 			let mode2 = (instr - instr / 10000 * 10000) / 1000 % 3;
 			let mode3 = instr / 10000 % 3;
 
@@ -78,7 +73,7 @@ impl IntcodeVM {
 				// multiply and write back
 				2  => {
 					let (a, b, dest) = self.fetch_three_params(self.ptr);
-					self.write(self.get_write_dest(dest, mode3), 
+					self.write(self.get_write_dest(dest, mode3),
 						self.get_val(a, mode1) * self.get_val(b, mode2));
 					self.ptr += 4;
 				},
@@ -110,7 +105,7 @@ impl IntcodeVM {
 					}
 				}
 				// jump-if-false
-				6 => {					
+				6 => {
 					let (a, jmp) = self.fetch_two_params(self.ptr);
 					if self.get_val(a, mode1) == 0 {
 						self.ptr = self.get_val(jmp, mode2);
@@ -118,7 +113,7 @@ impl IntcodeVM {
 						self.ptr += 3;
 					}
 				}
-				// less than 
+				// less than
 				7 => {
 					let (a, b, dest) = self.fetch_three_params(self.ptr);
 					if self.get_val(a, mode1) < self.get_val(b, mode2) {
@@ -128,7 +123,7 @@ impl IntcodeVM {
 					}
 					self.ptr += 4;
 				}
-				// equals 
+				// equals
 				8 => {
 					let (a, b, dest) = self.fetch_three_params(self.ptr);
 					if self.get_val(a, mode1) == self.get_val(b, mode2) {
@@ -151,23 +146,21 @@ impl IntcodeVM {
 				},
 				// I don't think this should ever happen with our input?
 				_  => panic!("Hmm this shouldn't happen..."),
-			}			
+			}
 		}
 	}
 
 	pub fn new() -> IntcodeVM {
-		IntcodeVM { ptr: 0, memory: Vec::with_capacity(10000),
-			input_buffer: VecDeque::new(), output_buffer: 0,
-			halted: false, rel_base: 0 }
+		IntcodeVM { ptr: 0, memory: HashMap::new(),	input_buffer: VecDeque::new(),
+			output_buffer: 0, halted: false, rel_base: 0 }
 	}
 
 	pub fn load(&mut self, prog_txt: &str) {
-		self.memory = prog_txt.split(",")
-			.map(|a| a.parse::<i64>().unwrap()).collect();
-		let j = self.memory.len();
-		for _ in j..MAX_MEM_SIZE {
-			self.memory.push(0);
+		let arr: Vec<i64> = prog_txt.split(",").map(|a| a.parse::<i64>().unwrap()).collect();
+		for loc in 0..arr.len() {
+			self.memory.insert(loc as u64, arr[loc]);
 		}
+
 		self.ptr = 0;
 		self.halted = false;
 	}
