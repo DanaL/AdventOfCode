@@ -1,52 +1,48 @@
 use std::fs;
 
+const IMG_WIDTH: usize = 25;
+const IMG_LENGTH: usize = 6;
+const IMG_SIZE: usize = IMG_WIDTH * IMG_LENGTH;
+
+fn count_ch(v: &[char], t: char) -> u32 {
+	v.iter().filter(|&&ch| ch == t).count() as u32
+}
+
 pub fn solve_q1() {
-	let img = fs::read_to_string("./inputs/day8.txt").unwrap().trim().to_string();
+	let pixels = fs::read_to_string("./inputs/day8.txt").unwrap().trim().chars().collect::<Vec<_>>();
 
-	let mut count = 0;
-	let mut fewest_zeroes = u32::max_value();
-	let (mut zeroes, mut ones, mut twos) = (0, 0, 0);
-	let mut calc = 0;
-	for ch in img.chars() {
-		count += 1;
-		match ch  {
-			'0' => zeroes += 1,
-			'1' => ones += 1,
-			'2' => twos += 1,
-			_ => panic!("This shouldn't happen."),
-		}
-		if count % 150 == 0 {
-			if zeroes < fewest_zeroes {
-				calc = ones * twos;
-				fewest_zeroes = zeroes;
-			}
-			zeroes = 0;
-			ones = 0;
-			twos = 0;
-		}
-	}
+	// I learned about chunks() and min_by_key() from another reddit solution and replaced some
+	// clunky looking loops with them. Commenting about it so that I remember how these work :P
 
-	println!("Q1: {}", calc);	
+	// chunks() splits my vector into a list of vectors of the size passed to it, next iterate 
+	// over it and call min_by_key(), which takes a lambda expression that calculates the score
+	// for the particular element. The element with the lowest score is returned.
+	let layers: Vec<_> = pixels.chunks(IMG_SIZE).collect();
+	let fewest_zeroes = layers.iter().min_by_key(|l| count_ch(&l, '0')).unwrap();
+	println!("Q1: {:?}", count_ch(&fewest_zeroes, '1') * count_ch(&fewest_zeroes, '2'));
 }
 
 pub fn solve_q2() {
 	let mut img = fs::read_to_string("./inputs/day8.txt").unwrap().trim().to_string();
-	img = img.replace("0", " ").replace("1", "#").replace("2", "@");	
+	img = img.replace("0", " ");	
+	img = img.replace("1", "#");	
 
-	let mut pixels = vec!['@'; 150];
+	// I could probalby iterator this up, but I like how simple and readable this loop is.
+	// I store the final pixels in another array. One pass over the input, and when
+	// I encounter a clear pixel (2 in the input) in final pixels array, copy the character
+	// in the same position from the input string. (The input string is given with the top
+	// layer at the beginning of the string)
+	let mut pixels = vec!['2'; IMG_SIZE];
 	let mut i = 0;
 	for ch in img.chars() {
-		if pixels[i] == '@' {
+		if pixels[i] == '2' {
 			pixels[i] = ch;
 		}
-		i += 1;
-		if i % 150 == 0 {
-			i = 0;
-		}	
+		i = (i + 1) % IMG_SIZE;
 	}
 
-	for n in 1..7 {
-		pixels.insert(n * 25 + n - 1, '\n');
+	for n in 1..IMG_LENGTH+1 {
+		pixels.insert(n * IMG_WIDTH + n - 1, '\n');
 	}
 
 	println!("{}", pixels.iter().collect::<String>());
