@@ -31,9 +31,7 @@ pub fn solve_q1() {
 
 pub fn solve_q2() {
 	let mut img = fs::read_to_string("./inputs/day8.txt").unwrap().trim().to_string();
-	img = img.replace("0", " ");	
-	img = img.replace("1", "#");	
-	img = img.replace("2", "@");	
+	img = img.replace("0", " ").replace("1", "#").replace("2", "@");	
 
 	let mut pixels = vec!['@'; 150];
 	let mut i = 0;

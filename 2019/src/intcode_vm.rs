@@ -5,10 +5,10 @@ use std::collections::VecDeque;
 
 #[derive(Debug)]
 pub struct IntcodeVM {
-	memory: Vec<i32>,
-	ptr: i32,
-	pub input_buffer: VecDeque<i32>,
-	pub output_buffer: i32,
+	memory: Vec<i64>,
+	ptr: i64,
+	pub input_buffer: VecDeque<i64>,
+	pub output_buffer: i64,
 	pub halted: bool
 }
 
@@ -17,32 +17,32 @@ impl IntcodeVM {
 		println!("{:?}", self.memory);
 	}
 
-	pub fn init(&mut self, prog_txt: &str, initial_input: i32) {
+	pub fn init(&mut self, prog_txt: &str, initial_input: i64) {
 		self.load(prog_txt);
 		self.write_to_buff(initial_input);
 	}
 
-	pub fn read(&self, loc: i32) -> i32 {
+	pub fn read(&self, loc: i64) -> i64 {
 		self.memory[loc as usize]
 	}
 
-	pub fn write_to_buff(&mut self, v: i32) {
+	pub fn write_to_buff(&mut self, v: i64) {
 		self.input_buffer.push_front(v);
 	}
 
-	pub fn write (&mut self, loc: i32, val: i32) {
+	pub fn write (&mut self, loc: i64, val: i64) {
 		self.memory[loc as usize] = val;
 	}
 
-	fn get_val(&self, p: i32, param_mode: i32) -> i32 {
+	fn get_val(&self, p: i64, param_mode: i64) -> i64 {
 		if param_mode == 1 { p } else { self.read(p) }
 	}
 
-	fn fetch_two_params(&self, loc:i32) -> (i32, i32) {
+	fn fetch_two_params(&self, loc:i64) -> (i64, i64) {
 		(self.read(loc + 1), self.read(loc + 2))
 	}
 
-	fn fetch_three_params(&self, loc: i32) -> (i32, i32, i32) {
+	fn fetch_three_params(&self, loc: i64) -> (i64, i64, i64) {
 		(self.read(loc + 1), self.read(loc + 2), self.read(loc + 3))
 	}
 
@@ -139,7 +139,7 @@ impl IntcodeVM {
 
 	pub fn load(&mut self, prog_txt: &str) {
 		self.memory = prog_txt.split(",")
-			.map(|a| a.parse::<i32>().unwrap()).collect();
+			.map(|a| a.parse::<i64>().unwrap()).collect();
 		self.ptr = 0;
 		self.halted = false;
 	}
