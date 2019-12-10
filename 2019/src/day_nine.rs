@@ -1,5 +1,6 @@
 use std::fs;
 use crate::intcode_vm;
+use std::time::SystemTime;
 
 fn run_prog(prog_txt: &str, input: i64) -> i64 {
 	let mut vm = intcode_vm::IntcodeVM::new();
@@ -20,5 +21,5 @@ pub fn solve() {
 	//let prog_txt = "1102,34463338,34463338,63,4,63,99";
 
 	println!("Q1: {}", run_prog(prog_txt.trim(), 1));
-	println!("Q2: {}", run_prog(prog_txt.trim(), 2));
+	println!("Q2: {}", run_prog(prog_txt.trim(), 2));	
 }
