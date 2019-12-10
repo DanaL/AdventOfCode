@@ -7,10 +7,10 @@ fn angle_between_pts(x0: i32, y0: i32, x1: i32, y1: i32) -> i32 {
 	let dx = (x1 - x0) as f32;
 	let dy = (y1 - y0) as f32;
 
-	// Hmm I want to use these as entries in a hashset but I don't want to lose too
-	// much accuaracy when I round
+	// Looks like I needed at least 1 decimal place of accuracy to
+	// get the angles correct
 	let angle = f32::atan2(dy, dx) * 180.0 / f32::consts::PI;
-	(angle * 1000.0).round() as i32
+	(angle * 10.0).round() as i32
 }
 
 // After thinking of a few different approaches, I realized all I
@@ -50,12 +50,17 @@ pub fn solve_q1() {
 	let length = map_txt.trim().matches('\n').count() + 1;
 
 	let (mut x, mut y) = (0, 0);
-	let mut counts: Vec<usize> = Vec::new();
+	let mut highest = 0;
+	let mut best_loc = (0, 0);
 	for ch in map_txt.chars() {
 		match ch {
 			'.' => x = (x + 1) % width,
 			'#' => {
-				counts.push(count_visible(&map_txt, x as i32, y as i32, width as i32));
+				let count = count_visible(&map_txt, x as i32, y as i32, width as i32);
+				if count > highest {
+					highest = count;
+					best_loc = (x, y);
+				}
 				x = (x + 1) % width;
 			},
 			'\n' => {
@@ -69,5 +74,5 @@ pub fn solve_q1() {
 			},
 		}
 	}
-	println!("Q1: {}", counts.iter().max().unwrap());
+	println!("Q1: {} at {:?}", highest, best_loc);
 }
