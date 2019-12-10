@@ -41,6 +41,31 @@ fn count_visible(map: &str, x0: i32, y0: i32, width: i32) -> usize {
 	asteroids.len()
 }
 
+// I'm absolutely sure this would be simplified but I'm not sure how mod
+// works with algebra and I've been banging my head at the Catersian Plane
+// for too long at this point
+fn clockwise_angle(deg: i32) -> i32 {
+	((3600 - (deg + 3600) % 3600) % 3600 + 900) % 3600
+}
+
+pub fn solve_q2() {
+	// For my own sanity, I think I'll transpose coordinates so that the laser
+	// station is at (0, 0)
+	let x0 = 50;
+	let y0 = -50;
+	println!("N {}", angle_between_pts(x0, y0, 50, 0));
+	println!("E {}", angle_between_pts(x0, y0, 80, -50));
+	println!("S {}", angle_between_pts(x0, y0, 55, -100));
+	println!("W {}", angle_between_pts(x0, y0, 0, -50));
+	println!("");
+	println!("N   {}", clockwise_angle(angle_between_pts(x0, y0, 50, 50)));
+	println!("NNW {}", clockwise_angle(angle_between_pts(x0, y0, 49, 50)));
+	println!("NNE {}", clockwise_angle(angle_between_pts(x0, y0, 51, 50)));
+	println!("E   {}", clockwise_angle(angle_between_pts(x0, y0, 80, -50)));
+	println!("S   {}", clockwise_angle(angle_between_pts(x0, y0, 50, -100)));
+	println!("W   {}", clockwise_angle(angle_between_pts(x0, y0, 0, -50)));
+}
+
 pub fn solve_q1() {
 	let mut map_txt = fs::read_to_string("./inputs/day10.txt").expect("Missing input file");
 	map_txt = map_txt.replace("\r", "").trim().to_string();
