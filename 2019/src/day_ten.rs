@@ -1,4 +1,12 @@
 use std::fs;
+use std::f32;
+
+fn angle_between_pts(x0: i32, y0: i32, x1: i32, y1: i32) -> f32 {
+	let dx = (x1 - x0) as f32;
+	let dy = (y1 - y0) as f32;
+
+	f32::atan2(dy, dx) * 180.0 / 3.14156
+}
 
 fn is_visible(map: &mut Vec<Vec<char>>, x0: i32, y0: i32, x1: i32, y1: i32) -> bool {
 	// Hmm the problem says that asteroids are blocked when there one exactly 
@@ -6,6 +14,8 @@ fn is_visible(map: &mut Vec<Vec<char>>, x0: i32, y0: i32, x1: i32, y1: i32) -> b
 	// asteroids. Any asteroid with the same angle blocks other asteroids with
 	// the same angle but further away?? 
 	// Will Slope of the line suffice??
+	let slope: f32 = (y1 - y0) as f32 / (x1 - x0) as f32;
+	println!("{}", slope);
 	true
 }
 
@@ -35,7 +45,24 @@ pub fn solve_q1() {
 			x = (x + 1) % width;	
 		}
 	}	
+
+	println!("{}", angle_between_pts(0, 0, 4, 3));
+	println!("{}", angle_between_pts(0, 0, 4, 4));
+	println!("{}", angle_between_pts(0, 0, 3, 4));
+	println!("");
+	println!("{}", angle_between_pts(0, 0, 1, 0));
+	println!("{}", angle_between_pts(0, 0, 1, 1));
+	println!("{}", angle_between_pts(0, 0, 0, 1));
+	println!("");
 	
-	println!("{}", is_visible(&mut map,3, 4, 4, 0));
-	dump(&map);
+	println!("{}", angle_between_pts(3, 4, 0, 2));
+	println!("{}", angle_between_pts(3, 4, 1, 2));
+	println!("{}", angle_between_pts(3, 4, 2, 2));
+	println!("{}", angle_between_pts(3, 4, 3, 2));
+	println!("{}", angle_between_pts(3, 4, 4, 2));
+	println!("");
+	println!("{} *", angle_between_pts(3, 4, 1, 0));
+	println!("{} *", angle_between_pts(3, 4, 4, 0));
+	//is_visible(&mut map,3, 4, 2, 0);
+	//dump(&map);
 }
