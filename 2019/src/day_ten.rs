@@ -1,7 +1,35 @@
 use std::fs;
 use std::f32;
 use std::f32::consts;
+use std::cmp::Ordering;
+use std::collections::HashMap;
 use std::collections::HashSet;
+use std::collections::BinaryHeap;
+use crate::util;
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub struct AsteroidInfo {
+	pub coord: (i32, i32),
+	pub d: u32,
+}
+
+impl AsteroidInfo {
+pub fn new(x: i32, y: i32, d: u32) -> AsteroidInfo {
+		AsteroidInfo { coord: (x, y), d }
+	}
+}
+
+impl Ord for AsteroidInfo {
+	fn cmp(&self, other: &AsteroidInfo) -> Ordering {
+		other.d.cmp(&self.d)
+	}
+}
+
+impl PartialOrd for AsteroidInfo {
+	fn partial_cmp(&self, other: &AsteroidInfo) -> Option<Ordering> {
+		Some(self.cmp(other))
+	}
+}
 
 fn angle_between_pts(x0: i32, y0: i32, x1: i32, y1: i32) -> i32 {
 	let dx = (x1 - x0) as f32;
@@ -48,11 +76,57 @@ fn clockwise_angle(deg: i32) -> i32 {
 	((3600 - (deg + 3600) % 3600) % 3600 + 900) % 3600
 }
 
+// For Q2, I am going to put all the asteroids into a Dictionary whose key is their map,
+// stored in a priority queue. Then, to find the 200th asteroid zapped, I'll loop over the keys
+// smallest to greatest (which simulates the clockwise rotation of the laser), popping on asteroid
+// off each queue until I've counted 200.
 pub fn solve_q2() {
+	//let mut map_txt = ".#..#\n.....\n#####\n....#\n...##\n";
+	let map_txt = ".#....#####...#..\n##...##.#####..##\n##...#...#.#####.\n..#.....X...###..\n..#.#.....#....##";
+
+	let mut asteroids: HashMap<i32, BinaryHeap<AsteroidInfo>> = HashMap::new();
+	let width = map_txt.find('\n').unwrap() as i32;
+	let (x0, y0) = (8, 3);
+	let mut x = 0;
+	let mut y = 0;
+	for ch in map_txt.chars() {
+		match ch {
+			'.' => x = (x + 1) % width,
+			'X' => x = (x + 1) % width,
+			'#' => {
+				let angle = clockwise_angle(angle_between_pts(0, 0, x - x0, (y - y0) * -1));
+				let ai = AsteroidInfo::new(x, y, util::manhattan_d(x0, y0, x, y));
+				match asteroids.get_mut(&angle) {
+					Some(ast_vec) => ast_vec.push(ai),
+					None => {
+						let mut heap = BinaryHeap::new();
+						heap.push(ai);
+						asteroids.insert(angle, heap);
+					}
+				}
+				x = (x + 1) % width;
+			},
+			'\n' => {
+				x = 0;
+				y += 1;
+			}
+			_ => {
+				println!("Hmm? '{}'", ch);
+				panic!("Unexpected character in data!");
+			},
+		}
+	}
+
+	let heap = asteroids.get_mut(&0).unwrap();
+	//println!("{:?}", heap);
+	let ai = heap.pop().unwrap();
+	println!("{:?}", ai);
+	//println!("{:?}", heap.pop());
 	// For my own sanity, I think I'll transpose coordinates so that the laser
 	// station is at (0, 0)
 	let x0 = 50;
 	let y0 = -50;
+	/*
 	println!("N {}", angle_between_pts(x0, y0, 50, 0));
 	println!("E {}", angle_between_pts(x0, y0, 80, -50));
 	println!("S {}", angle_between_pts(x0, y0, 55, -100));
@@ -64,6 +138,7 @@ pub fn solve_q2() {
 	println!("E   {}", clockwise_angle(angle_between_pts(x0, y0, 80, -50)));
 	println!("S   {}", clockwise_angle(angle_between_pts(x0, y0, 50, -100)));
 	println!("W   {}", clockwise_angle(angle_between_pts(x0, y0, 0, -50)));
+	*/
 }
 
 pub fn solve_q1() {
