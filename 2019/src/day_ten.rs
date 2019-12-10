@@ -1,16 +1,15 @@
 use std::fs;
 
-fn is_visible(x0: i32, y0: i32, x1: i32, y1: i32) -> bool {
-	let dx = (x1 - x0).abs();
-	let dy = (y1 - y0).abs();
-	let mut x = x0;
-	let mut y = y0;
-	let mut n = 1 + dx + dy;
-	
+fn is_visible(map: &mut Vec<Vec<char>>, x0: i32, y0: i32, x1: i32, y1: i32) -> bool {
+	// Hmm the problem says that asteroids are blocked when there one exactly 
+	// between them. Can I just calculate the angle and distance between the 
+	// asteroids. Any asteroid with the same angle blocks other asteroids with
+	// the same angle but further away?? 
+	// Will Slope of the line suffice??
 	true
 }
 
-fn dump(map: Vec<Vec<char>>) {
+fn dump(map: &Vec<Vec<char>>) {
 	for row in map {
 		println!("{}", row.iter().cloned().collect::<String>());
 	}
@@ -37,5 +36,6 @@ pub fn solve_q1() {
 		}
 	}	
 	
-	dump(map);
+	println!("{}", is_visible(&mut map,3, 4, 4, 0));
+	dump(&map);
 }
