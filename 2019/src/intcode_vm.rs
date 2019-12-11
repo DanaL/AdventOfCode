@@ -21,7 +21,11 @@ impl IntcodeVM {
 	}
 
 	pub fn read(&self, loc: i64) -> i64 {
-		*self.memory.get(&(loc as u64)).unwrap()
+		match self.memory.get(&(loc as u64)) {
+			Some(v) => *v,
+			None => 0,
+		}
+		//*self.memory.get(&(loc as u64)).unwrap()
 	}
 
 	pub fn write_to_buff(&mut self, v: i64) {

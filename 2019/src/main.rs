@@ -2,5 +2,6 @@ mod day_eleven;
 mod intcode_vm;
 
 fn main() {
-	day_eleven::solve_q1();
+	day_eleven::solve('.', true);
+	day_eleven::solve('#', true);
 }
