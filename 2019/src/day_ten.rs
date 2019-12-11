@@ -1,6 +1,5 @@
 use std::fs;
 use std::f32;
-use std::f32::consts;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -41,37 +40,12 @@ fn angle_between_pts(x0: i32, y0: i32, x1: i32, y1: i32) -> i32 {
 	(angle * 10.0).round() as i32
 }
 
-// After thinking of a few different approaches, I realized all I
-// needed to do was to keep a Set of the relative angles of the
-// other asteroids. I don't care about individual asteroids. With a
-// Set, then asteroids with the same angle as others are filtered out.
-fn count_visible(map: &str, x0: i32, y0: i32, width: i32) -> usize {
-	let mut asteroids: HashSet<i32> = HashSet::new();
-
-	let (mut x, mut y) = (0, 0);
-	for ch in map.chars() {
-		match ch {
-			'.' => x = (x + 1) % width,
-			'#' => {
-				if x != x0 || y != y0 {
-					let angle = angle_between_pts(x0, y0, x, y);
-					asteroids.insert(angle);
-				}
-				x = (x + 1) % width;
-			},
-			_ => {
-				x = 0;
-				y += 1;
-			}
-		}
-	}
-
-	asteroids.len()
-}
-
-// I'm absolutely sure this would be simplified but I'm not sure how mod
+// I'm absolutely sure this could be simplified but I'm not sure how mod
 // works with algebra and I've been banging my head at the Catersian Plane
 // for too long at this point
+//
+// But this is taking the angle (which is counterclockwise) and converting 
+// it to be clockwise and from 0-360 with North as angle zero
 fn clockwise_angle(deg: i32) -> i32 {
 	((3600 - (deg + 3600) % 3600) % 3600 + 900) % 3600
 }
@@ -81,12 +55,13 @@ fn clockwise_angle(deg: i32) -> i32 {
 // smallest to greatest (which simulates the clockwise rotation of the laser), popping on asteroid
 // off each queue until I've counted 200.
 pub fn solve_q2() {
-	//let mut map_txt = ".#..#\n.....\n#####\n....#\n...##\n";
-	let map_txt = ".#....#####...#..\n##...##.#####..##\n##...#...#.#####.\n..#.....X...###..\n..#.#.....#....##";
+	//let map_txt = ".#....#####...#..\n##...##.#####..##\n##...#...#.#####.\n..#.....X...###..\n..#.#.....#....##";
+	let mut map_txt = fs::read_to_string("./inputs/day10.txt").expect("Missing input file");
+	map_txt = map_txt.replace("\r", "").trim().to_string();
 
 	let mut asteroids: HashMap<i32, BinaryHeap<AsteroidInfo>> = HashMap::new();
 	let width = map_txt.find('\n').unwrap() as i32;
-	let (x0, y0) = (8, 3);
+	let (x0, y0) = (20, 18);
 	let mut x = 0;
 	let mut y = 0;
 	for ch in map_txt.chars() {
@@ -117,28 +92,54 @@ pub fn solve_q2() {
 		}
 	}
 
-	let heap = asteroids.get_mut(&0).unwrap();
-	//println!("{:?}", heap);
-	let ai = heap.pop().unwrap();
-	println!("{:?}", ai);
-	//println!("{:?}", heap.pop());
-	// For my own sanity, I think I'll transpose coordinates so that the laser
-	// station is at (0, 0)
-	let x0 = 50;
-	let y0 = -50;
-	/*
-	println!("N {}", angle_between_pts(x0, y0, 50, 0));
-	println!("E {}", angle_between_pts(x0, y0, 80, -50));
-	println!("S {}", angle_between_pts(x0, y0, 55, -100));
-	println!("W {}", angle_between_pts(x0, y0, 0, -50));
-	println!("");
-	println!("N   {}", clockwise_angle(angle_between_pts(x0, y0, 50, 50)));
-	println!("NNW {}", clockwise_angle(angle_between_pts(x0, y0, 49, 50)));
-	println!("NNE {}", clockwise_angle(angle_between_pts(x0, y0, 51, 50)));
-	println!("E   {}", clockwise_angle(angle_between_pts(x0, y0, 80, -50)));
-	println!("S   {}", clockwise_angle(angle_between_pts(x0, y0, 50, -100)));
-	println!("W   {}", clockwise_angle(angle_between_pts(x0, y0, 0, -50)));
-	*/
+	let mut count = 0;
+	'outer: loop {
+		let mut angles: Vec<_> = asteroids.keys().into_iter().map(|k| *k).collect::<Vec<i32>>().clone();
+		angles.sort();
+		for k in angles {
+			let heap = asteroids.get_mut(&k).unwrap();
+			let ai = heap.pop().unwrap();
+			count += 1;
+			if count == 200 { 
+				println!("200th asteroid was ({}, {})", ai.coord.0, ai.coord.1);
+				println!("    Q2: {}", ai.coord.0 * 100 + ai.coord.1);
+				break 'outer;
+			}
+			if heap.len() == 0 {
+				asteroids.remove(&k);	
+			}
+		}
+
+		if asteroids.len() == 0 { break }
+	}
+}
+
+// After thinking of a few different approaches, I realized all I
+// needed to do was to keep a Set of the relative angles of the
+// other asteroids. I don't care about individual asteroids. With a
+// Set, then asteroids with the same angle as others are filtered out.
+fn count_visible(map: &str, x0: i32, y0: i32, width: i32) -> usize {
+	let mut asteroids: HashSet<i32> = HashSet::new();
+
+	let (mut x, mut y) = (0, 0);
+	for ch in map.chars() {
+		match ch {
+			'.' => x = (x + 1) % width,
+			'#' => {
+				if x != x0 || y != y0 {
+					let angle = angle_between_pts(x0, y0, x, y);
+					asteroids.insert(angle);
+				}
+				x = (x + 1) % width;
+			},
+			_ => {
+				x = 0;
+				y += 1;
+			}
+		}
+	}
+
+	asteroids.len()
 }
 
 pub fn solve_q1() {
@@ -147,8 +148,6 @@ pub fn solve_q1() {
 	//let mut map_txt = ".#..#\n.....\n#####\n....#\n...##\n";
 	//map_txt = map_txt.trim();
 	let width = map_txt.find('\n').unwrap();
-	let length = map_txt.trim().matches('\n').count() + 1;
-
 	let (mut x, mut y) = (0, 0);
 	let mut highest = 0;
 	let mut best_loc = (0, 0);
@@ -174,5 +173,6 @@ pub fn solve_q1() {
 			},
 		}
 	}
+
 	println!("Q1: {} at {:?}", highest, best_loc);
 }
