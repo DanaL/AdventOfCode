@@ -1,7 +1,6 @@
-mod day_ten;
-mod util;
+mod day_eleven;
+mod intcode_vm;
 
 fn main() {
-	let (x, y, asteroids) = day_ten::solve_q1();
-	day_ten::solve_q2(x, y, asteroids, 200);
+	day_eleven::solve_q1();
 }
