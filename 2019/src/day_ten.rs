@@ -54,63 +54,40 @@ fn clockwise_angle(deg: i32) -> i32 {
 // stored in a priority queue. Then, to find the 200th asteroid zapped, I'll loop over the keys
 // smallest to greatest (which simulates the clockwise rotation of the laser), popping on asteroid
 // off each queue until I've counted 200.
-pub fn solve_q2() {
-	//let map_txt = ".#....#####...#..\n##...##.#####..##\n##...#...#.#####.\n..#.....X...###..\n..#.#.....#....##";
-	let mut map_txt = fs::read_to_string("./inputs/day10.txt").expect("Missing input file");
-	map_txt = map_txt.replace("\r", "").trim().to_string();
-
-	let mut asteroids: HashMap<i32, BinaryHeap<AsteroidInfo>> = HashMap::new();
-	let width = map_txt.find('\n').unwrap() as i32;
-	let (x0, y0) = (20, 18);
-	let mut x = 0;
-	let mut y = 0;
-	for ch in map_txt.chars() {
-		match ch {
-			'.' => x = (x + 1) % width,
-			'X' => x = (x + 1) % width,
-			'#' => {
-				let angle = clockwise_angle(angle_between_pts(0, 0, x - x0, (y - y0) * -1));
-				let ai = AsteroidInfo::new(x, y, util::manhattan_d(x0, y0, x, y));
-				match asteroids.get_mut(&angle) {
-					Some(ast_vec) => ast_vec.push(ai),
-					None => {
-						let mut heap = BinaryHeap::new();
-						heap.push(ai);
-						asteroids.insert(angle, heap);
-					}
-				}
-				x = (x + 1) % width;
-			},
-			'\n' => {
-				x = 0;
-				y += 1;
+pub fn solve_q2(x0: i32, y0: i32, asteroids: Vec<AsteroidInfo>, seeking: usize) {
+	let mut asteroid_map: HashMap<i32, BinaryHeap<AsteroidInfo>> = HashMap::new();
+	for mut ai in asteroids {
+		ai.d = util::manhattan_d(x0, y0, ai.coord.0, ai.coord.1);
+		let angle = clockwise_angle(angle_between_pts(0, 0, ai.coord.0 - x0, (ai.coord.1 - y0) * -1));
+		match asteroid_map.get_mut(&angle) {
+			Some(ast_vec) => ast_vec.push(ai),
+			None => {
+				let mut heap = BinaryHeap::new();
+				heap.push(ai);
+				asteroid_map.insert(angle, heap);
 			}
-			_ => {
-				println!("Hmm? '{}'", ch);
-				panic!("Unexpected character in data!");
-			},
 		}
 	}
-
+	
 	let mut count = 0;
 	'outer: loop {
-		let mut angles: Vec<_> = asteroids.keys().into_iter().map(|k| *k).collect::<Vec<i32>>().clone();
+		let mut angles: Vec<_> = asteroid_map.keys().into_iter().map(|k| *k).collect::<Vec<i32>>().clone();
 		angles.sort();
 		for k in angles {
-			let heap = asteroids.get_mut(&k).unwrap();
+			let heap = asteroid_map.get_mut(&k).unwrap();
 			let ai = heap.pop().unwrap();
 			count += 1;
-			if count == 200 { 
-				println!("200th asteroid was ({}, {})", ai.coord.0, ai.coord.1);
+			if count == seeking { 
+				println!("asteroid #{} was ({}, {})", seeking, ai.coord.0, ai.coord.1);
 				println!("    Q2: {}", ai.coord.0 * 100 + ai.coord.1);
 				break 'outer;
 			}
 			if heap.len() == 0 {
-				asteroids.remove(&k);	
+				asteroid_map.remove(&k);	
 			}
 		}
 
-		if asteroids.len() == 0 { break }
+		if asteroid_map.len() == 0 { break }
 	}
 }
 
@@ -142,11 +119,12 @@ fn count_visible(map: &str, x0: i32, y0: i32, width: i32) -> usize {
 	asteroids.len()
 }
 
-pub fn solve_q1() {
+pub fn solve_q1() -> (i32, i32, Vec<AsteroidInfo>) {
 	let mut map_txt = fs::read_to_string("./inputs/day10.txt").expect("Missing input file");
 	map_txt = map_txt.replace("\r", "").trim().to_string();
-	//let mut map_txt = ".#..#\n.....\n#####\n....#\n...##\n";
+	//let mut map_txt = ".#....#####...#..\n##...##.#####..##\n##...#...#.#####.\n..#.....#...###..\n..#.#.....#....##";
 	//map_txt = map_txt.trim();
+	let mut asteroids: Vec<AsteroidInfo> = Vec::new();
 	let width = map_txt.find('\n').unwrap();
 	let (mut x, mut y) = (0, 0);
 	let mut highest = 0;
@@ -160,6 +138,7 @@ pub fn solve_q1() {
 					highest = count;
 					best_loc = (x, y);
 				}
+				asteroids.push(AsteroidInfo::new(x as i32, y as i32, 0));
 				x = (x + 1) % width;
 			},
 			'\n' => {
@@ -175,4 +154,5 @@ pub fn solve_q1() {
 	}
 
 	println!("Q1: {} at {:?}", highest, best_loc);
+	(best_loc.0 as i32, best_loc.1 as i32, asteroids)
 }
