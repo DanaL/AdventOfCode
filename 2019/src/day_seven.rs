@@ -1,5 +1,4 @@
 use std::fs;
-use std::collections::HashSet;
 use crate::intcode_vm;
 use crate::util;
 
@@ -15,7 +14,7 @@ pub fn solve_q1() {
 	//let prog_txt = "3,31,3,32,1002,32,10,32,1001,31,-2,31,1007,31,0,33,1002,33,7,33,1,33,31,31,1,32,31,31,4,31,99,0,0,0";
 	let mut most_thrust = 0;
 
-	for p in util::Permutations::new(vec![0, 1, 2, 3, 4]).into_iter() {
+	for p in util::Permutations::new(&vec![0, 1, 2, 3, 4]).into_iter() {
 		let mut vm_a = intcode_vm::IntcodeVM::new();
 		vm_a.load(prog_txt.trim());
 		let mut vm_b = intcode_vm::IntcodeVM::new();
@@ -75,7 +74,7 @@ pub fn solve_q2() {
 	//let prog_txt = "3,52,1001,52,-5,52,3,53,1,52,56,54,1007,54,5,55,1005,55,26,1001,54,-5,54,1105,1,12,1,53,54,53,1008,54,0,55,1001,55,1,55,2,53,55,53,4,53,1001,56,-1,56,1005,56,6,99,0,0,0,0,10";
 
 	let mut most_thrust = 0;
-	for p in util::Permutations::new(vec![5, 6, 7, 8, 9]).into_iter() {
+	for p in util::Permutations::new(&vec![5, 6, 7, 8, 9]).into_iter() {
 		let result = run_feedback_loop(prog_txt.trim(), p);
 		if result > most_thrust { most_thrust = result }
 	}

@@ -2,7 +2,7 @@ pub fn manhattan_d(ax: i32, ay: i32, bx: i32, by: i32) -> u32 {
 	((ax - bx).abs() + (ay - by).abs()) as u32
 }
 
-pub fn lcm(mut a: i64, mut b: i64) -> i64 {
+pub fn lcm(a: i64, mut b: i64) -> i64 {
 	(a * b).abs() / gcd(a, b)
 }
 
@@ -15,27 +15,29 @@ pub fn gcd(mut a: i64, mut b: i64) -> i64 {
 	a
 }
 
-pub struct Permutations {
-	arr: Vec<i64>,
+pub struct Permutations<T> {
+	arr: Vec<T>,
 	i: usize,
 	c: Vec<usize>,
 	started: bool
 }
 
-impl Permutations {
-	pub fn new(a: Vec<i64>) -> Permutations {
-		Permutations { arr: a.to_vec(), i:0,
-			c: vec![0; a.len()], started: false
+impl<T> Permutations<T> where T: Clone {
+	pub fn new(a: &[T]) -> Permutations<T> {
+		let n = a.len();
+		Permutations { arr:a.to_vec(), i:0,
+			c: vec![0; n], started: false
 		}
-	}	
+	}
 }
 
-impl Iterator for Permutations {
-	type Item = Vec<i64>;
+impl<T> Iterator for Permutations<T> where T: Clone {
+	type Item = Vec<T>;
 
 	fn next(&mut self) -> Option<Self::Item> {
 		if !self.started {
 			self.started = true;
+			//return Some(self.arr.to_vec());
 			return Some(self.arr.to_vec());
 		}
 
@@ -48,6 +50,7 @@ impl Iterator for Permutations {
 				}
 				self.c[self.i] += 1;
 				self.i = 0;
+				//return Some(self.arr.to_vec());
 				return Some(self.arr.to_vec());
 			} else {
 				self.c[self.i] = 0;
