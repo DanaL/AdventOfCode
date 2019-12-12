@@ -27,13 +27,7 @@ impl Permutations {
 		Permutations { arr: a.to_vec(), i:0,
 			c: vec![0; a.len()], started: false
 		}
-	}
-
-	fn swap(arr: &mut Vec<i64>, j: usize, k: usize) {
-		let tmp = arr[j];
-		arr[j] = arr[k];
-		arr[k] = tmp;
-	}
+	}	
 }
 
 impl Iterator for Permutations {
@@ -48,9 +42,9 @@ impl Iterator for Permutations {
 		while self.i < self.arr.len() {
 			if self.c[self.i] < self.i {
 				if self.i % 2 == 0 {
-					Permutations::swap(&mut self.arr, 0, self.i);
+					self.arr.swap(0, self.i);
 				} else {
-					Permutations::swap(&mut self.arr, self.c[self.i], self.i);
+					self.arr.swap(self.c[self.i], self.i);
 				}
 				self.c[self.i] += 1;
 				self.i = 0;
