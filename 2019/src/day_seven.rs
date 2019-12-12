@@ -15,7 +15,6 @@ pub fn solve_q1() {
 	//let prog_txt = "3,31,3,32,1002,32,10,32,1001,31,-2,31,1007,31,0,33,1002,33,7,33,1,33,31,31,1,32,31,31,4,31,99,0,0,0";
 	let mut most_thrust = 0;
 
-	// Behold the glory of me determining all permutations of [0, 1, 2, 3, 4, 5]
 	for p in util::Permutations::new(vec![0, 1, 2, 3, 4]).into_iter() {
 		let mut vm_a = intcode_vm::IntcodeVM::new();
 		vm_a.load(prog_txt.trim());
