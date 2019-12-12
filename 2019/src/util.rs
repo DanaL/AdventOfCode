@@ -2,6 +2,19 @@ pub fn manhattan_d(ax: i32, ay: i32, bx: i32, by: i32) -> u32 {
 	((ax - bx).abs() + (ay - by).abs()) as u32
 }
 
+pub fn lcm(mut a: i64, mut b: i64) -> i64 {
+	(a * b).abs() / gcd(a, b)
+}
+
+pub fn gcd(mut a: i64, mut b: i64) -> i64 {
+	while b != 0 {
+		let tmp = a;
+		a = b;
+		b = tmp % b;
+	}
+	a
+}
+
 pub struct Permutations {
 	arr: Vec<i64>,
 	i: usize,
@@ -25,7 +38,7 @@ impl Permutations {
 
 impl Iterator for Permutations {
 	type Item = Vec<i64>;
-	
+
 	fn next(&mut self) -> Option<Self::Item> {
 		if !self.started {
 			self.started = true;
