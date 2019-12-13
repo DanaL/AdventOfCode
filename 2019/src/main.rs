@@ -4,4 +4,5 @@ mod util;
 
 fn main() {
 	day_thirteen::solve_q1();
+	day_thirteen::solve_q2();
 }

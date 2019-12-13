@@ -101,11 +101,11 @@ impl IntcodeVM {
 						// Only increment the pointer when there is input
 						// in the buffer. This way, we can interactively ask
 						// for input and then resume the read instruction.
-						Some(v) => { 
+						Some(v) => {
 							self.write(dest, v);
 							self.ptr += 2;
 						},
-						None => self.state = VMState::AwaitInput, 
+						None => self.state = VMState::AwaitInput,
 					}
 				},
 				// write to the output buffer
@@ -113,8 +113,7 @@ impl IntcodeVM {
 					let a = self.read(self.ptr+1);
 					self.output_buffer = self.get_val(a, mode1);
 					self.ptr += 2;
-					self.state = VMState::Paused;
-					return;
+					self.state = VMState::Paused;					
 				}
 				// jump-if-true
 				5 => {
