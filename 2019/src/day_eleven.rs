@@ -14,7 +14,7 @@ enum Dir {
 #[derive(Debug)]
 struct Bot {
 	sqs_painted: HashMap<(i32, i32), char>,
-	dir: Dir,	
+	dir: Dir,
 	loc: (i32, i32),
 }
 
@@ -27,9 +27,9 @@ impl Bot {
 
 	pub fn paint(&mut self, iv: i64) {
 		if iv == 1 {
-			*self.sqs_painted.entry(self.loc).or_insert('#') = '#';	
+			*self.sqs_painted.entry(self.loc).or_insert('#') = '#';
 		} else {
-			*self.sqs_painted.entry(self.loc).or_insert('.') = '.';	
+			*self.sqs_painted.entry(self.loc).or_insert('.') = '.';
 		}
 	}
 
@@ -41,7 +41,7 @@ impl Bot {
 			Dir::W => self.dir = if iv == 0 { Dir::S } else { Dir::N },
 		}
 	}
-	
+
 	pub fn do_move(&mut self, iv: i64) {
 		self.turn(iv);
 		match self.dir {
@@ -55,10 +55,10 @@ impl Bot {
 	pub fn curr_panel(&self) -> i64 {
 		match self.sqs_painted.get(&self.loc) {
 			Some(ch) => if ch == &'.' { 0 } else { 1 },
-			None => 0	
+			None => 0
 		}
 	}
-	
+
 	pub fn total_painted(&self) -> usize {
 		self.sqs_painted.len()
 	}
@@ -68,11 +68,11 @@ impl Bot {
 		let mut furthest_e = i32::MIN;
 		let mut furthest_n = i32::MAX;
 		let mut furthest_s = i32::MIN;
-		
+
 		for loc in self.sqs_painted.keys().into_iter() {
 			if loc.0 < furthest_w { furthest_w = loc.0 }
 			if loc.0 > furthest_e { furthest_e = loc.0 }
-			if loc.1 < furthest_n { furthest_n = loc.1 } 
+			if loc.1 < furthest_n { furthest_n = loc.1 }
 			if loc.1 > furthest_s { furthest_s = loc.1 }
 		}
 
@@ -95,16 +95,20 @@ pub fn solve(initial: char, print: bool) {
 	vm.load(prog_txt.trim());
 	let mut bot = Bot::new(initial);
 	vm.write_to_buff(bot.curr_panel());
-	
+
 	loop {
 		vm.run();
-		if vm.halted { break }
-		bot.paint(vm.output_buffer);
-		vm.run();
-		bot.do_move(vm.output_buffer);
-		vm.write_to_buff(bot.curr_panel());
+		match vm.state {
+			intcode_vm::VMState::Halted => break,
+			_ => {
+				bot.paint(vm.output_buffer);
+				vm.run();
+				bot.do_move(vm.output_buffer);
+				vm.write_to_buff(bot.curr_panel());
+			}
+		}		
 	}
-	
+
 	println!("Sqs painted: {}", bot.total_painted());
 	if print {
 		bot.print_art();

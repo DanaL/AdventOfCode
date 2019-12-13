@@ -7,9 +7,8 @@ fn run_prog(prog_txt: &str, input: i64) -> i64 {
 	vm.load(prog_txt);
 	vm.write_to_buff(input);
 
-	loop {
+	while vm.state != intcode_vm::VMState::Halted {
 		vm.run();
-		if vm.halted { break }
 	}
 
 	vm.output_buffer
@@ -21,5 +20,5 @@ pub fn solve() {
 	//let prog_txt = "1102,34463338,34463338,63,4,63,99";
 
 	println!("Q1: {}", run_prog(prog_txt.trim(), 1));
-	println!("Q2: {}", run_prog(prog_txt.trim(), 2));	
+	println!("Q2: {}", run_prog(prog_txt.trim(), 2));
 }

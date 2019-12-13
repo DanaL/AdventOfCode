@@ -56,7 +56,7 @@ pub fn run_feedback_loop(prog_txt: &str, seq: Vec<i64>) -> i64 {
 	vm_e.init(prog_txt, seq[4]);
 
 	let mut a_feedback = 0;
-	while !vm_e.halted {
+	while vm_e.state != intcode_vm::VMState::Halted {
 		let mut out = run_vm_q2(&mut vm_a, a_feedback);
 		out = run_vm_q2(&mut vm_b, out);
 		out = run_vm_q2(&mut vm_c, out);
