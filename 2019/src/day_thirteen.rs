@@ -37,27 +37,36 @@ impl Game {
 	}
 }
 
-pub fn solve_q2() {
-	let prog_txt = fs::read_to_string("./inputs/day13_hacked.txt").unwrap();
+pub fn solve(q1: bool, cheat: bool) {
+	let mut file = "./inputs/day13.txt";
+	if cheat {
+		file = "./inputs/day13_hacked.txt"
+	}
+	let prog_txt = fs::read_to_string(file).unwrap();
 	let mut vm = intcode_vm::IntcodeVM::new();
 	vm.load(prog_txt.trim());
-	vm.write(0, 2);
-
+	if !q1 {
+		vm.write(0, 2);
+	}
 	let mut game = Game::new();
 	let mut x = -1;
 	let mut y = -1;
 	let mut count = 0;
-	game.display();
-
 	loop {
 		vm.run();
 		match vm.state {
 			intcode_vm::VMState::Halted => break,
 			intcode_vm::VMState::AwaitInput => {
-				if game.score > 4000 && game.score < 4100 {
-					game.display();
+				let mut nmove = 0;
+				if game.ball.1 < game.paddle.1 {
+					nmove = -1;
+				} else if game.ball.1 > game.paddle.1 {
+					nmove = 1;
 				}
-				vm.write_to_buff(-1);
+				if cheat {
+					nmove = -1;
+				}
+				vm.write_to_buff(nmove);
 			},
 			_ => {
 				match count {
@@ -87,37 +96,17 @@ pub fn solve_q2() {
 	}
 
 	game.display();
-	println!("Q2: Final score was {}", game.score);
-}
-
-pub fn solve_q1() {
-	let prog_txt = fs::read_to_string("./inputs/day13.txt").unwrap();
-	let mut vm = intcode_vm::IntcodeVM::new();
-	vm.load(prog_txt.trim());
-
-	let mut count = 0;
-	let mut locs = Vec::new();
-	let mut sprites = Vec::new();
-	let mut x = -1;
-	let mut y = -1;
-	loop {
-		vm.run();
-		if vm.state == intcode_vm::VMState::Halted {
-			break;
-		}
-
-		match count {
-			0 => x = vm.output_buffer,
-			1 => {
-				y = vm.output_buffer;
-				locs.push((x, y));
-			},
-			2 => sprites.push(vm.output_buffer),
-			_ => panic!("This shouldn't happen..."),
-		}
-		count = (count + 1) % 3;
+	if q1 {
+		let blocks = game.board
+			.iter()
+			.flat_map(|a| a.iter())
+			.cloned()
+			.collect::<Vec<char>>()
+			.iter()
+			.filter(|ch| **ch == '▄').count();
+		println!("Q1: {:?}", blocks);
 	}
-
-	let num_of_blocks = sprites.iter().filter(|s| **s == 2).count();
-	println!("Q1 {}", num_of_blocks);
+	else {
+		println!("Q2: Final score was {}", game.score);
+	}
 }
