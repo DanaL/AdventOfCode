@@ -4,13 +4,23 @@ use std::collections::VecDeque;
 // A "VM" for the intcode machine, which sounds like it's going to be a thing
 // in at least a few of the problems this year
 
+#[derive(Debug, PartialEq)]
+pub enum VMState {
+	Initialized,
+	Ready,
+	Running,
+	Halted,
+	AwaitInput,
+	Paused,
+}
+
 #[derive(Debug)]
 pub struct IntcodeVM {
 	memory: HashMap<u64, i64>,
 	ptr: i64,
 	pub input_buffer: VecDeque<i64>,
 	pub output_buffer: i64,
-	pub halted: bool,
+	pub state: VMState,
 	pub rel_base: i64,
 }
 
@@ -32,7 +42,7 @@ impl IntcodeVM {
 		self.input_buffer.push_front(v);
 	}
 
-	pub fn write (&mut self, loc: i64, val: i64) {
+	pub fn write(&mut self, loc: i64, val: i64) {
 		*self.memory.entry(loc as u64).or_insert(val) = val;
 	}
 
@@ -59,7 +69,8 @@ impl IntcodeVM {
 	}
 
 	pub fn run(&mut self) {
-		loop {
+		self.state = VMState::Running;
+		while self.state == VMState::Running {
 			let instr = self.read(self.ptr);
 			let opcode = instr - instr / 100 * 100;
 			let mode1 = (instr - instr / 1000 * 1000) / 100 % 3;
@@ -87,16 +98,22 @@ impl IntcodeVM {
 					if mode1 == 2 { dest += self.rel_base; }
 
 					match self.input_buffer.pop_back() {
-						Some(v) => self.write(dest, v),
-						None => panic!("Attempted to read from empty input buffer!"),
+						// Only increment the pointer when there is input
+						// in the buffer. This way, we can interactively ask
+						// for input and then resume the read instruction.
+						Some(v) => { 
+							self.write(dest, v);
+							self.ptr += 2;
+						},
+						None => self.state = VMState::AwaitInput, 
 					}
-					self.ptr += 2;
 				},
 				// write to the output buffer
 				4 => {
 					let a = self.read(self.ptr+1);
 					self.output_buffer = self.get_val(a, mode1);
 					self.ptr += 2;
+					self.state = VMState::Paused;
 					return;
 				}
 				// jump-if-true
@@ -144,10 +161,7 @@ impl IntcodeVM {
 					self.ptr += 2;
 				},
 				// halt!
-				99 => {
-					self.halted = true;
-					break;
-				},
+				99 => self.state = VMState::Halted,
 				// I don't think this should ever happen with our input?
 				_  => panic!("Hmm this shouldn't happen..."),
 			}
@@ -156,7 +170,7 @@ impl IntcodeVM {
 
 	pub fn new() -> IntcodeVM {
 		IntcodeVM { ptr: 0, memory: HashMap::new(),	input_buffer: VecDeque::new(),
-			output_buffer: 0, halted: false, rel_base: 0 }
+			output_buffer: 0, state: VMState::Initialized, rel_base: 0 }
 	}
 
 	pub fn load(&mut self, prog_txt: &str) {
@@ -166,6 +180,6 @@ impl IntcodeVM {
 		}
 
 		self.ptr = 0;
-		self.halted = false;
+		self.state = VMState::Ready;
 	}
 }
