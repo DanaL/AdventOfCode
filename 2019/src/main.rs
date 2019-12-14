@@ -1,8 +1,6 @@
-mod day_thirteen;
-mod intcode_vm;
+mod day_fourteen;
 mod util;
 
 fn main() {
-	day_thirteen::solve(true, false);
-	day_thirteen::solve(false, false);
+	day_fourteen::solve_q1();
 }
