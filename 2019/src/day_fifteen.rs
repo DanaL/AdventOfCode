@@ -8,14 +8,6 @@ const SOUTH: usize = 2;
 const EAST: usize = 4;
 const WEST: usize = 3;
 
-#[derive(Debug, Clone)]
-enum Dir {
-	N,
-	S,
-	E,
-	W,
-}
-
 #[derive(Debug, Clone, PartialEq)]
 enum Con {
 	Path,
@@ -65,13 +57,18 @@ impl Bot {
 	}
 
 	fn explore(&mut self, vm: &mut intcode_vm::IntcodeVM) {
+		let mut count = 0;
 		loop {
 			let curr_sq = self.path[self.path.len() - 1];
 			let sq = self.checked.get(&(curr_sq as i32)).unwrap();
 			let mv = self.pick_move(&sq);
 
 			if mv == 0 {
-				// We've exhausted all possibilities and need to backtrack
+				let curr = self.path.pop().unwrap();
+				let back = self.path[self.path.len() - 1];
+				let mv_back = self.maze.get(&(curr, back)).unwrap();
+				vm.write_to_buff(*mv_back as i64);
+				vm.run();
 			}
 			else {
 				vm.write_to_buff(mv as i64);
@@ -80,26 +77,24 @@ impl Bot {
 					println!("After trying {}, bumped into a wall.", mv);
 					self.checked.entry(curr_sq as i32)
 						.and_modify(|arr| arr[mv] = Con::Wall);
-					println!("{:?}", self.checked);
 				}
 				else if vm.output_buffer == 1 {
-					println!("Found a path!!");
+					println!("Found a path {}!!", mv);
 					self.checked.entry(curr_sq as i32)
 						.and_modify(|arr| arr[mv] = Con::Path);
 					self.sq_id += 1;
-					self.checked.insert(self.sq_id, vec![Con::Unknown, Con::Unknown, Con::Unknown, Con::Unknown, Con::Unknown]);
+					let path_back = self.invert_move(mv);
+					let mut next_sq = vec![Con::Unknown, Con::Unknown, Con::Unknown, Con::Unknown, Con::Unknown];
+					next_sq[path_back] = Con::Path;
+					self.checked.insert(self.sq_id, next_sq);
 					self.maze.insert((curr_sq, self.sq_id), mv);
-					self.maze.insert((self.sq_id, curr_sq), self.invert_move(mv));
+					self.maze.insert((self.sq_id, curr_sq), path_back);
 					self.path.push(self.sq_id);
-					println!("{:?}", self.checked);
-					println!("{:?}", self.path);
-					println!("{:?}", self.maze);
-					break;
 				}
 				else if vm.output_buffer == 2 {
-					// Hurrah we found the Oxygen Unit!
+					println!("Path length when O2 reached! {}", self.path.len());
+					break;
 				}
-				println!("After trying {}, result: {}", mv, vm.output_buffer);
 			}
 		}
 	}
