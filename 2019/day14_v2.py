@@ -2,6 +2,7 @@ from collections import defaultdict
 import math
 import re
 
+# I'll clean this shit up when I rewrite this in Rust D:
 class Recipe:
 	def __init__(self, c, p, i):
 		self.chem = c
@@ -32,7 +33,6 @@ def only_ore(recipe):
 	return True
 
 def produce(chem, amt, leftovers, recipes):
-	print("Producing:", chem, amt)
 	if chem in leftovers and leftovers[chem] > 0:
 		if leftovers[chem] >= amt:
 			# We can use the leftovers, don't need more ore
@@ -57,16 +57,26 @@ def produce(chem, amt, leftovers, recipes):
 			ore += produce(ing[1], ing_amt, leftovers, recipes)
 		return ore
 	
-	
 leftovers = defaultdict(int)
-#print("CXFTF", produce("CXFTF", 68, leftovers, recipes))
-#print(leftovers);
-#print("VJHF", produce("VJHF", 46, leftovers, recipes))
-#print("MNCFX", produce("MNCFX", 6, leftovers, recipes))
-#print("GNMV", produce("GNMV", 25, leftovers, recipes))
-#print("STKFG",produce("STKFG", 53, leftovers, recipes))
-#print("HVMC", produce("HVMC", 81, leftovers, recipes))
-#print("")
-#leftovers = defaultdict(int)
-print(produce("FUEL", 1, leftovers, recipes))
+print("Q1:", produce("FUEL", 1, leftovers, recipes))
+
+# Now for Q2...
+total_ore = 1000000000000
+leftovers = defaultdict(int)
+fuel_produced = 0
+
+hi = 5_785_000
+lo = 5_100_000
+mid = 0
+while lo <= hi:
+	leftovers = defaultdict(int)	
+	mid = (hi + lo) // 2
+	ore = produce("FUEL", mid, leftovers, recipes)
+	if total_ore - ore < 0: #too high
+		hi = mid - 1
+	else:
+		lo = mid + 1
+
+leftovers = defaultdict(int)
+print("Q2:", mid)
 
