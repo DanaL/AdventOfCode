@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::collections::BinaryHeap;
 use std::collections::HashSet;
 use std::fs;
 use crate::intcode_vm;
@@ -104,6 +105,34 @@ impl Bot {
 	}
 }
 
+fn flood_fill(start: i32, graph: &mut HashMap<(i32, i32), usize>) {
+	let mut minutes = 1;
+	let mut nodes: Vec<(i32, i32)> = graph.keys().map(|k| *k).collect();
+	let mut visited: HashSet<i32> = HashSet::new();
+	let mut to_visit: BinaryHeap<i32> = BinaryHeap::new();
+	to_visit.push(start);
+	println!("{}", nodes.len());
+	while to_visit.len() > 0 {
+		let node = to_visit.pop().unwrap();
+		visited.insert(node);
+		for n in &nodes {
+			if n.0 == node && !visited.contains(&n.1) {
+				to_visit.push(n.1);
+			}
+		}
+		minutes += 1;
+	}
+
+	println!("{:?}", minutes);
+	//println!("{:?}", visited);
+	/*
+	for node in graph {
+		if
+	}
+	*/
+	//println!("{:?}", graph);
+}
+
 pub fn solve() {
 	let prog_txt = fs::read_to_string("./inputs/day15.txt").unwrap();
 	let mut vm = intcode_vm::IntcodeVM::new();
@@ -111,5 +140,5 @@ pub fn solve() {
 
 	let mut bot = Bot::new();
 	bot.map_whole_maze(&mut vm);
-	println!("Sq with O2: {}", bot.o2_sq);
+	flood_fill(bot.o2_sq, &mut bot.maze);
 }
