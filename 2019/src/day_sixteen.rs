@@ -49,9 +49,25 @@ pub fn solve_q1() {
 
 pub fn solve_q2() {
 	let signal_txt = fs::read_to_string("./inputs/day16.txt").unwrap();
-	println!("text length: {}", signal_txt.trim().len());
+	let mut signal: Vec<u8> = signal_txt.trim()
+		.chars()
+		.map(|d| d.to_digit(10).unwrap() as u8)
+		.collect();
 	let offset = 5_979_191;
 
-	let v: Vec<u8> = vec![0;521300];
-	//println!("{:?}", v);
+	let mut v: Vec<u8> = vec![0;520809];
+
+	let mut j = 520808;
+	'outer: loop {
+		for x in (0..650).rev() {
+			v[j] = signal[x];
+			j -= 1;
+			if j == 0 { break 'outer }
+		}
+	}
+	v[0] = 7; // sigh....
+
+	for j in 0..25 {
+		println!("{}", v[j]);
+	}
 }
