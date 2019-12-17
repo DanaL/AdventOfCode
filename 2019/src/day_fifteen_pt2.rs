@@ -61,19 +61,18 @@ impl Bot {
 	}
 
 	fn map_whole_maze(&mut self, vm: &mut intcode_vm::IntcodeVM) {
-		let mut count = 0;
 		loop {
 			let curr_sq = self.path[self.path.len() - 1];
 			let sq = self.checked.get(&(curr_sq as i32)).unwrap();
 			let mv = self.pick_move(&sq);
 
 			if mv == 0 {
-				let curr = self.path.pop().unwrap();
-				let back = self.path[self.path.len() - 1];
-				if back == 0 {
-					// We've returned to the beginning so the entire maze should be mapped
+				if self.path.len() == 1 {
+					// We're back at the start of the maze so it should be fully mapped out!
 					break;
 				}
+				let curr = self.path.pop().unwrap();
+				let back = self.path[self.path.len() - 1];
 				let mv_back = self.maze.get(&(curr, back)).unwrap();
 				vm.write_to_buff(*mv_back as i64);
 				vm.run();
@@ -106,31 +105,36 @@ impl Bot {
 }
 
 fn flood_fill(start: i32, graph: &mut HashMap<(i32, i32), usize>) {
-	let mut minutes = 1;
-	let mut nodes: Vec<(i32, i32)> = graph.keys().map(|k| *k).collect();
+	let mut minutes = 0;
+	let nodes: Vec<(i32, i32)> = graph.keys().map(|k| *k).collect();
 	let mut visited: HashSet<i32> = HashSet::new();
-	let mut to_visit: BinaryHeap<i32> = BinaryHeap::new();
+	let mut to_visit: Vec<i32> = Vec::new();
 	to_visit.push(start);
-	println!("{}", nodes.len());
-	while to_visit.len() > 0 {
-		let node = to_visit.pop().unwrap();
-		visited.insert(node);
-		for n in &nodes {
-			if n.0 == node && !visited.contains(&n.1) {
-				to_visit.push(n.1);
+	
+	loop {
+		let mut child_nodes: Vec<i32> = Vec::new();
+		while to_visit.len() > 0 {
+			let node = to_visit.pop().unwrap();
+			visited.insert(node);
+			for n in &nodes {
+				if n.0 == node && !visited.contains(&n.1) {
+					child_nodes.push(n.1);
+				}
 			}
 		}
+
+		if child_nodes.len() == 0 {
+			break;
+		}
+
 		minutes += 1;
+
+		for n in &child_nodes {
+			to_visit.push(*n);
+		}	
 	}
 
 	println!("{:?}", minutes);
-	//println!("{:?}", visited);
-	/*
-	for node in graph {
-		if
-	}
-	*/
-	//println!("{:?}", graph);
 }
 
 pub fn solve() {
