@@ -46,3 +46,12 @@ pub fn solve_q1() {
 	}
 	println!("{:?}", signal);
 }
+
+pub fn solve_q2() {
+	let signal_txt = fs::read_to_string("./inputs/day16.txt").unwrap();
+	println!("text length: {}", signal_txt.trim().len());
+	let offset = 5_979_191;
+
+	let v: Vec<u8> = vec![0;521300];
+	//println!("{:?}", v);
+}
