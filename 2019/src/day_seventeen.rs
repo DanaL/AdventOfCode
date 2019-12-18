@@ -64,15 +64,29 @@ pub fn solve_q2() {
     vm.write(0, 2);
 
     // Set up program
-    // A,B,C
+    // A,B,A,C,A,B,C,B,C,A
+    vm.write_to_buff(65);
+    vm.write_to_buff(44);
+    vm.write_to_buff(66);
+    vm.write_to_buff(44);
+    vm.write_to_buff(65);
+    vm.write_to_buff(44);
+    vm.write_to_buff(67);
+    vm.write_to_buff(44);
     vm.write_to_buff(65);
     vm.write_to_buff(44);
     vm.write_to_buff(66);
     vm.write_to_buff(44);
     vm.write_to_buff(67);
+    vm.write_to_buff(44);
+    vm.write_to_buff(66);
+    vm.write_to_buff(44);
+    vm.write_to_buff(67);
+    vm.write_to_buff(44);
+    vm.write_to_buff(65);
     vm.write_to_buff(10);
 
-    // A= L12, R4, R4, L6
+    // A: L12 R4 R4 L6
     vm.write_to_buff(76);
     vm.write_to_buff(44);
     vm.write_to_buff(49);
@@ -89,21 +103,41 @@ pub fn solve_q2() {
     vm.write_to_buff(76);
     vm.write_to_buff(44);
     vm.write_to_buff(54);
-
-
     vm.write_to_buff(10);
 
-
-    // B= R,12
-    vm.write_to_buff(82);
-    //vm.write_to_buff(44);
-    //vm.write_to_buff(12);
-    vm.write_to_buff(10);
-
-    // C= L,4
+    // B: L12 R4 R4 L12
     vm.write_to_buff(76);
-    //vm.write_to_buff(44);
-    //vm.write_to_buff(4);
+    vm.write_to_buff(44);
+    vm.write_to_buff(49);
+    vm.write_to_buff(50);
+    vm.write_to_buff(44);
+    vm.write_to_buff(82);
+    vm.write_to_buff(44);
+    vm.write_to_buff(52);
+    vm.write_to_buff(44);
+    vm.write_to_buff(82);
+    vm.write_to_buff(44);
+    vm.write_to_buff(52);
+    vm.write_to_buff(44);
+    vm.write_to_buff(82);
+    vm.write_to_buff(44);
+    vm.write_to_buff(49);
+    vm.write_to_buff(50);
+    vm.write_to_buff(10);
+
+    // C: L10 L6 R4
+    vm.write_to_buff(76);
+    vm.write_to_buff(44);
+    vm.write_to_buff(49);
+    vm.write_to_buff(48);
+    vm.write_to_buff(44);
+    vm.write_to_buff(76);
+    vm.write_to_buff(44);
+    vm.write_to_buff(54);
+    vm.write_to_buff(44);
+    vm.write_to_buff(82);
+    vm.write_to_buff(44);
+    vm.write_to_buff(52);
     vm.write_to_buff(10);
 
     // continuous display
@@ -121,7 +155,6 @@ pub fn solve_q2() {
         else {
             buffer.push(vm.output_buffer as u8 as char);
         }
-        //println!("{:?}, {}", vm.state, vm.output_buffer);
-        //break;
     }
+    println!("Q2: {:?}", vm.output_buffer);
 }
