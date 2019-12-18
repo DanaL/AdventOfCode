@@ -1,5 +1,4 @@
 use std::fs;
-use std::collections::VecDeque;
 use std::collections::HashMap;
 
 fn fetch_grid() -> Vec<Vec<char>> {
@@ -22,12 +21,16 @@ fn ff_curr_min_paths_to_keys(sr: usize, sc: usize, grid: &Vec<Vec<char>>) {
     // think of (4,3) as 1, (4,4) as 2, etc
     let mut coord_to_sqr: HashMap<(usize, usize), usize> = HashMap::new();
     let mut sqr_to_coord: HashMap<usize, (usize, usize)> = HashMap::new();
+    let mut goals: HashMap<char, usize> = HashMap::new();
     let mut id = 0;
     for r in 1..grid.len() - 1 {
         for c in 1..grid[r].len() - 1 {
             if grid[r][c] != '#' {
                 coord_to_sqr.insert((r, c), id);
                 sqr_to_coord.insert(id, (r, c));
+                if grid[r][c] >= 'a' && grid[r][c] <= 'z' {
+                    goals.insert(grid[r][c], id);
+                }
                 id+= 1;
             }
         }
@@ -40,8 +43,6 @@ fn ff_curr_min_paths_to_keys(sr: usize, sc: usize, grid: &Vec<Vec<char>>) {
     // Buld the table of connections between nodes and store the IDs
     // of all the keys as the goals we want to reach in the maze
     // Rust is just such a verbose language T_T
-    let mut goals: HashMap<char, usize> = HashMap::new();
-    let mut dist = 0;
     let mut queue: Vec<(usize, usize)> = vec![(*coord_to_sqr.get(&(sr, sc)).unwrap(), 0)];
     while queue.len() > 0 {
         let v = queue.pop().unwrap();
@@ -80,7 +81,12 @@ fn ff_curr_min_paths_to_keys(sr: usize, sc: usize, grid: &Vec<Vec<char>>) {
         }
     }
 
-    println!("{:?}", distances);
+    for g in goals {
+        if distances.contains_key(&g.1) {
+            println!("{} {:?}", g.0, distances.get(&g.1).unwrap());
+        }
+    }
+
     /*
     let mut cons = vec![vec![false; id]; id];
     for r in 1..grid.len() - 1 {
