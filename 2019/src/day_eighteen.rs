@@ -10,7 +10,7 @@ fn spacing_for_depth(depth: usize) -> String {
 fn dump_grid(grid: &Vec<Vec<char>>, depth: usize) {
 	for row in grid {
 		let line: String = row.into_iter().collect();
-		println!("{}{}", spacing_for_depth(depth), line); 
+		println!("{}{}", spacing_for_depth(depth), line);
 	}
 }
 
@@ -120,7 +120,7 @@ fn compute_paths(sr: usize, sc: usize, grid: &Vec<Vec<char>>, paths: &mut HashMa
 }
 
 // Maybe try path trimming first and then worry about the doors/??
-fn shortest_path(sch: char, grid: &mut Vec<Vec<char>>, paths: &HashMap<(char, char), usize>, 
+fn shortest_path(sch: char, grid: &mut Vec<Vec<char>>, paths: &HashMap<(char, char), usize>,
 		to_visit: &HashSet<char>, blocking: &HashMap<char, HashSet<char>>,
 		visited: &HashSet<char>) -> usize {
 	if to_visit.len() == 0 {
@@ -149,7 +149,7 @@ fn shortest_path(sch: char, grid: &mut Vec<Vec<char>>, paths: &HashMap<(char, ch
 		path_cost += shortest_path(*k, grid, paths, &next, blocking, &next_visited);
 		if path_cost < shortest {
 			shortest = path_cost;
-		}	
+		}
 	}
 
 	shortest
@@ -159,7 +159,7 @@ pub fn solve_q1_v3() {
     let mut grid = fetch_grid();
 	dump_grid(&grid, 0);
 
-	let mut distances: HashMap<(char, char), usize> = HashMap::new();	
+	let mut distances: HashMap<(char, char), usize> = HashMap::new();
 	let mut keys: HashSet<char> = HashSet::new();
 	let mut doors: HashMap<char, (usize, usize)> = HashMap::new();
 	let mut start_r: usize = 0;
@@ -197,3 +197,8 @@ pub fn solve_q1_v3() {
 	println!("{}", shortest_path('@', &mut grid, &distances, &avail, &blocking, &visited));
 }
 
+pub fn solve_q1_v4() {
+	let mut x: i32 = i32::pow(4 ,2);
+	x |= 2;
+	println!("{:b}", x);
+}
