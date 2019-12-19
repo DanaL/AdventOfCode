@@ -119,7 +119,7 @@ fn compute_paths(sr: usize, sc: usize, grid: &Vec<Vec<char>>, paths: &mut HashMa
     }
 }
 
-
+// Maybe try path trimming first and then worry about the doors/??
 fn shortest_path(sch: char, grid: &mut Vec<Vec<char>>, paths: &HashMap<(char, char), usize>, 
 		to_visit: &HashSet<char>, blocking: &HashMap<char, HashSet<char>>,
 		visited: &HashSet<char>) -> usize {
@@ -143,6 +143,8 @@ fn shortest_path(sch: char, grid: &mut Vec<Vec<char>>, paths: &HashMap<(char, ch
 			}
 		}
 
+		println!("{} {:?}", k, next);
+		return 0;
 		let mut path_cost = *paths.get(&(sch, *k)).unwrap();
 		path_cost += shortest_path(*k, grid, paths, &next, blocking, &next_visited);
 		if path_cost < shortest {
@@ -190,7 +192,7 @@ pub fn solve_q1_v3() {
 		}
 		blocking.insert(*d, blocked);
 	}
-	println!("{:?}", avail);
+
 	let visited: HashSet<char> = HashSet::new();
 	println!("{}", shortest_path('@', &mut grid, &distances, &avail, &blocking, &visited));
 }
