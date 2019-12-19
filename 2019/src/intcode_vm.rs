@@ -113,7 +113,7 @@ impl IntcodeVM {
 					let a = self.read(self.ptr+1);
 					self.output_buffer = self.get_val(a, mode1);
 					self.ptr += 2;
-					self.state = VMState::Paused;					
+					self.state = VMState::Paused;
 				}
 				// jump-if-true
 				5 => {
