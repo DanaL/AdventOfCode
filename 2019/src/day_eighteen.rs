@@ -29,7 +29,7 @@ fn is_open(ch: char) -> bool {
     ch == '.' || ch == '@' || (ch >= 'a' && ch <= 'z')
 }
 
-fn find_locked(sr: usize, sc: usize, grid: &Vec<Vec<char>>, keys: &HashSet<char>) -> HashSet<char> {
+fn reachable_from(sr: usize, sc: usize, grid: &Vec<Vec<char>>) -> HashSet<char> {
 	let mut found: HashSet<char> = HashSet::new();
 	let mut visited: HashSet<(usize, usize)> = HashSet::new();
 	visited.insert((sr, sc));
@@ -72,8 +72,7 @@ fn find_locked(sr: usize, sc: usize, grid: &Vec<Vec<char>>, keys: &HashSet<char>
 		}
     }
 
-	let locked: HashSet<char> = keys.difference(&found).map(|k| *k).collect();
-	locked
+	found
 }
 
 fn compute_paths(sr: usize, sc: usize, grid: &Vec<Vec<char>>, paths: &mut HashMap<(char, char), usize>) {
@@ -121,8 +120,9 @@ fn compute_paths(sr: usize, sc: usize, grid: &Vec<Vec<char>>, paths: &mut HashMa
 }
 
 
-fn shortest_path(sch: char, grid: &Vec<Vec<char>>, paths: &HashMap<(char, char), usize>, 
-		to_visit: &HashSet<char>, doors: &HashMap<char, (usize, usize)>) -> usize {
+fn shortest_path(sch: char, grid: &mut Vec<Vec<char>>, paths: &HashMap<(char, char), usize>, 
+		to_visit: &HashSet<char>, blocking: &HashMap<char, HashSet<char>>,
+		visited: &HashSet<char>) -> usize {
 	if to_visit.len() == 0 {
 		return 0;
 	}
@@ -130,9 +130,21 @@ fn shortest_path(sch: char, grid: &Vec<Vec<char>>, paths: &HashMap<(char, char),
 	let mut shortest = usize::max_value();
 	for k in to_visit {
 		let mut next = to_visit.clone();
-		next.remove(&k);
+		next.remove(k);
+		let mut next_visited = visited.clone();
+		next_visited.insert(*k);
+
+		// trying to handle doors here
+		if blocking.contains_key(&k.to_ascii_uppercase()) {
+			for unlocked in blocking.get(&k.to_ascii_uppercase()).unwrap() {
+				if !visited.contains(&unlocked) {
+					next.insert(*unlocked);
+				}
+			}
+		}
+
 		let mut path_cost = *paths.get(&(sch, *k)).unwrap();
-		path_cost += shortest_path(*k, grid, paths, &next, doors);
+		path_cost += shortest_path(*k, grid, paths, &next, blocking, &next_visited);
 		if path_cost < shortest {
 			shortest = path_cost;
 		}	
@@ -165,19 +177,21 @@ pub fn solve_q1_v3() {
 		}
 	}
 
-	let mut locked = find_locked(start_r, start_c, &grid, &keys);
-	let mut avail: HashSet<char> = keys.difference(&locked).map(|k| *k).collect();
-	/*
-	let mut avail: HashSet<char> = HashSet::new();
-	avail.insert('b');
-	avail.insert('c');
-	avail.insert('e');
-	avail.insert('f');
-	avail.insert('g');
-	avail.insert('a');
-	avail.insert('h');
-	*/
-	println!("{:?}", doors);
-	println!("{}", shortest_path('@', &grid, &distances, &avail, &doors));
+	let mut avail = reachable_from(start_r, start_c, &grid);
+	let mut blocking: HashMap<char, HashSet<char>> = HashMap::new();
+	for d in doors.keys() {
+		let dc = doors.get(&d).unwrap();
+		let door_avail = reachable_from(dc.0, dc.1, &grid);
+		let mut blocked: HashSet<char> = HashSet::new();
+		for da in door_avail {
+			if !avail.contains(&da) {
+				blocked.insert(da);
+			}
+		}
+		blocking.insert(*d, blocked);
+	}
+	println!("{:?}", avail);
+	let visited: HashSet<char> = HashSet::new();
+	println!("{}", shortest_path('@', &mut grid, &distances, &avail, &blocking, &visited));
 }
 
