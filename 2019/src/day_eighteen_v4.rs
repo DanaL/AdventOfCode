@@ -89,9 +89,9 @@ fn compute_distances(sr: usize, sc: usize, grid: &Vec<Vec<char>>, paths: &mut Ha
     }
 }
 
-fn find_shortest(sch: char, grid: &Vec<Vec<char>>, distances: &HashMap<(char, char), KeyInfo>,
+fn find_shortest(sch: char, distances: &HashMap<(char, char), KeyInfo>,
         visited: &mut HashSet<char>,
-        keys_found: u32) -> usize {
+        keys_found: u32, depth: usize) -> usize {
     // First, what nodes should be visit
     let mut to_visit: VecDeque<(char, usize)> = VecDeque::new();
     for k in distances.keys() {
@@ -103,14 +103,24 @@ fn find_shortest(sch: char, grid: &Vec<Vec<char>>, distances: &HashMap<(char, ch
         }
     }
 
+	if to_visit.len() == 0 {
+		return 0;
+	}
+
+	let mut lowest_cost = usize::max_value();
     for key in to_visit {
+		println!("{}: {:?}", depth, key);
+		// I think visited needs to be cloned maybe
         visited.insert(key.0);
         let found = keys_found | u32::pow(2, key.0 as u32 - 'a' as u32);
-
-        println!("{:?} {}", visited, found);
+		
+        let path_cost = key.1 + find_shortest(key.0, distances, visited, found, depth+1);
+		if path_cost < lowest_cost {
+			lowest_cost = path_cost;
+		}
     }
 
-    0
+    lowest_cost
 }
 
 pub fn solve_q1() {
@@ -135,6 +145,6 @@ pub fn solve_q1() {
 
     let mut visited: HashSet<char> = HashSet::new();
     visited.insert('@');
-    find_shortest('@', &grid, &distances, &mut visited, 0);
+    println!("Q1: {}", find_shortest('@', &distances, &mut visited, 0, 0));
     //println!("{:?}", distances);
 }
