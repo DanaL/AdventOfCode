@@ -1,5 +1,5 @@
-mod day_eighteen_v4;
+mod day_twenty;
 
 fn main() {
-	day_eighteen_v4::solve_q1();
+	day_twenty::solve_q1();
 }
