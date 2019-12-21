@@ -39,7 +39,7 @@ fn check_surrounds(sr: i32, sc: i32, grid: &Vec<Vec<char>>, nodes: &mut HashMap<
 // My overly verbose code to parse the node names out of the file.  The simplest way 
 // to find node names I could think of was to sweep sides across rows, then
 // down the columns.
-fn find_all_nodes(grid: &Vec<Vec<char>>) {
+fn find_all_nodes(grid: &Vec<Vec<char>>) -> HashMap<String, Vec<(usize, usize)>> {
     let mut nodes: HashMap<String, Vec<(usize, usize)>> = HashMap::new();
 
     for r in 0..grid.len() - 1 {
@@ -79,7 +79,6 @@ fn find_all_nodes(grid: &Vec<Vec<char>>) {
 
                 let mut portal = (0, 0);
                 if r > 0 && r < len && grid[r - 1][c] == '.' {
-					println!("flag {}", name);
                     portal.0 = r - 1;
                     portal.1 = c;
                 }
@@ -95,10 +94,15 @@ fn find_all_nodes(grid: &Vec<Vec<char>>) {
         }
     }
 	
-    println!("{:?}", nodes);
+    nodes
+}
+
+fn build_graph(grid: &Vec<Vec<char>>, nodes: &HashMap<String, Vec<(usize, usize)>>) {
+	println!("{:?}", nodes);
 }
 
 pub fn solve_q1() {
     let grid = fetch_map();
-    find_all_nodes(&grid);
+ 	let nodes = find_all_nodes(&grid);
+	build_graph(&grid, &nodes);
 }
