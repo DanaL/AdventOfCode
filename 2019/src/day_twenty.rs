@@ -36,36 +36,65 @@ fn check_surrounds(sr: i32, sc: i32, grid: &Vec<Vec<char>>, nodes: &mut HashMap<
     nodes.entry(name).or_insert(Vec::new()).push(portal);
 }
 
+// My overly verbose code to parse the node names out of the file.  The simplest way 
+// to find node names I could think of was to sweep sides across rows, then
+// down the columns.
 fn find_all_nodes(grid: &Vec<Vec<char>>) {
     let mut nodes: HashMap<String, Vec<(usize, usize)>> = HashMap::new();
-    // simplest way to find node names I could think of was to sweep sides across rows, then
-    // down the columns
-    for r in 0..grid.len() {
+
+    for r in 0..grid.len() - 1 {
         let mut c = 0;
-        let len = grid[r].len() - 2;
+        let len = grid[r].len() - 1;
         while c < len {
-            if grid[r][c].is_ascii_uppercase() && grid[r][c+1].is_ascii_uppercase() {
+            if grid[r][c].is_ascii_uppercase() && grid[r][c + 1].is_ascii_uppercase() {
                 let mut name: String = String::from("");
                 name.push(grid[r][c]);
-                name.push(grid[r][c+1]);
+                name.push(grid[r][c + 1]);
 
                 let mut portal = (0, 0);
                 if c > 0 && c < len && grid[r][c - 1] == '.' {
-                    portal.0 = r;
-                    portal.1 = c - 1;
+					portal.0 = r;
+                	portal.1 = c - 1;
                 }
                 if c < len - 2 && grid[r][c + 2] == '.' {
                     portal.0 = r;
-                    portal.1 = c + 2;
+                   portal.1 = c + 2;
                 }
 
                 c+= 1;
-                println!("{} {:?}", name, portal);
+    			nodes.entry(name).or_insert(Vec::new()).push(portal);
             }
             c += 1;
         }
     }
+	
+	for c in 0..grid[0].len() - 1 {
+        let mut r = 0;
+        let len = grid.len() - 1;
+        while r < len {
+            if grid[r][c].is_ascii_uppercase() && grid[r + 1][c].is_ascii_uppercase() {
+                let mut name: String = String::from("");
+                name.push(grid[r][c]);
+                name.push(grid[r + 1][c]);
 
+                let mut portal = (0, 0);
+                if r > 0 && r < len && grid[r - 1][c] == '.' {
+					println!("flag {}", name);
+                    portal.0 = r - 1;
+                    portal.1 = c;
+                }
+                if r < len - 2 && grid[r + 2][c] == '.' {
+                    portal.0 = r + 2;
+					portal.1 = c;
+                }
+
+                r+= 1;
+    			nodes.entry(name).or_insert(Vec::new()).push(portal);
+            }
+            r += 1;
+        }
+    }
+	
     println!("{:?}", nodes);
 }
 
