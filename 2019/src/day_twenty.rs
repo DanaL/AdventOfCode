@@ -195,14 +195,14 @@ fn djikstra(graph: HashMap<String, Node>, start: &str, end: &str) -> u32 {
 			if !visited.contains(&edge.0.to_string()) {
 				let y = *distances.get(&edge.0).unwrap();
 				if x < y {
-					distances.insert(edge.0.to_string(), x);
+					distances.insert(edge.0.to_string(), x + 1);
 				}
-				nodes.push(Foo::new(edge.0.to_string(), -(edge.1 as i32)));
+				nodes.push(Foo::new(edge.0.to_string(), -((edge.1 + curr_d) as i32)));
 			}
 		}
 	}
 	
-	*distances.get(end).unwrap()
+	*distances.get(end).unwrap() - 1
 }
 
 pub fn solve_q1() {
@@ -210,8 +210,5 @@ pub fn solve_q1() {
  	let nodes = find_all_nodes(&grid);
 	let graph = build_graph(&grid, &nodes);
 	
-	for n in graph.keys() {
-		println!("{} {:?}", n, graph.get(n).unwrap());
-	}
-	//println!("Q1: {}", djikstra(graph, "AA", "ZZ"));
+	println!("Q1: {}", djikstra(graph, "AA", "ZZ"));
 }
