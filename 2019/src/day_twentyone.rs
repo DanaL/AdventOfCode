@@ -41,6 +41,13 @@ fn input_walk(vm: &mut intcode_vm::IntcodeVM) {
 	vm.write_to_buff(10);
 }
 
+fn input_run(vm: &mut intcode_vm::IntcodeVM) {
+	vm.write_to_buff(82);
+	vm.write_to_buff(85);
+	vm.write_to_buff(78);
+	vm.write_to_buff(10);
+}
+
 fn display_msg(vm: &mut intcode_vm::IntcodeVM) {
 	let mut msg = String::from("");
 
@@ -85,6 +92,38 @@ pub fn solve_q1() {
 	input_and('D', 'T', &mut vm);
 	input_or('T', 'J', &mut vm);
 	input_walk(&mut vm);
+	
+	println!("{}", run_machine(&mut vm));
+}
+
+pub fn solve_q2() {
+	let prog_txt = fs::read_to_string("./inputs/day21.txt").unwrap();
+	let mut vm = intcode_vm::IntcodeVM::new();
+	vm.load(prog_txt.trim());
+
+	// skip the initial prompt
+	display_msg(&mut vm);
+
+	input_not('A', 'J', &mut vm);
+	input_and('D', 'J', &mut vm);
+
+	input_not('B', 'T', &mut vm);
+	input_and('D', 'T', &mut vm);
+	input_and('H', 'T', &mut vm);
+	input_or('T', 'J', &mut vm);
+
+	input_not('C', 'T', &mut vm);
+	input_and('D', 'T', &mut vm);
+	input_and('E', 'T', &mut vm);
+	input_or('T', 'J', &mut vm);
+
+
+	input_not('C', 'T', &mut vm);
+	input_and('D', 'T', &mut vm);
+	input_and('H', 'T', &mut vm);
+	input_or('T', 'J', &mut vm);
+
+	input_run(&mut vm);
 	
 	println!("{}", run_machine(&mut vm));
 }
