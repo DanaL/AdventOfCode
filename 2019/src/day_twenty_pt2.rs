@@ -196,10 +196,10 @@ fn djikstra2(graph: HashMap<String, Node>, start: &str, end: &str) -> u32 {
 		println!("------------\nCurr lvl {}", curr_lvl);
 		println!("{:?}", queue);
 		let mut n = queue.pop().unwrap();
-		//curr_lvl = n.2 as i32;
-		//while i32::abs(n.2 as i32 - curr_lvl) > 1 {
-		//	n = queue.pop().unwrap();
-		//}
+		println!("  calc: {}", i32::abs(n.2 as i32 - curr_lvl));
+		while i32::abs(n.2 as i32 - curr_lvl) > 1 {
+			n = queue.pop().unwrap();
+		}
 		println!("Seleted: {:?}", n);
 		curr_lvl = n.2 as i32;
 		let lvl = n.2;
@@ -227,7 +227,7 @@ fn djikstra2(graph: HashMap<String, Node>, start: &str, end: &str) -> u32 {
 		}
 		//println!("Q: {:?}", queue);
 		steps += 1;
-		if steps > 1 { break };
+		if steps > 35 { break };
 	}
 
 	0
@@ -240,8 +240,10 @@ pub fn solve() {
  	let nodes = find_all_nodes(&grid);
 	let graph = build_graph(&grid, &nodes);
 
+	/*
 	for v in &graph {
 		println!("{}: {:?}", v.0, v.1.neighbours);
 	}
-	//println!("{}", djikstra2(graph, "AA", "ZZ"));
+	*/
+	println!("{}", djikstra2(graph, "AA", "ZZ"));
 }
