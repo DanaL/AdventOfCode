@@ -8,43 +8,12 @@ use std::collections::VecDeque;
 #[derive(Debug)]
 struct Node {
 	name: String,
-	neighbours: Vec<(String, u32)>,
+	neighbours: Vec<(String, u32, i8)>,
 }
 
 impl Node {
 	pub fn new(name: String) -> Node {
 		Node { name, neighbours: Vec::new() }
-	}
-}
-
-#[derive(Debug, Eq)]
-// I fucking despise Rust's borrow rules
-struct Foo {
-	name: String,
-	d: i32,
-}
-
-impl Foo {
-	pub fn new(name: String, d: i32) -> Foo {
-		Foo { name, d }
-	}
-}
-
-impl Ord for Foo {
-	fn cmp(&self, other: &Self) -> Ordering {
-		self.d.cmp(&other.d)
-	}
-}
-
-impl PartialOrd for Foo {
-	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-		Some(self.cmp(other))
-	}
-}
-
-impl PartialEq for Foo {
-	fn eq(&self, other: &Self) -> bool {
-		self.d == other.d
 	}
 }
 
@@ -120,6 +89,10 @@ fn find_all_nodes(grid: &Vec<Vec<char>>) -> HashMap<String, Vec<(usize, usize)>>
     nodes
 }
 
+fn is_inner(r: i32, c: i32, grid: &Vec<Vec<char>>) -> bool {
+	r > 2 && c > 2 && r < (grid.len() - 2) as i32 && c < (grid[0].len() - 2) as i32
+}
+
 fn build_graph(grid: &Vec<Vec<char>>, nodes: &HashMap<String, Vec<(usize, usize)>>) -> HashMap<String, Node> {
 	// Okay we have node name -> locations in a hash map but it'll also be useful to 
 	// have location -> name
@@ -157,9 +130,15 @@ fn build_graph(grid: &Vec<Vec<char>>, nodes: &HashMap<String, Vec<(usize, usize)
 					if locations.contains_key(&nloc) {
 						let node_name = locations.get(&nloc).unwrap();	
 						if node_name != n0 {
+							let lvl_delta = if is_inner(nr, nc, grid) {
+								1
+							} else {
+								-1
+							};
+
 							graph.entry(n0.to_string())
 								.or_insert(Node::new(n0.to_string()))
-								.neighbours.push((node_name.to_string(), d + 1));
+								.neighbours.push((node_name.to_string(), d + 1, lvl_delta));
 						}
 					} else if !visited.contains(&nloc) && grid[nr as usize][nc as usize] == '.' {
 						to_visit.push_back((nloc, d + 1));	
@@ -172,6 +151,7 @@ fn build_graph(grid: &Vec<Vec<char>>, nodes: &HashMap<String, Vec<(usize, usize)
 	graph
 }
 
+/*
 fn djikstra(graph: HashMap<String, Node>, start: &str, end: &str) -> u32 {
 	let mut distances: HashMap<String, u32> = HashMap::new();
 	let mut visited: HashSet<String> = HashSet::new();
@@ -204,12 +184,12 @@ fn djikstra(graph: HashMap<String, Node>, start: &str, end: &str) -> u32 {
 	
 	*distances.get(end).unwrap() - 1
 }
+*/
 
-pub fn solve_q1() {
-    let grid = fetch_map("./inputs/day20.txt");
+pub fn solve() {
+    let grid = fetch_map("./inputs/day20_test.txt");
  	let nodes = find_all_nodes(&grid);
 	let graph = build_graph(&grid, &nodes);
-	
-	println!("Q1: {}", djikstra(graph, "AA", "ZZ"));
-}
 
+	println!("{:?}", graph);
+}

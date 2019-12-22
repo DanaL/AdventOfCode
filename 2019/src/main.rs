@@ -1,7 +1,5 @@
-mod day_twentyone;
-mod intcode_vm;
+mod day_twenty_pt2;
 
 fn main() {
-	day_twentyone::solve_q1();
-	day_twentyone::solve_q2();
+	day_twenty_pt2::solve();
 }
