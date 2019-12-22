@@ -55,6 +55,21 @@ fn display_msg(vm: &mut intcode_vm::IntcodeVM) {
 	println!("{}", msg);
 }
 
+pub fn run_machine(vm: &mut intcode_vm::IntcodeVM) -> i64 {
+	loop {
+		println!("{:?}", vm.state);
+		vm.run();
+		match vm.state {
+			intcode_vm::VMState::Paused => display_msg(vm),
+			intcode_vm::VMState::Halted => break,
+			intcode_vm::VMState::AwaitInput => panic!("I don't think this should happen! {:?}", vm.state),
+			_ => continue,
+		}
+	}
+	
+	return vm.output_buffer
+}
+
 pub fn solve_q1() {
 	let prog_txt = fs::read_to_string("./inputs/day21.txt").unwrap();
 	let mut vm = intcode_vm::IntcodeVM::new();
@@ -63,24 +78,13 @@ pub fn solve_q1() {
 	// skip the initial prompt
 	display_msg(&mut vm);
 
-	input_not('B', 'J', &mut vm);
+	// if hole immediately in front, jump
+	// or C is a hole and D is safe
+	input_not('A', 'J', &mut vm);
 	input_not('C', 'T', &mut vm);
-	input_and('T', 'J', &mut vm);
-	input_and('D', 'J', &mut vm);
-	input_not('A', 'T', &mut vm);
+	input_and('D', 'T', &mut vm);
 	input_or('T', 'J', &mut vm);
 	input_walk(&mut vm);
 	
-	loop {
-		println!("{:?}", vm.state);
-		vm.run();
-		match vm.state {
-			intcode_vm::VMState::Paused => display_msg(&mut vm),
-			intcode_vm::VMState::Halted => break,
-			intcode_vm::VMState::AwaitInput => panic!("I don't think this should happen! {:?}", vm.state),
-			_ => continue,
-		}
-	}
-	
-	println!("{}", vm.output_buffer);
+	println!("{}", run_machine(&mut vm));
 }
