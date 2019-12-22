@@ -1,5 +1,4 @@
 use std::fs;
-use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -8,7 +7,7 @@ use std::collections::VecDeque;
 #[derive(Debug)]
 struct Node {
 	name: String,
-	neighbours: Vec<(String, u32, i8)>,
+	neighbours: Vec<(String, u32, i32)>,
 }
 
 impl Node {
@@ -186,10 +185,52 @@ fn djikstra(graph: HashMap<String, Node>, start: &str, end: &str) -> u32 {
 }
 */
 
+fn djikstra2(graph: HashMap<String, Node>, start: &str, end: &str) -> u32 {
+	let mut visited: HashSet<(String, u32)> = HashSet::new();
+	let mut queue: BinaryHeap<(i32, String, u32)> = BinaryHeap::new();
+
+	let mut steps = 0;
+	queue.push((0, start.to_string(), 0));
+	println!("{:?}", queue);
+	while queue.len() > 0 {
+		let n = queue.pop().unwrap();
+		println!("-----------\n{:?}", n);
+		let lvl = n.2;
+		let d = -1 * n.0 as i32;
+
+		if lvl == 0 && n.1 == end {
+			println!("Hurrah we found the end!");
+			return 1;
+		} else {
+			let v = graph.get(&n.1).unwrap();
+			for v2 in &v.neighbours {
+				let v2_lvl = lvl as i32 + v2.2;
+				// The outer gates on level 0 don't exist, except for AA and ZZ and likewise
+				// AA and ZZ don't exist on levels above 0
+				if lvl == 0 && v2.2 == -1 || lvl > 0 && (v2.0 == "AA" || v2.0 == "ZZ") {
+					continue;
+				}
+				if !visited.contains(&(v2.0.to_string(), v2_lvl as u32)) {
+					visited.insert((v2.0.to_string(), v2_lvl as u32));
+					let neg_d = -1 * (v2.1 as i32 + d); // negative distance to trick rust's BinaryHeap
+					queue.push((neg_d, v2.0.to_string(), v2_lvl as u32));
+				}
+			}
+		}
+		println!("Q: {:?}", queue);
+		steps += 1;
+		if steps > 35 { break };
+	}
+
+	0
+}
+
+struct QNode(i32, String, u32);
+
 pub fn solve() {
     let grid = fetch_map("./inputs/day20_test.txt");
  	let nodes = find_all_nodes(&grid);
 	let graph = build_graph(&grid, &nodes);
 
-	println!("{:?}", graph);
+	//println!("{}", djikstra2(graph, "AA", "ZZ"));
 }
