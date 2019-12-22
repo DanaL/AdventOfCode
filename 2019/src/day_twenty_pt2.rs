@@ -89,7 +89,7 @@ fn find_all_nodes(grid: &Vec<Vec<char>>) -> HashMap<String, Vec<(usize, usize)>>
 }
 
 fn is_inner(r: i32, c: i32, grid: &Vec<Vec<char>>) -> bool {
-	r > 2 && c > 2 && r < (grid.len() - 2) as i32 && c < (grid[0].len() - 2) as i32
+	r > 2 && c > 2 && r < (grid.len() - 4) as i32 && c < (grid[0].len() - 4) as i32
 }
 
 fn build_graph(grid: &Vec<Vec<char>>, nodes: &HashMap<String, Vec<(usize, usize)>>) -> HashMap<String, Node> {
@@ -191,10 +191,17 @@ fn djikstra2(graph: HashMap<String, Node>, start: &str, end: &str) -> u32 {
 
 	let mut steps = 0;
 	queue.push((0, start.to_string(), 0));
-	println!("{:?}", queue);
+	let mut curr_lvl: i32 = 0;
 	while queue.len() > 0 {
-		let n = queue.pop().unwrap();
-		println!("-----------\n{:?}", n);
+		println!("------------\nCurr lvl {}", curr_lvl);
+		println!("{:?}", queue);
+		let mut n = queue.pop().unwrap();
+		//curr_lvl = n.2 as i32;
+		//while i32::abs(n.2 as i32 - curr_lvl) > 1 {
+		//	n = queue.pop().unwrap();
+		//}
+		println!("Seleted: {:?}", n);
+		curr_lvl = n.2 as i32;
 		let lvl = n.2;
 		let d = -1 * n.0 as i32;
 
@@ -204,7 +211,8 @@ fn djikstra2(graph: HashMap<String, Node>, start: &str, end: &str) -> u32 {
 		} else {
 			let v = graph.get(&n.1).unwrap();
 			for v2 in &v.neighbours {
-				let v2_lvl = lvl as i32 + v2.2;
+				println!("Neighbour: {:?}", v2);
+				let v2_lvl = v2.2 + lvl as i32;
 				// The outer gates on level 0 don't exist, except for AA and ZZ and likewise
 				// AA and ZZ don't exist on levels above 0
 				if lvl == 0 && v2.2 == -1 || lvl > 0 && (v2.0 == "AA" || v2.0 == "ZZ") {
@@ -217,9 +225,9 @@ fn djikstra2(graph: HashMap<String, Node>, start: &str, end: &str) -> u32 {
 				}
 			}
 		}
-		println!("Q: {:?}", queue);
+		//println!("Q: {:?}", queue);
 		steps += 1;
-		if steps > 35 { break };
+		if steps > 1 { break };
 	}
 
 	0
@@ -232,5 +240,8 @@ pub fn solve() {
  	let nodes = find_all_nodes(&grid);
 	let graph = build_graph(&grid, &nodes);
 
+	for v in &graph {
+		println!("{}: {:?}", v.0, v.1.neighbours);
+	}
 	//println!("{}", djikstra2(graph, "AA", "ZZ"));
 }
