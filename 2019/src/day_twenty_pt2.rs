@@ -30,8 +30,8 @@ fn fetch_map(filename: &str) -> Vec<Vec<char>> {
 // My overly verbose code to parse the node names out of the file.  The simplest way 
 // to find node names I could think of was to sweep sides across rows, then
 // down the columns.
-fn find_all_nodes(grid: &Vec<Vec<char>>) -> HashMap<String, Vec<(usize, usize)>> {
-    let mut nodes: HashMap<String, Vec<(usize, usize)>> = HashMap::new();
+fn find_all_nodes(grid: &Vec<Vec<char>>) -> Vec<(String, (usize, usize))> {
+    let mut nodes = Vec::new();
 
     for r in 0..grid.len() - 1 {
         let mut c = 0;
@@ -48,12 +48,12 @@ fn find_all_nodes(grid: &Vec<Vec<char>>) -> HashMap<String, Vec<(usize, usize)>>
                 	portal.1 = c - 1;
                 }
                 if c < len - 2 && grid[r][c + 2] == '.' {
-                    portal.0 = r;
-                   portal.1 = c + 2;
+					portal.0 = r;
+					portal.1 = c + 2;
                 }
 
                 c+= 1;
-    			nodes.entry(name).or_insert(Vec::new()).push(portal);
+				nodes.push((name, portal));	
             }
             c += 1;
         }
@@ -79,7 +79,7 @@ fn find_all_nodes(grid: &Vec<Vec<char>>) -> HashMap<String, Vec<(usize, usize)>>
                 }
 
                 r+= 1;
-    			nodes.entry(name).or_insert(Vec::new()).push(portal);
+				nodes.push((name, portal));	
             }
             r += 1;
         }
@@ -92,158 +92,128 @@ fn is_inner(r: i32, c: i32, grid: &Vec<Vec<char>>) -> bool {
 	r > 2 && c > 2 && r < (grid.len() - 4) as i32 && c < (grid[0].len() - 4) as i32
 }
 
-fn build_graph(grid: &Vec<Vec<char>>, nodes: &HashMap<String, Vec<(usize, usize)>>) -> HashMap<String, Node> {
+fn build_graph(grid: &Vec<Vec<char>>, nodes: &Vec<(String, (usize, usize))>) -> HashMap<String, Node> {
 	// Okay we have node name -> locations in a hash map but it'll also be useful to 
 	// have location -> name
 	let mut graph: HashMap<String, Node> = HashMap::new();
 	let mut locations: HashMap<(usize, usize), String> = HashMap::new();
-	for n in nodes.keys() {
-		graph.insert(n.to_string(), Node::new(n.to_string()));
-		let locs = nodes.get(&n.to_string()).unwrap();
-		for loc in locs {
-			locations.insert(*loc, n.to_string());
+	for n in nodes {
+		let mut name = n.0.to_string();
+		if is_inner((n.1).0 as i32, (n.1).1 as i32, grid) {
+			name.push('i');
+		} else {
+			name.push('o');
 		}
+		graph.insert(name.to_string(), Node::new(name.to_string()));
+		locations.insert(n.1, name.to_string());
 	}
 
 	let dirs = vec![(-1 ,0), (1, 0), (0, -1), (0, 1)];
 	// Okay, for each location, we flood fill through the maze and find any reachable nodes
-	for n0 in nodes.keys() {
-		let locs = nodes.get(&n0.to_string()).unwrap();
-		for loc in locs {
-			let mut visited: HashSet<(usize, usize)> = HashSet::new();
-			let mut to_visit: VecDeque<((usize, usize), u32)> = VecDeque::new();
-			to_visit.push_back((*loc, 0));
-			
-			while to_visit.len() > 0 {
-				let n1 = to_visit.pop_front().unwrap();
-				let curr = n1.0;
-				visited.insert(curr);
-				let d = n1.1;
-	
-				// check the surrounding sqs (NSEW) to see if they are hallways
-				for dir in &dirs {
-					let nr = curr.0 as i32 + dir.0;
-					let nc = curr.1 as i32 + dir.1;
-					let nloc = (nr as usize, nc as usize);
-				
-					if locations.contains_key(&nloc) {
-						let node_name = locations.get(&nloc).unwrap();	
-						if node_name != n0 {
-							let lvl_delta = if is_inner(nr, nc, grid) {
-								1
-							} else {
-								-1
-							};
-
-							graph.entry(n0.to_string())
-								.or_insert(Node::new(n0.to_string()))
-								.neighbours.push((node_name.to_string(), d + 1, lvl_delta));
-						}
-					} else if !visited.contains(&nloc) && grid[nr as usize][nc as usize] == '.' {
-						to_visit.push_back((nloc, d + 1));	
-					}
-				}
-			}	
+	for n0 in nodes {
+		let mut name = n0.0.to_string();
+		if is_inner((n0.1).0 as i32, (n0.1).1 as i32, grid) {
+			name.push('i');
+		} else {
+			name.push('o');
 		}
+		
+		let loc = n0.1;
+		let mut visited: HashSet<(usize, usize)> = HashSet::new();
+		let mut to_visit: VecDeque<((usize, usize), u32)> = VecDeque::new();
+		to_visit.push_back((loc, 0));
+		
+		while to_visit.len() > 0 {
+			let n1 = to_visit.pop_front().unwrap();
+			let curr = n1.0;
+			visited.insert(curr);
+			let d = n1.1;
+	
+			// check the surrounding sqs (NSEW) to see if they are hallways
+			for dir in &dirs {
+				let nr = curr.0 as i32 + dir.0;
+				let nc = curr.1 as i32 + dir.1;
+				let nloc = (nr as usize, nc as usize);
+				
+				if locations.contains_key(&nloc) {
+					let node_name = locations.get(&nloc).unwrap();	
+					if node_name != &name {
+						let lvl_delta = if is_inner(nr, nc, grid) {
+							1
+						} else {
+							-1
+						};
+							
+						graph.entry(name.to_string())
+							.or_insert(Node::new(name.to_string()))
+							.neighbours.push((node_name.to_string(), d + 1, lvl_delta));
+					}
+				} else if !visited.contains(&nloc) && grid[nr as usize][nc as usize] == '.' {
+					to_visit.push_back((nloc, d + 1));	
+				}
+			}
+		}	
 	}
 
 	graph
 }
 
-/*
-fn djikstra(graph: HashMap<String, Node>, start: &str, end: &str) -> u32 {
-	let mut distances: HashMap<String, u32> = HashMap::new();
-	let mut visited: HashSet<String> = HashSet::new();
-	let mut nodes = BinaryHeap::new();
-
-	for key in graph.keys() {
-		distances.insert(key.to_string(), u32::max_value());
-	}	
-	distances.insert(start.to_string(), 0);
-	let node = graph.get(start).unwrap();
-	nodes.push(Foo::new(node.name.to_string(), i32::min_value()));
-
-	while nodes.len() > 0 {
-		let n = nodes.pop().unwrap();
-		visited.insert(n.name.to_string());
-		let curr_d = *distances.get(&n.name).unwrap();
-		let node = graph.get(&n.name).unwrap();	
-		let adj = &node.neighbours;
-		for edge in adj {
-			let x = curr_d + edge.1;
-			if !visited.contains(&edge.0.to_string()) {
-				let y = *distances.get(&edge.0).unwrap();
-				if x < y {
-					distances.insert(edge.0.to_string(), x + 1);
-				}
-				nodes.push(Foo::new(edge.0.to_string(), -((edge.1 + curr_d) as i32)));
-			}
-		}
-	}
-	
-	*distances.get(end).unwrap() - 1
-}
-*/
-
 fn djikstra2(graph: HashMap<String, Node>, start: &str, end: &str) -> u32 {
-	let mut visited: HashSet<(String, u32)> = HashSet::new();
-	let mut queue: BinaryHeap<(i32, String, u32)> = BinaryHeap::new();
+	let mut visited: HashSet<(String, String, u32, u32)> = HashSet::new();
+	let mut queue: BinaryHeap<(i32, String, u32, String, u32, i32)> = BinaryHeap::new();
 
-	let mut steps = 0;
-	queue.push((0, start.to_string(), 0));
-	let mut curr_lvl: i32 = 0;
+	queue.push((0, "".to_string(), 0, start.to_string(), 0, 0));
 	while queue.len() > 0 {
-		println!("------------\nCurr lvl {}", curr_lvl);
-		println!("{:?}", queue);
-		let mut n = queue.pop().unwrap();
-		println!("  calc: {}", i32::abs(n.2 as i32 - curr_lvl));
-		while i32::abs(n.2 as i32 - curr_lvl) > 1 {
-			n = queue.pop().unwrap();
-		}
-		println!("Seleted: {:?}", n);
-		curr_lvl = n.2 as i32;
-		let lvl = n.2;
+		let n = queue.pop().unwrap();
 		let d = -1 * n.0 as i32;
 
-		if lvl == 0 && n.1 == end {
+		visited.insert((n.1.to_string(), n.3.to_string(), n.2, n.4));
+
+		if n.4 == 0 && n.3 == end {
 			println!("Hurrah we found the end!");
-			return 1;
+			return i32::abs(n.0) as u32 - 1;
 		} else {
-			let v = graph.get(&n.1).unwrap();
+			let v = graph.get(&n.3).unwrap();
 			for v2 in &v.neighbours {
-				println!("Neighbour: {:?}", v2);
-				let v2_lvl = v2.2 + lvl as i32;
-				// The outer gates on level 0 don't exist, except for AA and ZZ and likewise
-				// AA and ZZ don't exist on levels above 0
-				if lvl == 0 && v2.2 == -1 || lvl > 0 && (v2.0 == "AA" || v2.0 == "ZZ") {
+				let v2_lvl = if v2.0 == end {
+					0
+				} else {
+					v2.2 + n.4 as i32
+				};
+
+				if visited.contains(&(n.3.to_string(), v2.0.to_string(), n.4, v2_lvl as u32)) {
 					continue;
 				}
-				if !visited.contains(&(v2.0.to_string(), v2_lvl as u32)) {
-					visited.insert((v2.0.to_string(), v2_lvl as u32));
-					let neg_d = -1 * (v2.1 as i32 + d); // negative distance to trick rust's BinaryHeap
-					queue.push((neg_d, v2.0.to_string(), v2_lvl as u32));
+
+				// The outer gates on level 0 don't exist, except for AA and ZZ and likewise
+				// AA and ZZ don't exist on levels above 0
+				if v2.0 == "AAo" || (n.2 == 0 && v2.2 == -1) || (n.4 != 0 && v2.0 == "ZZo") {
+					continue;
 				}
+
+				let neg_d = -1 * (v2.1 as i32 + d); // negative distance to trick rust's BinaryHeap
+				let mut flipped_name = v2.0.to_string();
+				flipped_name = match flipped_name.find('i') {
+					Some(_) => flipped_name.replace("i", "o"),
+					None => 
+						if flipped_name != "ZZo" { 
+							flipped_name.replace("o", "i")
+						 } else {
+							flipped_name
+						},
+				};
+				queue.push((neg_d - 1, n.3.to_string(), n.4, flipped_name.to_string(), v2_lvl as u32, v2.2));
 			}
 		}
-		//println!("Q: {:?}", queue);
-		steps += 1;
-		if steps > 35 { break };
 	}
 
 	0
 }
 
-struct QNode(i32, String, u32);
-
 pub fn solve() {
-    let grid = fetch_map("./inputs/day20_test.txt");
+    let grid = fetch_map("./inputs/day20.txt");
  	let nodes = find_all_nodes(&grid);
 	let graph = build_graph(&grid, &nodes);
-
-	/*
-	for v in &graph {
-		println!("{}: {:?}", v.0, v.1.neighbours);
-	}
-	*/
-	println!("{}", djikstra2(graph, "AA", "ZZ"));
+	
+	println!("{}", djikstra2(graph, "AAo", "ZZo"));
 }
