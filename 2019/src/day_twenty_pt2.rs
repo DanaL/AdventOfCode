@@ -192,6 +192,9 @@ fn djikstra2(graph: HashMap<String, Node>, start: &str, end: &str) -> u32 {
 				}
 
 				let neg_d = -1 * (v2.1 as i32 + d); // negative distance to trick rust's BinaryHeap
+
+				// I named my games XQo and XQi to indicate if they are inner or outer. So if you 
+				// go through an inner gate, you should appear at the corresponding outer gate
 				let mut flipped_name = v2.0.to_string();
 				flipped_name = match flipped_name.find('i') {
 					Some(_) => flipped_name.replace("i", "o"),
