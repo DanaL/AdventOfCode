@@ -59,30 +59,35 @@ fn modular_pow(base: i128, exponent: i128, modulus: i128) -> i128 {
 // which apparently works because m is a prime???
 fn sum_series(x: i128, a: i128, b: i128, k: i128, m: i128) -> i128 {
 	let ak = modular_pow(a, k, m);
-	let p = b * (1 - ak);
-	let q = 1 - a;
+	let p = (b * (1 - ak)).rem_euclid(m);
+	let q = (1 - a).rem_euclid(m);
 
 	// p * q^-1, calcualte by modular inverse
-	let p_div_q = (p * modular_pow(q, m - 2, m)).rem_euclid(m);
+	let q_inv = modular_pow(q, m - 2, m);
+	//let p_div_q = ((p as u128) * (q_inv as u128));
+	let p_div_q = p * q_inv;
 
-	let f = ak * x + p_div_q;
+	//let f = (ak as u128) * (x as u128) + p_div_q;
+	let f = ak * x + p_div_q as i128;
 
-	f.rem_euclid(m)
+	f.rem_euclid(m) 
 }
 
 fn invert_f(x: i128, a: i128, b: i128, k: i128, m: i128) -> i128 {
 	let ak = modular_pow(a, k, m);
-	let p = b * (1 - ak);
-	let q = 1 - a;
+	let p = (b * (1 - ak)).rem_euclid(m);
+	let q = (1 - a).rem_euclid(m);
 
-	// p * q^-1, calcualte by modular inverse
-	let p_div_q = (p * modular_pow(q, m - 2, m)).rem_euclid(m);
+	// p * q^-1, calculate by modular inverse
+	let mut p_div_q = p * modular_pow(q, m - 2, m);
 
 	// using modular inverse again to calculate F^-k(x), or
 	// x - B / A mod m, where B = b * (1 - a^k) / 1 - a and a = a^k
-	let inv = ((x - p_div_q) * modular_pow(ak, m - 2, m)).rem_euclid(m);
+	let inv_ak = modular_pow(ak, m - 2, m).rem_euclid(m);
+	p_div_q = p_div_q.rem_euclid(m);
+	let inv = (x - p_div_q) * inv_ak;
 
-	inv
+	inv.rem_euclid(m)
 }
 
 pub fn solve_q1_mathy() {
@@ -111,5 +116,5 @@ pub fn solve_q2() {
 
 	let res = invert_f(2020, coeffs.0, coeffs.1, k, m);
 	println!("Q2: {}", res);
-	println!("   -> {}", sum_series(res, coeffs.0, coeffs.1, k, m))
+	println!("... {}", sum_series(res, coeffs.0, coeffs.1, k, m));
 }
