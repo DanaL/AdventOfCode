@@ -1,6 +1,5 @@
-mod day_twentytwo;
+mod day_eighteen_v5;
 
 fn main() {
-	day_twentytwo::solve_q1_mathy();
-	day_twentytwo::solve_q2();
+	day_eighteen_v5::solve_q1();
 }
