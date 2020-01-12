@@ -43,7 +43,7 @@ fn flood_fill(r: usize, c: usize, grid: &Vec<Vec<char>>) {
 
 	while queue.len() > 0 {
 		let node = queue.pop_front().unwrap();
-		println!("{:?}", node);
+		//println!("{:?}", node);
 		visited.insert(node.clone());
 
 		// check neighbouring squares for keys or doors
@@ -51,21 +51,37 @@ fn flood_fill(r: usize, c: usize, grid: &Vec<Vec<char>>) {
 			let nr = (node.0 as i32 + d.0) as usize;
 			let nc = (node.1 as i32 + d.1) as usize;
 			let ch = if grid[nr][nc] == '@' { '.'} else { grid[nr][nc] };
-			if (ch == '#') { continue }
-			else if (ch == '.' || ch >= 'a' && ch <= 'z') {
+			let mut passable = false;
+
+			if (ch == '#') { 
+				continue;
+			}
+
+			if (ch == '.' || ch >= 'a' && ch <= 'z') {
 				let mask = node.2 | to_bitmask(ch);
 				let new_node = (nr, nc, mask);
 				if !visited.contains(&new_node) {
 					queue.push_back(new_node);
-				}
 
+					if (ch >= 'a' && ch <= 'z') {
+						println!("Visited {}", ch);
+					}
+				}
 				// NEXT GOTTA ADD THE KEYS (OR DOORS?) TO THE GRAPH THAT I'M STORING
 				// The idea is to build all the connections between nodes (with key poession
 				// as a dimension) and then I can do a hopefully smart search through the graph
 				// for the shortest path
-			}
-			else {
-				println!("  -> {}", ch);
+			} else {
+				// We've reached a door -- do we have the key to keep moving?
+				let mask = node.2;
+				let door = to_bitmask(ch.to_ascii_lowercase());
+				if (mask & door > 0) {
+					let new_node = (nr, nc, mask);
+					if !visited.contains(&new_node) {
+						queue.push_back(new_node);
+						println!("Passed through {}", ch);
+					}
+				}
 			}
 		}
 	}
@@ -74,8 +90,4 @@ fn flood_fill(r: usize, c: usize, grid: &Vec<Vec<char>>) {
 pub fn solve_q1() {
 	let mut grid = fetch_grid();
 	flood_fill(3, 6, &grid);
-	println!("{:#08b}", to_bitmask('a'));
-	println!("{:#08b}", to_bitmask('b'));
-	println!("{:#08b}", to_bitmask('c'));
-	println!("{:#08b}", to_bitmask('d'));
 }
