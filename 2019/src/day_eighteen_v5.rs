@@ -1,5 +1,5 @@
 use std::fs;
-//use std::collections::HashMap;
+use std::collections::HashMap;
 use std::collections::HashSet;
 use std::collections::VecDeque;
 
@@ -36,15 +36,15 @@ fn fetch_grid() -> Vec<Vec<char>> {
 }
 
 fn flood_fill(r: usize, c: usize, grid: &Vec<Vec<char>>) {
+	//let mut graph = HashMap::new();
 	let mut visited = HashSet::new();
 	let mut queue = VecDeque::new();
 	let dirs = vec![(-1, 0), (1, 0), (0, -1), (0, 1)];
-	queue.push_back((r, c, 0));
+	queue.push_back((r, c, 0, r, c, 0));
 
 	while queue.len() > 0 {
 		let node = queue.pop_front().unwrap();
-		//println!("{:?}", node);
-		visited.insert(node.clone());
+		visited.insert((node.0, node.1, node.2));
 
 		// check neighbouring squares for keys or doors
 		for d in &dirs {
@@ -57,14 +57,23 @@ fn flood_fill(r: usize, c: usize, grid: &Vec<Vec<char>>) {
 				continue;
 			}
 
-			if (ch == '.' || ch >= 'a' && ch <= 'z') {
+			if ch == '.' {
+				if !visited.contains(&(nr, nc, node.2)) {
+					let new_node = (nr, nc, node.2, node.3, node.4, node.5 + 1);
+					queue.push_back(new_node);
+				}
+			} else if ch >= 'a' && ch <= 'z' {
 				let mask = node.2 | to_bitmask(ch);
-				let new_node = (nr, nc, mask);
-				if !visited.contains(&new_node) {
+				if !visited.contains(&(nr, nc, mask)) {
+					println!("n0: {} {}", grid[node.3][node.4], node.2);
+					println!("n1: {} {}", ch, mask);
+					println!("d: {}", node.5+1);
+					let new_node = (nr, nc, mask, nr, nc, 0);
 					queue.push_back(new_node);
 
-					if (ch >= 'a' && ch <= 'z') {
-						println!("Visited {}", ch);
+					//if (ch >= 'a' && ch <= 'z') {
+					if (ch == 'g') {
+						println!("Reached {} from ({}, {}, {}) d={}", ch, node.3, node.4, node.2, node.5 + 1);
 					}
 				}
 				// NEXT GOTTA ADD THE KEYS (OR DOORS?) TO THE GRAPH THAT I'M STORING
@@ -76,10 +85,10 @@ fn flood_fill(r: usize, c: usize, grid: &Vec<Vec<char>>) {
 				let mask = node.2;
 				let door = to_bitmask(ch.to_ascii_lowercase());
 				if (mask & door > 0) {
-					let new_node = (nr, nc, mask);
-					if !visited.contains(&new_node) {
+					let new_node = (nr, nc, mask, node.3, node.4, node.5 + 1);
+					if !visited.contains(&(nr, nc, mask)) {
 						queue.push_back(new_node);
-						println!("Passed through {}", ch);
+						//println!("Passed through {}", ch);
 					}
 				}
 			}
