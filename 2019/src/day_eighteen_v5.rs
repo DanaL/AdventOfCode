@@ -3,6 +3,23 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::collections::VecDeque;
 
+// How do store the graph? My nodes are of the form (b,2) (where
+// the 2 is the bitmask representing which keys have been acquired so far)
+//
+// So in one of the examples, (@, 0) would have edges to (b, 2) with distance of 22
+// and (a, 1) with distance of 2. (b, 2) would have a vertex to (a, 3) with a d of 24.
+// (And technically to (c, 3) w/ d of 28 but we want to ignore that one because we have to
+// pass through a anyhow. Then: (a, 3) -> (c ,4), d = 4, etc
+//
+// Store it as a hash table with key (key, mask) and each entry storing a hash table with distances.
+//
+// So when I determine (@, 0) reaches (a, 1) w/ d=2 and (b, 2) w/ d = 22:
+//
+// [(@, 0)] -> [ [(a, 1)] -> 2, [b, 2] -> 22 ]
+// [(b, 2)] -> [ [(a, 3)] -> 24]
+//
+// HashMap<(char, u8), HashMap<(char, u8), u32>>??? Should I stuff it into a Struct?
+
 fn dump_grid(grid: &Vec<Vec<char>>) {
 	for row in grid {
 		let line: String = row.into_iter().collect();
