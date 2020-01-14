@@ -3,23 +3,6 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::collections::VecDeque;
 
-// How do store the graph? My nodes are of the form (b,2) (where
-// the 2 is the bitmask representing which keys have been acquired so far)
-//
-// So in one of the examples, (@, 0) would have edges to (b, 2) with distance of 22
-// and (a, 1) with distance of 2. (b, 2) would have a vertex to (a, 3) with a d of 24.
-// (And technically to (c, 3) w/ d of 28 but we want to ignore that one because we have to
-// pass through a anyhow. Then: (a, 3) -> (c ,4), d = 4, etc
-//
-// Store it as a hash table with key (key, mask) and each entry storing a hash table with distances.
-//
-// So when I determine (@, 0) reaches (a, 1) w/ d=2 and (b, 2) w/ d = 22:
-//
-// [(@, 0)] -> [ [(a, 1)] -> 2, [b, 2] -> 22 ]
-// [(b, 2)] -> [ [(a, 3)] -> 24]
-//
-// HashMap<(char, u8), HashMap<(char, u8), u32>>??? Should I stuff it into a Struct?
-
 fn dump_grid(grid: &Vec<Vec<char>>) {
 	for row in grid {
 		let line: String = row.into_iter().collect();
@@ -53,7 +36,7 @@ fn fetch_grid() -> Vec<Vec<char>> {
 }
 
 fn flood_fill(r: usize, c: usize, grid: &Vec<Vec<char>>) {
-	//let mut graph = HashMap::new();
+	let mut graph: HashMap<(char, u8), HashMap<(char, u8), u32>> = HashMap::new();
 	let mut visited = HashSet::new();
 	let mut queue = VecDeque::new();
 	let dirs = vec![(-1, 0), (1, 0), (0, -1), (0, 1)];
@@ -67,6 +50,7 @@ fn flood_fill(r: usize, c: usize, grid: &Vec<Vec<char>>) {
 		for d in &dirs {
 			let nr = (node.0 as i32 + d.0) as usize;
 			let nc = (node.1 as i32 + d.1) as usize;
+			let prev_ch = grid[node.3][node.4];
 			let ch = if grid[nr][nc] == '@' { '.'} else { grid[nr][nc] };
 			let mut passable = false;
 
@@ -74,29 +58,24 @@ fn flood_fill(r: usize, c: usize, grid: &Vec<Vec<char>>) {
 				continue;
 			}
 
-			if ch == '.' {
+			if ch == '.' { // || (node.2 & to_bitmask(ch)) > 0 {
 				if !visited.contains(&(nr, nc, node.2)) {
 					let new_node = (nr, nc, node.2, node.3, node.4, node.5 + 1);
 					queue.push_back(new_node);
 				}
 			} else if ch >= 'a' && ch <= 'z' {
+				// We've found a new key! Update our bitmask of what keys we possess
+				// and add the connection between the previous node and the key to
+				// our graph
 				let mask = node.2 | to_bitmask(ch);
 				if !visited.contains(&(nr, nc, mask)) {
-					println!("n0: {} {}", grid[node.3][node.4], node.2);
-					println!("n1: {} {}", ch, mask);
-					println!("d: {}", node.5+1);
 					let new_node = (nr, nc, mask, nr, nc, 0);
 					queue.push_back(new_node);
-
-					//if (ch >= 'a' && ch <= 'z') {
-					if (ch == 'g') {
-						println!("Reached {} from ({}, {}, {}) d={}", ch, node.3, node.4, node.2, node.5 + 1);
-					}
+			
+					let v = graph.entry((prev_ch, node.2))
+								 .or_insert(HashMap::new());
+					v.insert((ch, mask), node.5+1);
 				}
-				// NEXT GOTTA ADD THE KEYS (OR DOORS?) TO THE GRAPH THAT I'M STORING
-				// The idea is to build all the connections between nodes (with key poession
-				// as a dimension) and then I can do a hopefully smart search through the graph
-				// for the shortest path
 			} else {
 				// We've reached a door -- do we have the key to keep moving?
 				let mask = node.2;
@@ -105,11 +84,16 @@ fn flood_fill(r: usize, c: usize, grid: &Vec<Vec<char>>) {
 					let new_node = (nr, nc, mask, node.3, node.4, node.5 + 1);
 					if !visited.contains(&(nr, nc, mask)) {
 						queue.push_back(new_node);
-						//println!("Passed through {}", ch);
 					}
 				}
 			}
 		}
+	}
+
+	//println!("{:?}", graph.get(&('@', 0)));
+	//println!("{:?}", graph.get(&('b', 2)));
+	for v in graph {
+		println!("{:?}", v);
 	}
 }
 
