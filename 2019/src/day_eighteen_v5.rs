@@ -35,11 +35,11 @@ fn fetch_grid() -> Vec<Vec<char>> {
     grid
 }
 
-fn flood_fill(r: usize, c: usize, grid: &Vec<Vec<char>>) {
+fn flood_fill(r: usize, c: usize, grid: &Vec<Vec<char>>) -> HashMap<(char, u8), HashMap<(char, u8), u32>> {
 	let mut graph: HashMap<(char, u8), HashMap<(char, u8), u32>> = HashMap::new();
 	let mut visited = HashSet::new();
 	let mut queue = VecDeque::new();
-	let dirs = vec![(-1, 0), (1, 0), (0, -1), (0, 1)];
+	let dirs = vec![(-1, 0), (1, 0), (0, 1), (0, -1)];
 	queue.push_back((r, c, 0, r, c, 0));
 
 	while queue.len() > 0 {
@@ -58,7 +58,7 @@ fn flood_fill(r: usize, c: usize, grid: &Vec<Vec<char>>) {
 				continue;
 			}
 
-			if ch == '.' { // || (node.2 & to_bitmask(ch)) > 0 {
+			if ch == '.' || (node.2 & to_bitmask(ch)) > 0 {
 				if !visited.contains(&(nr, nc, node.2)) {
 					let new_node = (nr, nc, node.2, node.3, node.4, node.5 + 1);
 					queue.push_back(new_node);
@@ -92,12 +92,15 @@ fn flood_fill(r: usize, c: usize, grid: &Vec<Vec<char>>) {
 
 	//println!("{:?}", graph.get(&('@', 0)));
 	//println!("{:?}", graph.get(&('b', 2)));
-	for v in graph {
-		println!("{:?}", v);
-	}
+	graph
 }
 
 pub fn solve_q1() {
 	let mut grid = fetch_grid();
-	flood_fill(3, 6, &grid);
+	let graph = flood_fill(3, 6, &grid);
+
+	for v in &graph {
+		println!("{:?}", v);
+	}
+
 }
