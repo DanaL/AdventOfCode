@@ -52,7 +52,6 @@ fn flood_fill(r: usize, c: usize, grid: &Vec<Vec<char>>) -> HashMap<(char, u8), 
 			let nc = (node.1 as i32 + d.1) as usize;
 			let prev_ch = grid[node.3][node.4];
 			let ch = if grid[nr][nc] == '@' { '.'} else { grid[nr][nc] };
-			let mut passable = false;
 
 			if (ch == '#') { 
 				continue;
@@ -68,6 +67,7 @@ fn flood_fill(r: usize, c: usize, grid: &Vec<Vec<char>>) -> HashMap<(char, u8), 
 				// and add the connection between the previous node and the key to
 				// our graph
 				let mask = node.2 | to_bitmask(ch);
+
 				if !visited.contains(&(nr, nc, mask)) {
 					let new_node = (nr, nc, mask, nr, nc, 0);
 					queue.push_back(new_node);
@@ -102,5 +102,4 @@ pub fn solve_q1() {
 	for v in &graph {
 		println!("{:?}", v);
 	}
-
 }
