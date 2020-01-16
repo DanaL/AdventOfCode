@@ -10,7 +10,7 @@ fn dump_grid(grid: &Vec<Vec<char>>) {
 	}
 }
 
-fn to_bitmask(ch: char) -> u8 {
+fn to_bitmask(ch: char) -> u64 {
 	if ch < 'a' || ch > 'z' {
 		return 0;
 	}
@@ -35,69 +35,64 @@ fn fetch_grid() -> Vec<Vec<char>> {
     grid
 }
 
-fn flood_fill(r: usize, c: usize, grid: &Vec<Vec<char>>) -> HashMap<(char, u8), HashMap<(char, u8), u32>> {
-	let mut graph: HashMap<(char, u8), HashMap<(char, u8), u32>> = HashMap::new();
+type Graph = HashMap<(char, u64), HashMap<(char, u64), u32>>;
+static DIRS: [(i32, i32); 4] = [(-1, 0), (1, 0), (0, 1), (0, -1)];
+
+// Find the next keys from current key using a basic flood fill
+pub fn find_keys_from(r: usize, c: usize, mask: u64, grid: &Vec<Vec<char>>, graph: &mut Graph) {
 	let mut visited = HashSet::new();
 	let mut queue = VecDeque::new();
-	let dirs = vec![(-1, 0), (1, 0), (0, 1), (0, -1)];
-	queue.push_back((r, c, 0, r, c, 0));
+	queue.push_back((r, c, 0));
 
 	while queue.len() > 0 {
-		let node = queue.pop_front().unwrap();
-		visited.insert((node.0, node.1, node.2));
+		let sq = queue.pop_front().unwrap();
+		visited.insert((sq.0, sq.1));
 
-		// check neighbouring squares for keys or doors
-		for d in &dirs {
-			let nr = (node.0 as i32 + d.0) as usize;
-			let nc = (node.1 as i32 + d.1) as usize;
-			let prev_ch = grid[node.3][node.4];
+		for d in &DIRS {
+			let nr = (sq.0 as i32 + d.0) as usize;
+			let nc = (sq.1 as i32 + d.1) as usize;
 			let ch = if grid[nr][nc] == '@' { '.'} else { grid[nr][nc] };
-
-			if (ch == '#') { 
+			let distance = sq.2 + 1;
+			
+			if ch == '#' {
 				continue;
 			}
-
-			if ch == '.' || (node.2 & to_bitmask(ch)) > 0 {
-				if !visited.contains(&(nr, nc, node.2)) {
-					let new_node = (nr, nc, node.2, node.3, node.4, node.5 + 1);
-					queue.push_back(new_node);
-				}
+		
+			if ch == '.' && !visited.contains(&(nr, nc)) {
+				queue.push_back((nr, nc, distance));
 			} else if ch >= 'a' && ch <= 'z' {
-				// We've found a new key! Update our bitmask of what keys we possess
-				// and add the connection between the previous node and the key to
-				// our graph
-				let mask = node.2 | to_bitmask(ch);
-
-				if !visited.contains(&(nr, nc, mask)) {
-					let new_node = (nr, nc, mask, nr, nc, 0);
-					queue.push_back(new_node);
-			
-					let v = graph.entry((prev_ch, node.2))
+				// if the key we hit is part of the mask, we've visited it before 
+				// and can treat it like a floor space. Otherwise, added the start 
+				// and current vertexes to the graph and recurse on the key
+				if mask & to_bitmask(ch) > 0 {
+					queue.push_back((nr, nc, distance));
+				} else {
+					let prev_ch = grid[r][c];
+					let new_mask = mask | to_bitmask(ch);
+				
+					let v = graph.entry((prev_ch, mask))
 								 .or_insert(HashMap::new());
-					v.insert((ch, mask), node.5+1);
+					v.insert((ch, new_mask), distance);
+
+					find_keys_from(nr, nc, new_mask, &grid, graph);
 				}
 			} else {
-				// We've reached a door -- do we have the key to keep moving?
-				let mask = node.2;
+				// We've reached a door -- if we have matching key, keep moving, otherwise
+				// treat the door as though it is a wall
 				let door = to_bitmask(ch.to_ascii_lowercase());
-				if (mask & door > 0) {
-					let new_node = (nr, nc, mask, node.3, node.4, node.5 + 1);
-					if !visited.contains(&(nr, nc, mask)) {
-						queue.push_back(new_node);
-					}
+				if mask & door > 0 && !visited.contains(&(nr, nc)) {
+					queue.push_back((nr, nc, distance));
 				}
 			}
 		}
 	}
-
-	//println!("{:?}", graph.get(&('@', 0)));
-	//println!("{:?}", graph.get(&('b', 2)));
-	graph
 }
 
 pub fn solve_q1() {
-	let mut grid = fetch_grid();
-	let graph = flood_fill(3, 6, &grid);
+	let grid = fetch_grid();
+	let mut graph: Graph = HashMap::new();
+
+	find_keys_from(3, 6, 0, &grid, &mut graph);
 
 	for v in &graph {
 		println!("{:?}", v);
