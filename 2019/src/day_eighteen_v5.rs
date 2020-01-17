@@ -134,21 +134,31 @@ pub fn dijkstras(graph: &mut Graph) {
 		let mut v = Vertex::new(node.0, node.1);
 		if v.ch == '@' {
 			v.distance = 0;
-			pq.push(v);
-		} else if !vertexes.contains_key(&(v.ch, v.key)) {
+			v.known = true;
+			pq.push(&('@', 0));
+		} 
+
+		if !vertexes.contains_key(&(v.ch, v.key)) {
 			vertexes.insert((v.ch, v.key), v);
 		}
 	}
 	
 	while pq.len() > 0 {
-		let u = pq.pop().unwrap();
-		println!("{:?}", u);
-		let v = graph.get(&(u.ch, u.key)).unwrap();
-		println!("{:?}", v);
-		//for v in &graph.get(&(u.ch, u.key)).unwrap() {
-		//	println!("{:?}", v);
-		//}
+		let v_name = pq.pop().unwrap();
+		let mut u = vertexes.get(v_name).unwrap();
+		u = u.clone();
+			
+		for n in graph.get(&(u.ch, u.key)).unwrap() {
+			if let Some(v) = vertexes.get_mut(n.0) {
+				v.known = true;
+				v.distance = u.distance + *(n.1) as u64;
+				let next = (v.ch, v.key);
+				//pq.push(&next);
+			}
+		}
 	}
+
+	println!("{:?}", vertexes);
 }
 
 pub fn solve_q1() {
