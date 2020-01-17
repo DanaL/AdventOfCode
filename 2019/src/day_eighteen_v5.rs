@@ -141,24 +141,37 @@ pub fn dijkstras(graph: &mut Graph) {
 		if !vertexes.contains_key(&(v.ch, v.key)) {
 			vertexes.insert((v.ch, v.key), v);
 		}
-	}
-	
-	while pq.len() > 0 {
-		let v_name = pq.pop().unwrap();
-		let mut u = vertexes.get(v_name).unwrap();
-		u = u.clone();
-			
-		for n in graph.get(&(u.ch, u.key)).unwrap() {
-			if let Some(v) = vertexes.get_mut(n.0) {
-				v.known = true;
-				v.distance = u.distance + *(n.1) as u64;
-				let next = (v.ch, v.key);
-				//pq.push(&next);
+
+		let neighbours = graph.get(&node).unwrap();
+		for neighbour in neighbours {
+			if !vertexes.contains_key(&neighbour.0) {
+				let v = Vertex::new((neighbour.0).0, (neighbour.0).1);
+				vertexes.insert((v.ch, v.key), v);
 			}
 		}
 	}
 
-	println!("{:?}", vertexes);
+	while pq.len() > 0 {
+		let v_name = pq.pop().unwrap();
+		let u = vertexes.get(v_name).unwrap();
+		let ud = u.distance;
+
+		if let Some(neighbours) = graph.get(&(u.ch, u.key)) {
+			for n in neighbours {
+				let delta = ud + *n.1 as u64;
+				
+				// Need to only update the distance if it is less than the current distance.
+				// (Which will probably be almost fucking impossible in Rust because of borrowing rules)
+				let v = vertexes.entry(*n.0)
+					.and_modify(|neighbour| { neighbour.known = true; neighbour.distance = delta; });
+				pq.push(&n.0);
+			}
+		}
+		
+	}
+
+	println!("{:?}", vertexes);	
+	//println!("{:?}", vertexes);
 }
 
 pub fn solve_q1() {
