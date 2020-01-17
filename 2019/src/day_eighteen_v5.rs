@@ -1,8 +1,44 @@
 use std::fs;
+use std::collections::BinaryHeap;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::collections::VecDeque;
+use std::cmp::Ordering;
+use std::hash::{Hash, Hasher};
 
+#[derive(Debug, Eq, PartialEq)]
+struct Vertex {
+	ch: char,
+	key: u64,
+	known: bool,
+	distance: u64,
+}
+
+impl Vertex {
+	fn new(ch: char, key: u64) -> Vertex {
+		Vertex { ch, key, known: false, distance: u64::max_value() }
+	}
+}
+
+impl Ord for Vertex {
+	fn cmp(&self, other: &Vertex) -> Ordering {
+		other.distance.cmp(&self.distance)
+	}
+}
+
+impl PartialOrd for Vertex {
+	fn partial_cmp(&self, other: &Vertex) -> Option<Ordering> {
+		Some(self.cmp(other))
+	}
+}
+
+impl Hash for Vertex {
+	fn hash<H: Hasher>(&self, state: &mut H) {
+		self.ch.hash(state);
+		self.key.hash(state);
+	}
+}
+ 
 fn dump_grid(grid: &Vec<Vec<char>>) {
 	for row in grid {
 		let line: String = row.into_iter().collect();
@@ -88,13 +124,37 @@ pub fn find_keys_from(r: usize, c: usize, mask: u64, grid: &Vec<Vec<char>>, grap
 	}
 }
 
+pub fn dijkstras(graph: &mut Graph) {
+	// I want to turn the graph I built in the flood fill into
+	// a set of Vertexes so that it matches the textbook dijkstra's
+	// algorithm descriptions more directly
+	let mut pq = BinaryHeap::new();
+	let mut vertexes = HashMap::new();
+	for node in graph.keys() {
+		let mut v = Vertex::new(node.0, node.1);
+		if v.ch == '@' {
+			v.distance = 0;
+			pq.push(v);
+		} else if !vertexes.contains_key(&(v.ch, v.key)) {
+			vertexes.insert((v.ch, v.key), v);
+		}
+	}
+	
+	while pq.len() > 0 {
+		let u = pq.pop().unwrap();
+		println!("{:?}", u);
+		let v = graph.get(&(u.ch, u.key)).unwrap();
+		println!("{:?}", v);
+		//for v in &graph.get(&(u.ch, u.key)).unwrap() {
+		//	println!("{:?}", v);
+		//}
+	}
+}
+
 pub fn solve_q1() {
 	let grid = fetch_grid();
 	let mut graph: Graph = HashMap::new();
 
 	find_keys_from(3, 6, 0, &grid, &mut graph);
-
-	for v in &graph {
-		println!("{:?}", v);
-	}
+	dijkstras(&mut graph);
 }
