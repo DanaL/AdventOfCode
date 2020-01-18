@@ -1,8 +1,5 @@
 use std::fs;
-use std::collections::BinaryHeap;
-use std::collections::HashMap;
-use std::collections::HashSet;
-use std::collections::VecDeque;
+use std::collections::{ BinaryHeap, HashMap, HashSet, VecDeque };
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
 
@@ -60,6 +57,18 @@ fn to_bitmask(ch: char) -> u64 {
 	x
 }
 
+fn find_start(grid: &Vec<Vec<char>>) -> Option<(usize, usize)> {
+	for r in 0..grid.len() {
+		for c in 0..grid[r].len() {
+			if grid[r][c] == '@' {
+				return Some((r, c));
+			}
+		}
+	}
+
+	None
+}
+
 fn fetch_grid(filename: &str) -> Vec<Vec<char>> {
     let mut grid = Vec::new();
     let prog_txt = fs::read_to_string(filename).unwrap();
@@ -75,15 +84,26 @@ type Graph = HashMap<(char, u64), HashMap<(char, u64), u32>>;
 static DIRS: [(i32, i32); 4] = [(-1, 0), (1, 0), (0, 1), (0, -1)];
 
 // Find the next keys from current key using a basic flood fill
-pub fn find_keys_from(r: usize, c: usize, mask: u64, grid: &Vec<Vec<char>>, graph: &mut Graph) {
+// I need to cache/memoize this stuff for the larger problems, I think.
+// For example in in test_2.txt, the path b-f-c is exactly the same as
+// f-b-c. And b-f-c-e is the same as c-f-b-e and b-c-f-e, etc
+// So store a cached path of masks traversed and don't pursue a path
+// if the mask is already in the cache. Is it enough to store a HashSet<>
+// of masks?
+pub fn find_keys_from(r: usize, c: usize, mask: u64, grid: &Vec<Vec<char>>, 
+		graph: &mut Graph, cache: &mut HashMap<u64, u32>) {
 	let mut visited = HashSet::new();
 	let mut queue = VecDeque::new();
 	queue.push_back((r, c, 0));
 
+	if graph.keys().len() > 20 {
+		return;
+	}
+
 	while queue.len() > 0 {
 		let sq = queue.pop_front().unwrap();
 		visited.insert((sq.0, sq.1));
-
+		
 		for d in &DIRS {
 			let nr = (sq.0 as i32 + d.0) as usize;
 			let nc = (sq.1 as i32 + d.1) as usize;
@@ -93,8 +113,12 @@ pub fn find_keys_from(r: usize, c: usize, mask: u64, grid: &Vec<Vec<char>>, grap
 			if ch == '#' {
 				continue;
 			}
-		
-			if ch == '.' && !visited.contains(&(nr, nc)) {
+	
+			if visited.contains(&(nr, nc)) {
+				continue;
+			}
+
+			if ch == '.' {
 				queue.push_back((nr, nc, distance));
 			} else if ch >= 'a' && ch <= 'z' {
 				// if the key we hit is part of the mask, we've visited it before 
@@ -105,12 +129,18 @@ pub fn find_keys_from(r: usize, c: usize, mask: u64, grid: &Vec<Vec<char>>, grap
 				} else {
 					let prev_ch = grid[r][c];
 					let new_mask = mask | to_bitmask(ch);
-				
+					
+					//if cache.contains_key(&new_mask) && distance > cache[&new_mask] {
+						//continue;
+					//}
+
+					//let ce = cache.entry(new_mask).or_insert(distance);
+					//*ce = distance;
+					
 					let v = graph.entry((prev_ch, mask))
 								 .or_insert(HashMap::new());
 					v.insert((ch, new_mask), distance);
-
-					find_keys_from(nr, nc, new_mask, &grid, graph);
+					find_keys_from(nr, nc, new_mask, &grid, graph, cache);
 				}
 			} else {
 				// We've reached a door -- if we have matching key, keep moving, otherwise
@@ -160,9 +190,8 @@ pub fn dijkstras(graph: &mut Graph) {
 			for n in neighbours {
 				let delta = ud + *n.1 as u64;
 				
-				// Need to only update the distance if it is less than the current distance.
-				// (Which will probably be almost fucking impossible in Rust because of borrowing rules)
-				let v = vertexes.entry(*n.0)
+				// Need to only update the distance only if it is less than the current distance.
+				vertexes.entry(*n.0)
 					.and_modify(|neighbour| { 
 						neighbour.known = true; 
 						if delta < neighbour.distance {
@@ -186,9 +215,19 @@ pub fn dijkstras(graph: &mut Graph) {
 }
 
 pub fn solve_q1() {
-	let grid = fetch_grid("./inputs/day18_test.txt");
-	let mut graph: Graph = HashMap::new();
-
-	find_keys_from(3, 6, 0, &grid, &mut graph);
-	dijkstras(&mut graph);
+	let grid = fetch_grid("./inputs/day18_test_3.txt");
+	dump_grid(&grid);
+	if let Some(start) = find_start(&grid) {
+		println!("{:?}", start);
+		let mut graph: Graph = HashMap::new();
+		let mut cache: HashMap<u64, u32> = HashMap::new();
+		find_keys_from(start.0, start.1, 0, &grid, &mut graph, &mut cache);
+		
+		/*
+		for g in &graph {
+			println!("{:?}", g);
+		}
+		*/
+		dijkstras(&mut graph);
+	}
 }
