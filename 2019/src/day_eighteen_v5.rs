@@ -60,9 +60,9 @@ fn to_bitmask(ch: char) -> u64 {
 	x
 }
 
-fn fetch_grid() -> Vec<Vec<char>> {
+fn fetch_grid(filename: &str) -> Vec<Vec<char>> {
     let mut grid = Vec::new();
-    let prog_txt = fs::read_to_string("./inputs/day18_test.txt").unwrap();
+    let prog_txt = fs::read_to_string(filename).unwrap();
 
     for line in prog_txt.split('\n') {
         grid.push(line.trim().chars().map(|ch| ch).collect::<Vec<char>>());
@@ -163,19 +163,30 @@ pub fn dijkstras(graph: &mut Graph) {
 				// Need to only update the distance if it is less than the current distance.
 				// (Which will probably be almost fucking impossible in Rust because of borrowing rules)
 				let v = vertexes.entry(*n.0)
-					.and_modify(|neighbour| { neighbour.known = true; neighbour.distance = delta; });
+					.and_modify(|neighbour| { 
+						neighbour.known = true; 
+						if delta < neighbour.distance {
+							neighbour.distance = delta; 
+						}
+				});
 				pq.push(&n.0);
 			}
 		}
 		
 	}
 
-	println!("{:?}", vertexes);	
-	//println!("{:?}", vertexes);
+	let mut furthest = 0;
+	for v in vertexes.keys() {
+		if vertexes[&v].distance > furthest {
+			furthest = vertexes[&v].distance;
+		}
+	}
+
+	println!("Steps to all keys: {}", furthest);
 }
 
 pub fn solve_q1() {
-	let grid = fetch_grid();
+	let grid = fetch_grid("./inputs/day18_test.txt");
 	let mut graph: Graph = HashMap::new();
 
 	find_keys_from(3, 6, 0, &grid, &mut graph);
