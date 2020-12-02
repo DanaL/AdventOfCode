@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace _2020
 {
@@ -10,19 +11,10 @@ namespace _2020
 
         public Day1()
         {
-            this.fetchInput();
-        }
-
-        private void fetchInput()
-        {
             using TextReader _tr = new StreamReader("inputs/day1.txt");
 
-            this._expenses = new List<int>();         
-            while (_tr.Peek() != -1)
-            {
-                var _line = _tr.ReadLine();
-                _expenses.Add(int.Parse(_line));
-            }
+            this._expenses = (from _line in _tr.ReadToEnd().Split("\n")
+                              select int.Parse(_line)).ToList();
         }
 
         public void SolvePart1()
