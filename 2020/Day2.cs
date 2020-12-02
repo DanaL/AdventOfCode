@@ -10,7 +10,7 @@ namespace _2020
     {
         public int Min { get; set; }
         public int Max { get; set; }
-        public string Key { get; set; }
+        public char Key { get; set; }
         public string Text { get; set; }
 
         public PasswordDetails() { }
@@ -33,7 +33,7 @@ namespace _2020
                 {
                     Min = int.Parse(_matches.Groups["p0"].Value),
                     Max = int.Parse(_matches.Groups["p1"].Value),
-                    Key = _matches.Groups["p2"].Value,
+                    Key = _matches.Groups["p2"].Value[0],
                     Text = _matches.Groups["p3"].Value
                 };
                 _pwds.Add(_pw);
@@ -41,11 +41,20 @@ namespace _2020
         }
 
         public void SolvePart1()
-        {            
+        {
+            int _numValid = 0;
             foreach (var _pw in _pwds)
             {
-                Console.WriteLine($"Looking for '{_pw.Key}' in {_pw.Text} {_pw.Min} to {_pw.Max} times.");
+                var _letters = _pw.Text.ToCharArray()
+                            .GroupBy(ch => ch)
+                            .ToDictionary(g => g.Key, g => g.ToList());
+
+                int _count = _letters.ContainsKey(_pw.Key) ? _letters[_pw.Key].Count : 0;
+                if (_count >= _pw.Min && _count <= _pw.Max)
+                    _numValid++;                
             }
+
+            Console.WriteLine($"P1: {_numValid}");
         }
     }
 }
