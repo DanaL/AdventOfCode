@@ -6,4 +6,7 @@
     <RootNamespace>_2020</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Include="bin\Debug\net5.0\inputs\day2.txt" />
+  </ItemGroup>
 </Project>
