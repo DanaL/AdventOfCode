@@ -15,7 +15,7 @@ switch (_day)
         break;
     case 2:
         Day2 _d2 = new Day2();
-        _d2.SolvePart1();
+        _d2.Solve();
         break;
     default:
         Console.WriteLine($"Haven't done Day {_day} yet.");

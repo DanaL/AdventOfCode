@@ -40,21 +40,29 @@ namespace _2020
             }
         }
 
-        public void SolvePart1()
+        public void Solve()
         {
-            int _numValid = 0;
+            int _numValidPt1 = 0;
+            int _numValidPt2 = 0;
             foreach (var _pw in _pwds)
             {
                 var _letters = _pw.Text.ToCharArray()
                             .GroupBy(ch => ch)
                             .ToDictionary(g => g.Key, g => g.ToList());
 
+                // Count and check the instances of the key letter in the line for part 1
                 int _count = _letters.ContainsKey(_pw.Key) ? _letters[_pw.Key].Count : 0;
                 if (_count >= _pw.Min && _count <= _pw.Max)
-                    _numValid++;                
+                    ++_numValidPt1;
+
+                // Check the characters in position X to see if exactly one matches the key for the rule.
+                // (Note that the password rules use index 1, not index 0
+                if (_pw.Text[_pw.Min - 1] == _pw.Key ^ _pw.Text[_pw.Max - 1] == _pw.Key)
+                    ++_numValidPt2;
             }
 
-            Console.WriteLine($"P1: {_numValid}");
+            Console.WriteLine($"P1: {_numValidPt1}");
+            Console.WriteLine($"P2: {_numValidPt2}");
         }
     }
 }
