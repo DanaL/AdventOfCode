@@ -45,7 +45,6 @@ namespace _2020
             // Similar to part one, use a hashset to track values we've seen so
             // that we only need one nested loop O(n^2) instead of O(n^3)
             HashSet<int> _seen = new HashSet<int>();
-            int _res = 0;
             for (int a = 0; a < _expenses.Count - 1; a++)
             {
                 _seen.Add(_expenses[a]);
@@ -56,7 +55,7 @@ namespace _2020
                     int _lookingFor = 2020 - _expenses[a] - _expenses[b];
                     if (_seen.Contains(_lookingFor))
                     {
-                        _res = _expenses[a] * _expenses[b] * _lookingFor;
+                        int _res = _expenses[a] * _expenses[b] * _lookingFor;
                         Console.WriteLine($"P2: {_res}");
                         return;
                     }
