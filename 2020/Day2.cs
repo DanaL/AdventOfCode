@@ -22,12 +22,7 @@ namespace _2020
                 char _key = _matches.Groups["p2"].Value[0];
                 string _pw = _matches.Groups["p3"].Value;
 
-                // Count and check the instances of the key letter in the line for part 1
-                var _letters = _pw.ToCharArray()
-                        .GroupBy(ch => ch)
-                        .ToDictionary(g => g.Key, g => g.ToList());
-                                    
-                int _count = _letters.ContainsKey(_key) ? _letters[_key].Count : 0;
+                int _count = _pw.Count(ch => ch == _key);
                 if (_count >= _min && _count <= _max)
                     ++_numValidPt1;
 
