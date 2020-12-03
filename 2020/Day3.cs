@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace _2020
 {
@@ -9,7 +11,8 @@ namespace _2020
         public int Right { get; set; }
         public int Row { get; set; }
         public int Column { get; set; }
-        public int Trees { get; set; }
+        public long Trees { get; set; }
+        public int AtEnd { get; set; }
 
         public Route (int d, int r)
         {
@@ -18,6 +21,7 @@ namespace _2020
             this.Row = 0;
             this.Column = 0;
             this.Trees = 0;
+            this.AtEnd = 0;
         }
     }
 
@@ -25,15 +29,14 @@ namespace _2020
     {
         public Day3() { }
 
-        public void SolvePt1()
+        public void Solve()
         {
             using TextReader _tr = new StreamReader("inputs/day3.txt");
 
             string _txt = _tr.ReadToEnd();
             int _width = _txt.IndexOf('\n');
             int _length = _txt.Length / (_width + 1);
-            _txt = _txt.Replace("\n", "");
-            char[] _map = _txt.ToCharArray();
+            char[] _map = _txt.ToCharArray().Where(ch => ch != '\n').ToArray();
 
             // Okay, so the map repeats itself over and over as you move to the right.
             // So, just loop, incrementing row and column as per the puzzle instructions
@@ -49,17 +52,31 @@ namespace _2020
 
             // The simplest-to-code version would be to loop over the map once per
             // route but let's complicate things
-            Route _pt1 = new Route(1, 3);
-            while (_pt1.Row < _length)
+            List<Route> _routes = new List<Route>() { new Route(1, 1), new Route(1, 3),
+                new Route(1, 5), new Route(1, 7), new Route(2, 1)};
+
+            while (_routes.Sum(r => r.AtEnd) < _routes.Count)
             {
-                int _pos = _pt1.Column + (_pt1.Row * _width);
-                if (_map[_pos] == '#')
-                    ++_pt1.Trees;
-                _pt1.Row += _pt1.Down;
-                _pt1.Column = (_pt1.Column + _pt1.Right) % _width;                
+                foreach (var _rt in _routes)
+                {
+                    if (_rt.AtEnd == 1)
+                        continue;
+
+                    int _pos = _rt.Row * _width + _rt.Column;
+                    if (_map[_pos] == '#')
+                        ++_rt.Trees;
+                    _rt.Row += _rt.Down;
+                    _rt.Column = (_rt.Column + _rt.Right) % _width;
+
+                    if (_rt.Row > _length)
+                        _rt.AtEnd = 1;
+                }
             }
 
-            Console.WriteLine($"P1: {_pt1.Trees}");            
+            Console.WriteLine($"P1: {_routes[1].Trees}");            
+            long _pt2 = _routes.Aggregate(1L, (v, r) => v * r.Trees);
+            Console.WriteLine($"P2: {_pt2}");
         }
     }
 }
+
