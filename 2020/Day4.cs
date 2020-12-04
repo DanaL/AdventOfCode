@@ -1,22 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace _2020
 {
     public class Day4
     {
-        private List<Regex> regexesPt1;
         private Dictionary<string, Regex> regexesPt2;
 
         public Day4()
-        {
-            this.regexesPt1 = new List<Regex>() { new Regex(@"byr:\d+"), new Regex(@"iyr:\d+"),
-                new Regex(@"eyr:\d+"), new Regex(@"hgt:\d+(cm|in)*"), new Regex(@"hcl:#*[a-z0-9]+"),
-                new Regex(@"ecl:#*[a-z0-9]+"), new Regex(@"pid:#*[a-z0-9]+"), new Regex(@"cid:\d+")
-            };
-
+        {            
             this.regexesPt2 = new Dictionary<string, Regex>() { ["byr"] = new Regex(@"byr:(19[2-9][0-9]|200[0-2])"),
                 ["iyr"] = new Regex(@"iyr:201[0-9]|2020"), ["eyr"] = new Regex(@"eyr:(202[0-9]|2030)"),
                 ["hgt"] = new Regex(@"hgt:(?<p>\d+(cm|in))"), ["hcl"] = new Regex(@"hcl:#[a-f0-9]{6}"),
@@ -26,15 +21,9 @@ namespace _2020
 
         private bool isValidPt1(string passport)
         {
-            int count = 0;
-            foreach (var re in this.regexesPt1)
-            {
-                var m = re.Match(passport);                
-                if (m.Success) ++count;                
-            }
-
-            return count == this.regexesPt1.Count
-                || (count == this.regexesPt1.Count - 1 && !this.regexesPt1[7].Match(passport).Success);
+            var pieces = new HashSet<string>(passport.Split().Select(p => p.Split(':')[0]));
+            
+            return pieces.Count == 8 || (pieces.Count == 7 && !pieces.Contains("cid"));            
         }
 
         private bool isValidPt2(string passport)
