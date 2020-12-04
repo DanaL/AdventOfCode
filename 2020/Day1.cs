@@ -7,14 +7,14 @@ namespace _2020
 {
     public class Day1
     {
-        private List<int> _expenses;
+        private List<int> expenses;
 
         public Day1()
         {
-            using TextReader _tr = new StreamReader("inputs/day1.txt");
+            using TextReader tr = new StreamReader("inputs/day1.txt");
 
-            this._expenses = (from _line in _tr.ReadToEnd().Split("\n")
-                              select int.Parse(_line)).ToList();
+            this.expenses = (from line in tr.ReadToEnd().Split("\n")
+                              select int.Parse(line)).ToList();
         }
 
         public void SolvePart1()
@@ -23,15 +23,15 @@ namespace _2020
             // don't actually have to do two loops like my original naive
             // implementation. And then I can use a break statement instead of
             // a goto
-            HashSet<int> _seen = new HashSet<int>();
-            for (int j = 0; j < _expenses.Count; j++)
+            HashSet<int> seen = new HashSet<int>();
+            for (int j = 0; j < expenses.Count; j++)
             {
-                _seen.Add(_expenses[j]);
-                int _lookingFor = 2020 - _expenses[j];
+                seen.Add(expenses[j]);
+                int lookingFor = 2020 - expenses[j];
 
-                if (_seen.Contains(_lookingFor))
+                if (seen.Contains(lookingFor))
                 {
-                    Console.WriteLine($"P1: {_expenses[j] * _lookingFor}");
+                    Console.WriteLine($"P1: {expenses[j] * lookingFor}");
                     return;
                 }
             }
@@ -44,19 +44,19 @@ namespace _2020
 
             // Similar to part one, use a hashset to track values we've seen so
             // that we only need one nested loop O(n^2) instead of O(n^3)
-            HashSet<int> _seen = new HashSet<int>();
-            for (int a = 0; a < _expenses.Count - 1; a++)
+            HashSet<int> seen = new HashSet<int>();
+            for (int a = 0; a < expenses.Count - 1; a++)
             {
-                _seen.Add(_expenses[a]);
-                for (int b = a + 1; b < _expenses.Count; b++)
+                seen.Add(expenses[a]);
+                for (int b = a + 1; b < expenses.Count; b++)
                 {
-                    _seen.Add(_expenses[b]);
+                    seen.Add(expenses[b]);
 
-                    int _lookingFor = 2020 - _expenses[a] - _expenses[b];
-                    if (_seen.Contains(_lookingFor))
+                    int lookingFor = 2020 - expenses[a] - expenses[b];
+                    if (seen.Contains(lookingFor))
                     {
-                        int _res = _expenses[a] * _expenses[b] * _lookingFor;
-                        Console.WriteLine($"P2: {_res}");
+                        int res = expenses[a] * expenses[b] * lookingFor;
+                        Console.WriteLine($"P2: {res}");
                         return;
                     }
                 }
