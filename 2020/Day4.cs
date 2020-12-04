@@ -12,14 +12,15 @@ namespace _2020
 
         public Day4()
         {
-            this.regexesPt1 = new List<Regex>() { new Regex(@"byr:(?<p>\d+)"), new Regex(@"iyr:(?<p>\d+)"),
-                new Regex(@"eyr:(?<p>\d+)"), new Regex(@"hgt:(?<p>\d+(cm|in)*)"), new Regex(@"hcl:(?<p>#*[a-z0-9]+)"),
-                new Regex(@"ecl:(?<p>#*[a-z0-9]+)"), new Regex(@"pid:(?<p>#*[a-z0-9]+)"), new Regex(@"cid:(?<p>\d+)")
+            this.regexesPt1 = new List<Regex>() { new Regex(@"byr:\d+"), new Regex(@"iyr:\d+"),
+                new Regex(@"eyr:\d+"), new Regex(@"hgt:\d+(cm|in)*"), new Regex(@"hcl:#*[a-z0-9]+"),
+                new Regex(@"ecl:#*[a-z0-9]+"), new Regex(@"pid:#*[a-z0-9]+"), new Regex(@"cid:\d+")
             };
 
-            this.regexesPt2 = new Dictionary<string, Regex>() { ["byr"] = new Regex(@"byr:(?<p>\d{4})"), ["iyr"] = new Regex(@"iyr:(?<p>\d{4})"),
-                ["eyr"] = new Regex(@"eyr:(?<p>\d{4})"), ["hgt"] = new Regex(@"hgt:(?<p>\d+(cm|in))"), ["hcl"] = new Regex(@"hcl:(?<p>#[a-f0-9]{6})"),
-                ["ecl"] = new Regex(@"ecl:(?<p>amb|blu|brn|gry|grn|hzl|oth)"), ["pid"] = new Regex(@"pid:(?<p>\d{9})(?!\d)")
+            this.regexesPt2 = new Dictionary<string, Regex>() { ["byr"] = new Regex(@"byr:(19[2-9][0-9]|200[0-2])"),
+                ["iyr"] = new Regex(@"iyr:201[0-9]|2020"), ["eyr"] = new Regex(@"eyr:(202[0-9]|2030)"),
+                ["hgt"] = new Regex(@"hgt:(?<p>\d+(cm|in))"), ["hcl"] = new Regex(@"hcl:#[a-f0-9]{6}"),
+                ["ecl"] = new Regex(@"ecl:(amb|blu|brn|gry|grn|hzl|oth)"), ["pid"] = new Regex(@"pid:(\d{9})(?!\d)")
             };
         }
 
@@ -36,33 +37,16 @@ namespace _2020
                 || (count == this.regexesPt1.Count - 1 && !this.regexesPt1[7].Match(passport).Success);
         }
 
-        private bool yearMatch(Match m, int floor, int ceiling)
-        {
-            if (!m.Success)
-                return false;
-
-            int yr = int.Parse(m.Groups[1].Value);
-            if (yr < floor || yr > ceiling)
-                return false;
-
-            return true;
-        }
-
         private bool isValidPt2(string passport)
         {
-            if (!yearMatch(this.regexesPt2["byr"].Match(passport), 1920, 2002))
-                return false;
-            if (!yearMatch(this.regexesPt2["iyr"].Match(passport), 2010, 2020))
-                return false;
-            if (!yearMatch(this.regexesPt2["eyr"].Match(passport), 2020, 2030))
-                return false;
-            if (!this.regexesPt2["hcl"].Match(passport).Success)
-                return false;
-            if (!this.regexesPt2["ecl"].Match(passport).Success)
-                return false;
-            if (!this.regexesPt2["pid"].Match(passport).Success)
-                return false;
-            
+            foreach (var k in new string[] { "byr", "iyr", "eyr", "hcl", "ecl", "pid" })
+            {
+                if (!this.regexesPt2[k].Match(passport).Success)
+                    return false;
+            }
+
+            // I could just do these checks in the regex too, but I think it would start to get
+            // real ugly
             var m = this.regexesPt2["hgt"].Match(passport);
             if (!m.Success)
                 return false;
