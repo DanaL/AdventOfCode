@@ -37,15 +37,8 @@ namespace _2020
             Console.WriteLine($"P1: {seats.Max()}");
 
             var seatArray = seats.OrderBy(s => s).ToArray();
-
-            for (int j = 0; j < seatArray.Length - 1; j++)
-            {
-                if (seatArray[j + 1] - seatArray[j] > 1)
-                {
-                    Console.WriteLine($"P2: {seatArray[j] + 1}");
-                    break;
-                }
-            }
+            var mySeat = seatArray.Zip(seatArray[1..], (first, second) => second - first > 1 ? first + 1 : 0).Max();
+            Console.WriteLine($"P2: {mySeat}");
         }
     }
 }
