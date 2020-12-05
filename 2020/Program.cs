@@ -3,7 +3,11 @@ using _2020;
 
 int _day;
 if (args.Length == 0 || !int.TryParse(args[0], out _day))
+{
     _day = DateTime.Now.Day;
+    if (DateTime.Now.Hour == 23)
+        ++_day;
+}
 
 Console.WriteLine($"Solving Day {_day}");
 switch (_day)
