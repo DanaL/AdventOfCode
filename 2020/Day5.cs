@@ -32,7 +32,20 @@ namespace _2020
         public void Solve()
         {
             using TextReader tr = new StreamReader("inputs/day5.txt");
-            var p1 = tr.ReadToEnd().Split('\n').Select(line => calcSeatID(line)).Max();            
+            var seats = tr.ReadToEnd().Split('\n').Select(line => calcSeatID(line));
+
+            Console.WriteLine($"P1: {seats.Max()}");
+
+            var seatArray = seats.OrderBy(s => s).ToArray();
+
+            for (int j = 0; j < seatArray.Length - 1; j++)
+            {
+                if (seatArray[j + 1] - seatArray[j] > 1)
+                {
+                    Console.WriteLine($"P2: {seatArray[j] + 1}");
+                    break;
+                }
+            }
         }
     }
 }
