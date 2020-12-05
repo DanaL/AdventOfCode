@@ -32,12 +32,11 @@ namespace _2020
         public void Solve()
         {
             using TextReader tr = new StreamReader("inputs/day5.txt");
-            var seats = tr.ReadToEnd().Split('\n').Select(line => calcSeatID(line));
+            var seats = tr.ReadToEnd().Split('\n').Select(line => calcSeatID(line)).OrderBy(s => s);
 
-            Console.WriteLine($"P1: {seats.Max()}");
+            Console.WriteLine($"P1: {seats.Last()}");
 
-            var seatArray = seats.OrderBy(s => s).ToArray();
-            var mySeat = seatArray.Zip(seatArray[1..], (first, second) => second - first > 1 ? first + 1 : 0).Max();
+            var mySeat = seats.Zip(seats.Skip(1), (a, b) => b - a > 1 ? a + 1 : 0).Max();
             Console.WriteLine($"P2: {mySeat}");
         }
     }
