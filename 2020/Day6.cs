@@ -12,29 +12,20 @@ namespace _2020
         {
             using TextReader tr = new StreamReader("inputs/day6.txt");
             var groups = tr.ReadToEnd().Split("\n\n");
-            
-            var sum = 0;
-            foreach (var g in groups.Select(g => g.Replace("\n", "")))
-            {
-                sum += g.ToCharArray().Distinct().Count();
-            }
+
+            var sum = groups.Sum(g => g.Replace("\n", "").Distinct().Count());
             Console.WriteLine($"P1: {sum}");
 
-            var totalYes = 0;
-            foreach (var grp in groups)
-            {
+            /* I feel like this is starting to get into abusing LINQ territory... */
+            sum = groups.Sum(grp => {
                 var answers = grp.ToCharArray()
                                 .GroupBy(ch => ch)
                                 .ToDictionary(g => g.Key, g => g.ToList().Count);
 
                 var group_size = answers.ContainsKey('\n') ? answers['\n'] + 1 : 1;
-                foreach (var k in answers.Keys)
-                {
-                    if (answers[k] == group_size)
-                        totalYes += 1;
-                }
-            }
-            Console.WriteLine($"P2: {totalYes}");
+                return answers.Keys.Select(k => answers[k]).Where(v => v == group_size).Count();
+            });            
+            Console.WriteLine($"P2: {sum}");
         }
     }
 }
