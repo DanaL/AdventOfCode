@@ -13,10 +13,10 @@ namespace Day18
         public char Curr { get; set; }
         public uint Keys { get; set; }
         public HashSet<char> Visited { get; set; }
-
+        
         public Route()
         {
-            this.Visited = new HashSet<char>();
+            this.Visited = new HashSet<char>();            
         }
     }
 
@@ -123,8 +123,7 @@ namespace Day18
 
         private int shortestPath(List<Edge> edges, uint goal)
         {
-            // Should convert the list of paths into a dictionary? for easy
-            // look up of where we can go
+            HashSet<(string, uint)> travelled = new HashSet<(string, uint)>();
             var paths = edges.Where(e => e.Start != '@').GroupBy(p => p.Start)
                              .ToDictionary(g => g.Key, g => g);
 
@@ -139,6 +138,7 @@ namespace Day18
                     Keys = 0
                 };
                 r.Visited.Add(edge.End);
+                
                 pq.Enqueue(r, r.Total);
             }
 
@@ -146,12 +146,23 @@ namespace Day18
             while (pq.Count > 0)
             {
                 var route = pq.Dequeue();
+                // If we are on a route that's already longer than the shortest we've
+                // found, no need to continue
+                if (route.Total >= shortest)
+                    continue;
+                
                 uint curr_keys = route.Keys | this._bitmasks[route.Curr];
-                var visited = String.Concat(route.Visited.ToList().OrderBy(i => i));
-                Console.WriteLine($"We have visited {visited} at length {route.Total} width keys {route.Keys}");
+                var visited = String.Concat(route.Visited.OrderBy(k => k));
+                var key = (visited, route.Keys);
 
+                if (travelled.Contains(key))
+                    continue;
+
+                travelled.Add(key);
+                
                 if (curr_keys == goal)
                 {
+                    //Console.WriteLine("FOUND!!!");
                     // Okay, we've found *a* route. Is it the shortest found so far?
                     if (route.Total < shortest)
                         shortest = route.Total;
@@ -173,12 +184,7 @@ namespace Day18
                     };
                     next_r.Visited.UnionWith(route.Visited);
                     next_r.Visited.Add(o.End);
-
-                    // If we are on a path that's already longer than the shortest we've
-                    // found, no need to continue
-                    if (next_r.Total > shortest)
-                        continue;
-
+                    
                     pq.Enqueue(next_r, next_r.Total);                    
                 }                
             }
