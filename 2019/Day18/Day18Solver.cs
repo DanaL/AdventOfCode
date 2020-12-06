@@ -124,6 +124,9 @@ namespace Day18
         private int shortestPath(List<Edge> edges, uint goal)
         {
             HashSet<(string, uint)> travelled = new HashSet<(string, uint)>();
+
+            // Put the paths into a dictionary of what nodes we can reach from
+            // a given node
             var paths = edges.Where(e => e.Start != '@').GroupBy(p => p.Start)
                              .ToDictionary(g => g.Key, g => g);
 
@@ -137,8 +140,7 @@ namespace Day18
                     Curr = edge.End,
                     Keys = 0
                 };
-                r.Visited.Add(edge.End);
-                
+                r.Visited.Add(edge.End);                
                 pq.Enqueue(r, r.Total);
             }
 
@@ -146,12 +148,13 @@ namespace Day18
             while (pq.Count > 0)
             {
                 var route = pq.Dequeue();
+
                 // If we are on a route that's already longer than the shortest we've
                 // found, no need to continue
                 if (route.Total >= shortest)
                     continue;
-                
-                uint curr_keys = route.Keys | this._bitmasks[route.Curr];
+
+                // Are we on a route that we have already explored?
                 var visited = String.Concat(route.Visited.OrderBy(k => k));
                 var key = (visited, route.Keys);
 
@@ -159,10 +162,10 @@ namespace Day18
                     continue;
 
                 travelled.Add(key);
-                
+
+                uint curr_keys = route.Keys | this._bitmasks[route.Curr];
                 if (curr_keys == goal)
                 {
-                    //Console.WriteLine("FOUND!!!");
                     // Okay, we've found *a* route. Is it the shortest found so far?
                     if (route.Total < shortest)
                         shortest = route.Total;
@@ -194,7 +197,7 @@ namespace Day18
 
         public void Solve()
         {
-            string file = "/Users/dana/Development/AdventOfCode/2019/inputs/day18_test.txt";
+            string file = "/Users/dana/Development/AdventOfCode/2019/inputs/day18.txt";
             using TextReader tr = new StreamReader(file);
 
             // Scan through the map and find all the keys and their locations
