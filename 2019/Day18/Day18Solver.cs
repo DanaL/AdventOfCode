@@ -121,24 +121,69 @@ namespace Day18
             }
         }
 
-        private int shortestPath(List<Edge> edges)
+        private int shortestPath(List<Edge> edges, uint goal)
         {
             // Should convert the list of paths into a dictionary? for easy
             // look up of where we can go
-            SimplePriorityQueue<Edge> pq = new SimplePriorityQueue<Edge>();
-            var keys = 0;
-            foreach (Edge path in edges.Where(e => e.Start == '@' && (e.KeysNeeded == 0 || (e.KeysNeeded & keys) > 0)))
+            var paths = edges.Where(e => e.Start != '@').GroupBy(p => p.Start)
+                             .ToDictionary(g => g.Key, g => g);
+
+            SimplePriorityQueue<Route> pq = new SimplePriorityQueue<Route>();
+            // Set the initial routes
+            foreach (Edge edge in edges.Where(e => e.Start == '@' && e.KeysNeeded == 0))
             {
-                pq.Enqueue(path, path.Length);
+                var r = new Route()
+                {
+                    Total = edge.Length,
+                    Curr = edge.End,
+                    Keys = 0
+                };
+                r.Visited.Add(edge.End);
+                pq.Enqueue(r, r.Total);
             }
 
+            int shortest = int.MaxValue;
             while (pq.Count > 0)
             {
-                var path = pq.Dequeue();
-                Console.WriteLine($"Path from {path.Start} to {path.End} through doors {path.KeysNeeded} takes {path.Length} steps.");
+                var route = pq.Dequeue();
+                uint curr_keys = route.Keys | this._bitmasks[route.Curr];
+                var visited = String.Concat(route.Visited.ToList().OrderBy(i => i));
+                Console.WriteLine($"We have visited {visited} at length {route.Total} width keys {route.Keys}");
+
+                if (curr_keys == goal)
+                {
+                    // Okay, we've found *a* route. Is it the shortest found so far?
+                    if (route.Total < shortest)
+                        shortest = route.Total;
+                    continue;
+                }
+
+                // Pick all the next edges that haven't been visited and for which we have needed keys (or
+                // don't need keys from current node)
+                var options = paths[route.Curr]
+                    .Where(p => !route.Visited.Contains(p.End) && ((p.KeysNeeded & curr_keys) == p.KeysNeeded));
+                // I could LINQ this up but I think it would start to look pretty ugly
+                foreach (var o in options)
+                {
+                    var next_r = new Route()
+                    {
+                        Total = route.Total + o.Length,
+                        Curr = o.End,
+                        Keys = curr_keys
+                    };
+                    next_r.Visited.UnionWith(route.Visited);
+                    next_r.Visited.Add(o.End);
+
+                    // If we are on a path that's already longer than the shortest we've
+                    // found, no need to continue
+                    if (next_r.Total > shortest)
+                        continue;
+
+                    pq.Enqueue(next_r, next_r.Total);                    
+                }                
             }
 
-            return -1;
+            return shortest;
         }
 
         public void Solve()
@@ -148,7 +193,7 @@ namespace Day18
 
             // Scan through the map and find all the keys and their locations
             Dictionary<char, (int Row, int Col)> keys = new Dictionary<char, (int,  int)>();
-            var lines = tr.ReadToEnd().Trim().Split('\n');
+            var lines = tr.ReadToEnd().Trim().Split('\n');            
             for (int r = 0; r < lines.Length; r ++)
             {
                 for (int c = 0; c < lines[0].Length; c++)
@@ -159,12 +204,16 @@ namespace Day18
             }
 
             // Breadthfirst search to calculate the distances from each key to each other key, including
-            // which doors must be passed through=
+            // which doors must be passed through
+            uint goal = 0;
             List<Edge> edges = new List<Edge>();
             foreach (var k in keys.Keys)
+            {
+                if (k != '@')
+                    goal |= this._bitmasks[k];
                 this.floodfill(keys[k].Row, keys[k].Col, lines, edges);
-
-            Console.WriteLine($"P1: {shortestPath(edges)}");
+            }
+            Console.WriteLine($"P1: {shortestPath(edges, goal)}");
         }
     }
 }
