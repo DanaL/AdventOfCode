@@ -34,10 +34,19 @@ namespace Day18
     }
 
     public class Day18Solver
-    {
-        public Day18Solver() { }
-
+    {        
         private (int, int)[] _dirs = { (-1, 0), (0, -1), (0, 1), (1, 0) };
+        private Dictionary<char, uint> _bitmasks;
+
+        public Day18Solver()
+        {
+            _bitmasks = new Dictionary<char, uint>();
+            foreach (char c in "abcdefghijklmnopqrstuvwxyz")
+            {
+                _bitmasks.Add(c, this.letterToNum(c));
+                _bitmasks.Add(Char.ToUpper(c), this.letterToNum(c));
+            }
+        }
 
         private uint letterToNum(char c)
         {
@@ -76,7 +85,7 @@ namespace Day18
                         nodes.Enqueue(new_node);
                     else if (ch >= 'A' && ch <= 'Z')
                     {
-                        new_node.Doors = node.Doors | this.letterToNum(ch);                        
+                        new_node.Doors = node.Doors | _bitmasks[ch];                        
                         nodes.Enqueue(new_node);
                     }
                     else if (ch >= 'a' && ch <= 'z')
