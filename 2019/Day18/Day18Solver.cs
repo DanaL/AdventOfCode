@@ -3,16 +3,31 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using Priority_Queue;
+
 namespace Day18
 {
-    public class Path
+    public class Route
+    {
+        public int Total { get; set; }
+        public char Curr { get; set; }
+        public uint Keys { get; set; }
+        public HashSet<char> Visited { get; set; }
+
+        public Route()
+        {
+            this.Visited = new HashSet<char>();
+        }
+    }
+
+    public class Edge
     {
         public int Length { get; set; }
         public uint KeysNeeded { get; set; }
         public char Start { get; set; }
         public char End { get; set; }
 
-        public Path() { }
+        public Edge() { }
     }
 
     public class FloodFillNode
@@ -44,7 +59,7 @@ namespace Day18
             foreach (char c in "abcdefghijklmnopqrstuvwxyz")
             {
                 _bitmasks.Add(c, this.letterToNum(c));
-                _bitmasks.Add(Char.ToUpper(c), this.letterToNum(c));
+                _bitmasks.Add(char.ToUpper(c), this.letterToNum(c));
             }
         }
 
@@ -56,7 +71,7 @@ namespace Day18
         }
 
         // Find path from the given start node to all of the other keys
-        private void floodfill(int start_r, int start_c, string[] map, List<Path> paths)
+        private void floodfill(int start_r, int start_c, string[] map, List<Edge> edges)
         {
             char start = map[start_r][start_c];
             HashSet<(int, int)> visited = new HashSet<(int, int)>();
@@ -91,19 +106,39 @@ namespace Day18
                     }
                     else if (ch >= 'a' && ch <= 'z')
                     {
-                        var p = new Path
+                        var p = new Edge
                         {
                             Length = new_node.Distance,
                             Start = start,
                             End = ch,
                             KeysNeeded = new_node.Doors
                         };
-                        paths.Add(p);
+                        edges.Add(p);
 
                         nodes.Enqueue(new_node);                        
                     }
                 }
             }
+        }
+
+        private int shortestPath(List<Edge> edges)
+        {
+            // Should convert the list of paths into a dictionary? for easy
+            // look up of where we can go
+            SimplePriorityQueue<Edge> pq = new SimplePriorityQueue<Edge>();
+            var keys = 0;
+            foreach (Edge path in edges.Where(e => e.Start == '@' && (e.KeysNeeded == 0 || (e.KeysNeeded & keys) > 0)))
+            {
+                pq.Enqueue(path, path.Length);
+            }
+
+            while (pq.Count > 0)
+            {
+                var path = pq.Dequeue();
+                Console.WriteLine($"Path from {path.Start} to {path.End} through doors {path.KeysNeeded} takes {path.Length} steps.");
+            }
+
+            return -1;
         }
 
         public void Solve()
@@ -125,8 +160,11 @@ namespace Day18
 
             // Breadthfirst search to calculate the distances from each key to each other key, including
             // which doors must be passed through=
-            List<Path> paths = new List<Path>();
-            this.floodfill(keys['@'].Row, keys['@'].Col, lines, paths);
+            List<Edge> edges = new List<Edge>();
+            foreach (var k in keys.Keys)
+                this.floodfill(keys[k].Row, keys[k].Col, lines, edges);
+
+            Console.WriteLine($"P1: {shortestPath(edges)}");
         }
     }
 }
