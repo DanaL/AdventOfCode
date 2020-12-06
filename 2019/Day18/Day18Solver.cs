@@ -8,7 +8,7 @@ namespace Day18
     public class Path
     {
         public int Length { get; set; }
-        public HashSet<char> KeysNeeded { get; set; }
+        public uint KeysNeeded { get; set; }
         public char Start { get; set; }
         public char End { get; set; }
 
@@ -55,7 +55,8 @@ namespace Day18
             return (uint)Math.Pow(2, exp);
         }
 
-        private void floodfill(int start_r, int start_c, string[] map)
+        // Find path from the given start node to all of the other keys
+        private void floodfill(int start_r, int start_c, string[] map, List<Path> paths)
         {
             char start = map[start_r][start_c];
             HashSet<(int, int)> visited = new HashSet<(int, int)>();
@@ -81,7 +82,7 @@ namespace Day18
 
                     var new_node = new FloodFillNode(node.Distance + 1, row, col, node.Doors);
                     
-                    if (ch == '.')
+                    if (ch == '.' || ch == '@')
                         nodes.Enqueue(new_node);
                     else if (ch >= 'A' && ch <= 'Z')
                     {
@@ -90,9 +91,16 @@ namespace Day18
                     }
                     else if (ch >= 'a' && ch <= 'z')
                     {
-                        Console.WriteLine($"Key {ch} found! D: {new_node.Distance} Doors passed: {new_node.Doors} ");
-                        // What we really need to do is store the path from start to the key, which is a vertex of our
-                        // graph and then keep going
+                        var p = new Path
+                        {
+                            Length = new_node.Distance,
+                            Start = start,
+                            End = ch,
+                            KeysNeeded = new_node.Doors
+                        };
+                        paths.Add(p);
+
+                        nodes.Enqueue(new_node);                        
                     }
                 }
             }
@@ -116,9 +124,9 @@ namespace Day18
             }
 
             // Breadthfirst search to calculate the distances from each key to each other key, including
-            // which doors must be passed through
-
-            this.floodfill(keys['c'].Row, keys['c'].Col, lines);
+            // which doors must be passed through=
+            List<Path> paths = new List<Path>();
+            this.floodfill(keys['@'].Row, keys['@'].Col, lines, paths);
         }
     }
 }
