@@ -8,11 +8,11 @@ namespace _2020
     class Bag
     {
         public string Name { get; set; }
-        public Dictionary<string, int> Contains { get; set; }
+        public Dictionary<string, int> Contents { get; set; }
 
         public Bag()
         {
-            this.Contains = new Dictionary<string, int>();
+            this.Contents = new Dictionary<string, int>();
         }
     }
 
@@ -31,11 +31,30 @@ namespace _2020
                 for (int j = 4; j < pieces.Length; j += 4)
                 {
                     var count = int.Parse(pieces[j]);
-                    bag.Contains.Add($"{pieces[j + 1]} {pieces[j + 2]}", count);
+                    bag.Contents.Add($"{pieces[j + 1]} {pieces[j + 2]}", count);
                 }
             }
 
             return bag;
+        }
+
+        // Recursively search through our collection of bags to see if one of the nested
+        // bags contains a shiny gold bag
+        private bool simpleSearch(string start, string key, Dictionary<string, Bag> bags)
+        {
+            var bag = bags[start];
+
+            foreach (string name in bag.Contents.Keys)
+            {
+                if (name == key)
+                    return true;
+
+                var res = simpleSearch(name, key, bags);
+                if (res)
+                    return true;
+            }
+
+            return false;
         }
 
         public void Solve()
@@ -44,9 +63,11 @@ namespace _2020
 
             var txt = tr.ReadToEnd().Trim().Split("\n");
 
-            var bags = txt.Select(b => parse(b));
-            Console.WriteLine($"{bags.Count()}");
-            
+            var bags = txt.Select(a => parse(a))
+                          .GroupBy(b => b.Name, b => b)
+                          .ToDictionary(c => c.Key, c => c.ElementAt(0));
+
+            Console.WriteLine($"P1: {bags.Select(b => b.Key).Where(k => simpleSearch(k, "shiny gold", bags)).Count()}");            
         }
     }
 }
