@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 using Priority_Queue;
 
@@ -49,7 +50,7 @@ namespace Day18
     }
 
     public class Day18Solver
-    {        
+    {
         private (int, int)[] _dirs = { (-1, 0), (0, -1), (0, 1), (1, 0) };
         private Dictionary<char, uint> _bitmasks;
 
@@ -66,7 +67,7 @@ namespace Day18
         private uint letterToNum(char c)
         {
             uint exp = (uint)Char.ToLower(c) - (uint)'a';
-            
+
             return (uint)Math.Pow(2, exp);
         }
 
@@ -96,12 +97,12 @@ namespace Day18
                         continue;
 
                     var new_node = new FloodFillNode(node.Distance + 1, row, col, node.Doors);
-                    
+
                     if (ch == '.' || ch == '@')
                         nodes.Enqueue(new_node);
                     else if (ch >= 'A' && ch <= 'Z')
                     {
-                        new_node.Doors = node.Doors | _bitmasks[ch];                        
+                        new_node.Doors = node.Doors | _bitmasks[ch];
                         nodes.Enqueue(new_node);
                     }
                     else if (ch >= 'a' && ch <= 'z')
@@ -115,7 +116,7 @@ namespace Day18
                         };
                         edges.Add(p);
 
-                        nodes.Enqueue(new_node);                        
+                        nodes.Enqueue(new_node);
                     }
                 }
             }
@@ -140,7 +141,7 @@ namespace Day18
                     Curr = edge.End,
                     Keys = 0
                 };
-                r.Visited.Add(edge.End);                
+                r.Visited.Add(edge.End);
                 pq.Enqueue(r, r.Total);
             }
 
@@ -187,23 +188,23 @@ namespace Day18
                     };
                     next_r.Visited.UnionWith(route.Visited);
                     next_r.Visited.Add(o.End);
-                    
-                    pq.Enqueue(next_r, next_r.Total);                    
-                }                
+
+                    pq.Enqueue(next_r, next_r.Total);
+                }
             }
 
             return shortest;
         }
 
-        public void Solve()
+        public void SolveP1()
         {
             string file = "/Users/dana/Development/AdventOfCode/2019/inputs/day18.txt";
             using TextReader tr = new StreamReader(file);
 
             // Scan through the map and find all the keys and their locations
-            Dictionary<char, (int Row, int Col)> keys = new Dictionary<char, (int,  int)>();
-            var lines = tr.ReadToEnd().Trim().Split('\n');            
-            for (int r = 0; r < lines.Length; r ++)
+            Dictionary<char, (int Row, int Col)> keys = new Dictionary<char, (int, int)>();
+            var lines = tr.ReadToEnd().Trim().Split('\n');
+            for (int r = 0; r < lines.Length; r++)
             {
                 for (int c = 0; c < lines[0].Length; c++)
                 {
@@ -223,6 +224,48 @@ namespace Day18
                 this.floodfill(keys[k].Row, keys[k].Col, lines, edges);
             }
             Console.WriteLine($"P1: {shortestPath(edges, goal)}");
+        }
+
+        public void SolveP2()
+        {
+            string file = "/Users/dana/Development/AdventOfCode/2019/inputs/day18.txt";
+            using TextReader tr = new StreamReader(file);
+
+            // In Part 2, we need to transform the map into the four discrete vaults.
+            // It's similar to Part 1 but I'm not going to bother putting the four @s on the map
+            // or in the key dictionary I create.
+            Dictionary<char, (int Row, int Col)> keys = new Dictionary<char, (int, int)>();
+            (int Row, int Col) start = (0, 0);
+            var lines = tr.ReadToEnd().Trim().Split('\n');
+            for (int r = 0; r < lines.Length; r++)
+            {
+                for (int c = 0; c < lines[0].Length; c++)
+                {
+                    if (lines[r][c] == '@')
+                    {
+                        start.Row = r;
+                        start.Col = c;
+                    }
+
+                    if (char.IsLetter(lines[r][c]) && char.IsLower(lines[r][c]))
+                        keys.Add(lines[r][c], (Row: r, Col: c));
+                }
+            }
+
+            StringBuilder sb = new StringBuilder(lines[start.Row]);
+            sb[start.Col - 1] = '#';
+            sb[start.Col] = '#';
+            sb[start.Col + 1] = '#';
+            lines[start.Row] = sb.ToString();
+            sb = new StringBuilder(lines[start.Row - 1]);
+            sb[start.Col] = '#';
+            lines[start.Row - 1] = sb.ToString();
+            sb = new StringBuilder(lines[start.Row + 1]);
+            sb[start.Col] = '#';
+            lines[start.Row + 1] = sb.ToString();
+
+            foreach (var line in lines)
+                Console.WriteLine(line);
         }
     }
 }
