@@ -8,11 +8,11 @@ namespace _2020
     class Bag
     {
         public string Name { get; set; }
-        public Dictionary<string, int> Contents { get; set; }
+        public List<(string Name, int Amt)> Contents { get; set; }
 
         public Bag()
         {
-            this.Contents = new Dictionary<string, int>();
+            this.Contents = new List<(string, int)>();
         }
     }
 
@@ -31,7 +31,7 @@ namespace _2020
                 for (int j = 4; j < pieces.Length; j += 4)
                 {
                     var count = int.Parse(pieces[j]);
-                    bag.Contents.Add($"{pieces[j + 1]} {pieces[j + 2]}", count);
+                    bag.Contents.Add(($"{pieces[j + 1]} {pieces[j + 2]}", count));
                 }
             }
 
@@ -44,13 +44,12 @@ namespace _2020
         {
             var bag = bags[start];
 
-            foreach (string name in bag.Contents.Keys)
+            foreach (var b in bag.Contents)
             {
-                if (name == key)
+                if (b.Name == key)
                     return true;
 
-                var res = simpleSearch(name, key, bags);
-                if (res)
+                if (simpleSearch(b.Name, key, bags))
                     return true;
             }
 
@@ -62,7 +61,7 @@ namespace _2020
         {
             var bag = bags[start];
 
-            return 1 + bag.Contents.Select(b => b.Value * countBags(b.Key, bags)).Sum();
+            return 1 + bag.Contents.Select(b => b.Amt * countBags(b.Name, bags)).Sum();
         }
 
         public void Solve()
