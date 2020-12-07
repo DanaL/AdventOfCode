@@ -122,28 +122,18 @@ namespace Day18
             }
         }
 
-        private int shortestPath(List<Edge> edges, uint goal)
+        private int shortestPath(List<Edge> edges, uint goal, List<Route> initialRoutes)
         {
             HashSet<(string, uint)> travelled = new HashSet<(string, uint)>();
 
+            SimplePriorityQueue<Route> pq = new SimplePriorityQueue<Route>();
+            foreach (Route r in initialRoutes)
+                pq.Enqueue(r, r.Total);
+            
             // Put the paths into a dictionary of what nodes we can reach from
             // a given node
             var paths = edges.Where(e => e.Start != '@').GroupBy(p => p.Start)
                              .ToDictionary(g => g.Key, g => g);
-
-            SimplePriorityQueue<Route> pq = new SimplePriorityQueue<Route>();
-            // Set the initial routes
-            foreach (Edge edge in edges.Where(e => e.Start == '@' && e.KeysNeeded == 0))
-            {
-                var r = new Route()
-                {
-                    Total = edge.Length,
-                    Curr = edge.End,
-                    Keys = 0
-                };
-                r.Visited.Add(edge.End);
-                pq.Enqueue(r, r.Total);
-            }
 
             int shortest = int.MaxValue;
             while (pq.Count > 0)
@@ -223,12 +213,27 @@ namespace Day18
                     goal |= this._bitmasks[k];
                 this.floodfill(keys[k].Row, keys[k].Col, lines, edges);
             }
-            Console.WriteLine($"P1: {shortestPath(edges, goal)}");
+
+            // Set up the starting routes
+            List<Route> initialRoutes = new List<Route>();
+            foreach (Edge edge in edges.Where(e => e.Start == '@' && e.KeysNeeded == 0))
+            {
+                var r = new Route()
+                {
+                    Total = edge.Length,
+                    Curr = edge.End,
+                    Keys = 0
+                };
+                r.Visited.Add(edge.End);
+                initialRoutes.Add(r);
+            }
+
+            Console.WriteLine($"P1: {shortestPath(edges, goal, initialRoutes)}");
         }
 
         public void SolveP2()
         {
-            string file = "/Users/dana/Development/AdventOfCode/2019/inputs/day18.txt";
+            string file = "/Users/dana/Development/AdventOfCode/2019/inputs/day18_test.txt";
             using TextReader tr = new StreamReader(file);
 
             // In Part 2, we need to transform the map into the four discrete vaults.
@@ -263,6 +268,15 @@ namespace Day18
             sb = new StringBuilder(lines[start.Row + 1]);
             sb[start.Col] = '#';
             lines[start.Row + 1] = sb.ToString();
+
+            // The flood fill search in Part 2 should be the same as in Part One, I think
+            uint goal = 0;
+            List<Edge> edges = new List<Edge>();
+            foreach (var k in keys.Keys)
+            {
+                goal |= this._bitmasks[k];
+                this.floodfill(keys[k].Row, keys[k].Col, lines, edges);
+            }
 
             foreach (var line in lines)
                 Console.WriteLine(line);
