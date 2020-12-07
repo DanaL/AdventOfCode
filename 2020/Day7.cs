@@ -57,17 +57,24 @@ namespace _2020
             return false;
         }
 
+        // Another rescursive search, this time counting the # of bags contained within
+        private int countBags(string start, Dictionary<string, Bag> bags)
+        {
+            var bag = bags[start];
+
+            return 1 + bag.Contents.Select(b => b.Value * countBags(b.Key, bags)).Sum();
+        }
+
         public void Solve()
         {
             using TextReader tr = new StreamReader("inputs/day7.txt");
-
             var txt = tr.ReadToEnd().Trim().Split("\n");
-
             var bags = txt.Select(a => parse(a))
                           .GroupBy(b => b.Name, b => b)
                           .ToDictionary(c => c.Key, c => c.ElementAt(0));
 
-            Console.WriteLine($"P1: {bags.Select(b => b.Key).Where(k => simpleSearch(k, "shiny gold", bags)).Count()}");            
+            Console.WriteLine($"P1: {bags.Select(b => b.Key).Where(k => simpleSearch(k, "shiny gold", bags)).Count()}");
+            Console.WriteLine($"P2: {countBags("shiny gold", bags) - 1}");
         }
     }
 }
