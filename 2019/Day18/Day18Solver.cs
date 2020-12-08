@@ -11,12 +11,13 @@ namespace Day18
     public class Route
     {
         public int Total { get; set; }
-        public char Curr { get; set; }
+        public List<char> Curr { get; set; }
         public uint Keys { get; set; }
         public HashSet<char> Visited { get; set; }
         
         public Route()
         {
+            this.Curr = new List<char>();
             this.Visited = new HashSet<char>();            
         }
     }
@@ -154,7 +155,9 @@ namespace Day18
 
                 travelled.Add(key);
 
-                uint curr_keys = route.Keys | this._bitmasks[route.Curr];
+                uint curr_keys = route.Keys;
+                foreach (char c in route.Curr)
+                    curr_keys |= this._bitmasks[c];
                 if (curr_keys == goal)
                 {
                     // Okay, we've found *a* route. Is it the shortest found so far?
@@ -165,21 +168,32 @@ namespace Day18
 
                 // Pick all the next edges that haven't been visited and for which we have needed keys (or
                 // don't need keys from current node)
-                var options = paths[route.Curr]
-                    .Where(p => !route.Visited.Contains(p.End) && ((p.KeysNeeded & curr_keys) == p.KeysNeeded));
-                // I could LINQ this up but I think it would start to look pretty ugly
-                foreach (var o in options)
+                foreach (char c in route.Curr)
                 {
-                    var next_r = new Route()
+                    var options = paths[c]
+                        .Where(p => !route.Visited.Contains(p.End) && ((p.KeysNeeded & curr_keys) == p.KeysNeeded));
+                    // I could LINQ this up but I think it would start to look pretty ugly
+                    foreach (var o in options)
                     {
-                        Total = route.Total + o.Length,
-                        Curr = o.End,
-                        Keys = curr_keys
-                    };
-                    next_r.Visited.UnionWith(route.Visited);
-                    next_r.Visited.Add(o.End);
+                        var next_r = new Route()
+                        {
+                            Total = route.Total + o.Length,
+                            Keys = curr_keys
+                        };
+                        next_r.Curr.AddRange(route.Curr);
+                        for (int j = 0; j < next_r.Curr.Count; j++)
+                        {
+                            if (next_r.Curr[j] == c)
+                            {
+                                next_r.Curr[j] = o.End;
+                                break;
+                            }
+                        }
+                        next_r.Visited.UnionWith(route.Visited);
+                        next_r.Visited.Add(o.End);
 
-                    pq.Enqueue(next_r, next_r.Total);
+                        pq.Enqueue(next_r, next_r.Total);
+                    }
                 }
             }
 
@@ -220,10 +234,10 @@ namespace Day18
             {
                 var r = new Route()
                 {
-                    Total = edge.Length,
-                    Curr = edge.End,
+                    Total = edge.Length,                    
                     Keys = 0
                 };
+                r.Curr.Add(edge.End);
                 r.Visited.Add(edge.End);
                 initialRoutes.Add(r);
             }
@@ -277,6 +291,22 @@ namespace Day18
                 goal |= this._bitmasks[k];
                 this.floodfill(keys[k].Row, keys[k].Col, lines, edges);
             }
+
+            // Set up the starting routes
+            List<Route> initialRoutes = new List<Route>();
+
+            /* I need to calculate edges from each of the starting points */
+            //foreach (Edge edge in edges.Where(e => e.Start == '@' && e.KeysNeeded == 0))
+            //{
+            //    var r = new Route()
+            //    {
+            //        Total = edge.Length,
+            //        Curr = edge.End,
+            //        Keys = 0
+            //    };
+            //    r.Visited.Add(edge.End);
+            //    initialRoutes.Add(r);
+            //}
 
             foreach (var line in lines)
                 Console.WriteLine(line);
