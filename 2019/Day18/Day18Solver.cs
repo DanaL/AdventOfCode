@@ -20,6 +20,18 @@ namespace Day18
             this.Curr = new List<char>();
             this.Visited = new HashSet<char>();            
         }
+
+        public void UpdateCurr(char prev, char next)
+        {
+            for (int j = 0; j < this.Curr.Count; j++)
+            {
+                if (this.Curr[j] == prev)
+                {
+                    this.Curr[j] = next;
+                    break;
+                }                    
+            }
+        }
     }
 
     public class Edge
@@ -76,6 +88,8 @@ namespace Day18
         private void floodfill(int start_r, int start_c, string[] map, List<Edge> edges)
         {
             char start = map[start_r][start_c];
+            HashSet<char> starts = new HashSet<char>() { '@', '1', '2', '3', '4' };
+
             HashSet<(int, int)> visited = new HashSet<(int, int)>();
             Queue<FloodFillNode> nodes = new Queue<FloodFillNode>();
             nodes.Enqueue(new FloodFillNode(0, start_r, start_c, 0));
@@ -99,7 +113,8 @@ namespace Day18
 
                     var new_node = new FloodFillNode(node.Distance + 1, row, col, node.Doors);
 
-                    if (ch == '.' || ch == '@')
+                    
+                    if (ch == '.' || starts.Contains(ch))
                         nodes.Enqueue(new_node);
                     else if (ch >= 'A' && ch <= 'Z')
                     {
@@ -123,7 +138,7 @@ namespace Day18
             }
         }
 
-        private int shortestPath(List<Edge> edges, uint goal, List<Route> initialRoutes)
+        private int shortestPath(List<Edge> edges, uint goal, List<Route> initialRoutes, HashSet<char> starts)
         {
             HashSet<(string, uint)> travelled = new HashSet<(string, uint)>();
 
@@ -133,7 +148,7 @@ namespace Day18
             
             // Put the paths into a dictionary of what nodes we can reach from
             // a given node
-            var paths = edges.Where(e => e.Start != '@').GroupBy(p => p.Start)
+            var paths = edges.GroupBy(p => p.Start)
                              .ToDictionary(g => g.Key, g => g);
 
             int shortest = int.MaxValue;
@@ -156,7 +171,7 @@ namespace Day18
                 travelled.Add(key);
 
                 uint curr_keys = route.Keys;
-                foreach (char c in route.Curr)
+                foreach (char c in route.Curr.Where(c => !starts.Contains(c)))
                     curr_keys |= this._bitmasks[c];
                 if (curr_keys == goal)
                 {
@@ -172,23 +187,19 @@ namespace Day18
                 {
                     var options = paths[c]
                         .Where(p => !route.Visited.Contains(p.End) && ((p.KeysNeeded & curr_keys) == p.KeysNeeded));
-                    // I could LINQ this up but I think it would start to look pretty ugly
                     foreach (var o in options)
-                    {
+                    {                       
                         var next_r = new Route()
                         {
                             Total = route.Total + o.Length,
                             Keys = curr_keys
                         };
+
+                        // Copy the list of current positions to the new Route object, update
+                        // the current postiion to its new one (ie., the End of the path taken)
                         next_r.Curr.AddRange(route.Curr);
-                        for (int j = 0; j < next_r.Curr.Count; j++)
-                        {
-                            if (next_r.Curr[j] == c)
-                            {
-                                next_r.Curr[j] = o.End;
-                                break;
-                            }
-                        }
+                        next_r.UpdateCurr(c, o.End);
+
                         next_r.Visited.UnionWith(route.Visited);
                         next_r.Visited.Add(o.End);
 
@@ -242,12 +253,12 @@ namespace Day18
                 initialRoutes.Add(r);
             }
 
-            Console.WriteLine($"P1: {shortestPath(edges, goal, initialRoutes)}");
+            Console.WriteLine($"P1: {shortestPath(edges, goal, initialRoutes, new HashSet<char>() { '@' })}");
         }
 
         public void SolveP2()
         {
-            string file = "/Users/dana/Development/AdventOfCode/2019/inputs/day18_test.txt";
+            string file = "/Users/dana/Development/AdventOfCode/2019/inputs/day18.txt";
             using TextReader tr = new StreamReader(file);
 
             // In Part 2, we need to transform the map into the four discrete vaults.
@@ -274,42 +285,53 @@ namespace Day18
             StringBuilder sb = new StringBuilder(lines[start.Row]);
             sb[start.Col - 1] = '#';
             sb[start.Col] = '#';
-            sb[start.Col + 1] = '#';
+            sb[start.Col + 1] = '#';            
             lines[start.Row] = sb.ToString();
             sb = new StringBuilder(lines[start.Row - 1]);
             sb[start.Col] = '#';
+            sb[start.Col - 1] = '1';
+            sb[start.Col + 1] = '2';
             lines[start.Row - 1] = sb.ToString();
             sb = new StringBuilder(lines[start.Row + 1]);
             sb[start.Col] = '#';
+            sb[start.Col - 1] = '4';
+            sb[start.Col + 1] = '3';
             lines[start.Row + 1] = sb.ToString();
 
             // The flood fill search in Part 2 should be the same as in Part One, I think
             uint goal = 0;
             List<Edge> edges = new List<Edge>();
+            floodfill(start.Row - 1, start.Col - 1, lines, edges);
+            floodfill(start.Row - 1, start.Col + 1, lines, edges);
+            floodfill(start.Row + 1, start.Col - 1, lines, edges);
+            floodfill(start.Row + 1, start.Col + 1, lines, edges);
             foreach (var k in keys.Keys)
             {
                 goal |= this._bitmasks[k];
-                this.floodfill(keys[k].Row, keys[k].Col, lines, edges);
+                floodfill(keys[k].Row, keys[k].Col, lines, edges);
             }
 
             // Set up the starting routes
             List<Route> initialRoutes = new List<Route>();
+            HashSet<char> starts = new HashSet<char>() { '1', '2', '3', '4' };
+            foreach (Edge edge in edges.Where(e => starts.Contains(e.Start)  && e.KeysNeeded == 0))
+            {
+                var r = new Route()
+                {
+                    Total = edge.Length,                    
+                    Keys = 0
+                };
+                r.Curr = new List<char>() { '1', '2', '3', '4' };
+                r.UpdateCurr(edge.Start, edge.End);
 
-            /* I need to calculate edges from each of the starting points */
-            //foreach (Edge edge in edges.Where(e => e.Start == '@' && e.KeysNeeded == 0))
-            //{
-            //    var r = new Route()
-            //    {
-            //        Total = edge.Length,
-            //        Curr = edge.End,
-            //        Keys = 0
-            //    };
-            //    r.Visited.Add(edge.End);
-            //    initialRoutes.Add(r);
-            //}
+                r.Visited.Add(edge.End);
+                initialRoutes.Add(r);
+            }
 
-            foreach (var line in lines)
-                Console.WriteLine(line);
+            //foreach (var line in lines)
+            //    Console.WriteLine(line);
+
+            Console.WriteLine($"P2: {shortestPath(edges, goal, initialRoutes, starts)}");
         }
     }
 }

@@ -9,7 +9,7 @@ namespace Day18
             Day18Solver day18 = new Day18Solver();
 
             day18.SolveP1();
-            //day18.SolveP2();
+            day18.SolveP2();
         }
     }
 }
