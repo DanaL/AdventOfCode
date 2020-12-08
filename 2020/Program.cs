@@ -43,6 +43,7 @@ switch (_day)
     case 8:
         Day8 _d8 = new Day8();
         _d8.SolveP1();
+        _d8.SolveP2();
         break;
     default:
         Console.WriteLine($"Haven't done Day {_day} yet.");

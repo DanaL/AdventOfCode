@@ -9,12 +9,26 @@ namespace _2020
     {
         public int PC { get; set; }
         public int Acc { get; set; }
+        public bool LoopDetected { get; private set; }
+        public bool Terminated { get; private set; }
         public (string, int)[] Instructions { get; set; }
+        private List<string> history { get; set; }
+        public HashSet<int> Seen { get; set; }
 
-        public CPU() { }
+        public CPU()
+        {
+            history = new List<string>();
+            Seen = new HashSet<int>();
+            LoopDetected = false;
+            Terminated = false;
+        }
 
         public void Step()
         {
+            var s = $"{PC.ToString().PadLeft(4)}: {Instructions[PC].Item1} {Instructions[PC].Item2}";
+            history.Add(s);
+            Seen.Add(PC);
+
             switch (Instructions[PC].Item1)
             {
                 case "acc":
@@ -28,6 +42,18 @@ namespace _2020
                     PC += Instructions[PC].Item2;
                     break;
             }
+
+            if (PC >= Instructions.Length)
+                Terminated = true;
+            if (Seen.Contains(PC))
+                LoopDetected = true;
+        }
+
+        public void DumpHistory()
+        {
+            foreach (var s in history)
+                Console.WriteLine(s);
+            Console.WriteLine($"Seen: {Seen.Count}");
         }
     }
 
@@ -59,18 +85,44 @@ namespace _2020
         {
             var cpu = makeCPU();    
 
-            HashSet<int> ran = new HashSet<int>();
             while (cpu.PC <= cpu.Instructions.Length)
             {
-                if (ran.Contains(cpu.PC))
+                cpu.Step();                
+                if (cpu.LoopDetected)
                 {
                     Console.WriteLine($"P1: {cpu.Acc}");
                     break;
                 }
+            }
+        }
 
-                ran.Add(cpu.PC);
+        public void SolveP2()
+        {
+            var cpu = makeCPU();
+            while (!cpu.LoopDetected)
+                cpu.Step();                
+                
+            // Okay, we've found the loop, now find all the instructions that may possibly
+            // be causing the problem. Then check each one until we find the culprit. Brute
+            // force but my only other idea was to check it by hand...
+            var suspects = cpu.Seen.Where(i => cpu.Instructions[i].Item1 != "acc").ToList();
 
-                cpu.Step();
+            foreach (int i in suspects)
+            {
+                var cpu2 = makeCPU();
+                var instr = cpu2.Instructions[i];
+                Console.WriteLine($"Flipping instruction {i} ({instr.Item1}, {instr.Item2})");
+                instr.Item1 = instr.Item1 == "nop" ? "jmp" : "nop";
+                cpu2.Instructions[i] = instr;
+
+                while (!cpu2.LoopDetected && !cpu2.Terminated)
+                    cpu2.Step();
+
+                if (cpu2.Terminated)
+                {
+                    Console.WriteLine($"P2 {cpu2.Acc}");
+                    break;
+                }
             }
         }
     }
