@@ -61,23 +61,22 @@ namespace _2020
                 long sum = nums[j];
                 long smallest = nums[j];
                 long largest = nums[j];
-                for (int k = j + 1; k < nums.Length; k++)
+                int k = j + 1;
+                while (sum < partOne)
                 {
                     if (nums[k] < smallest)
                         smallest = nums[k];
                     if (nums[k] > largest)
                         largest = nums[k];
                     sum += nums[k];
-                    if (sum == partOne)
-                    {
-                        Console.WriteLine($"P2: {smallest + largest}");
-                        return;
-                    }
-                    else if (sum > partOne)
-                    {
-                        break;
-                    }
+                    ++k;
                 }
+
+                if (sum == partOne)
+                {
+                    Console.WriteLine($"P2: {smallest + largest}");
+                    break;
+                }                
             }
         }
     }
