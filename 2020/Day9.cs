@@ -56,23 +56,6 @@ namespace _2020
             // For Part 2, we need to find a contiguous block of numbers which add up
             // to the number we found in Part 1 and then add the smallest and largest in
             // that series together
-
-            /* 
-            let (mut i, mut j, mut sum) = (0, 0, 0);
-            loop {
-                match sum.cmp(&target) {
-                    Ordering::Greater => {
-                        sum -= nums[usize::min(i, nums.len() - 1)];
-                        i += 1
-                    }
-                    Ordering::Less => {
-                        sum += nums[usize::min(j, nums.len() - 1)];
-                        j += 1
-                    }
-                    Ordering::Equal => return nums[i..j].iter().min().expect("iterator empty") + nums[i..j].iter().max().expect("iterator empty"),
-                }
-            }
-            */
             long sum = 0;
             int x = 0;
             int y = 0;
@@ -89,29 +72,8 @@ namespace _2020
                     ++y;
                 }
             }
-            Console.WriteLine($"P2: {nums[x..y].Min() + nums[x..y].Max()}");
-            //for (int j = 0; j < nums.Length; j++)
-            //{
-            //    long sum = nums[j];
-            //    long smallest = nums[j];
-            //    long largest = nums[j];
-            //    int k = j + 1;
-            //    while (sum < partOne)
-            //    {
-            //        if (nums[k] < smallest)
-            //            smallest = nums[k];
-            //        if (nums[k] > largest)
-            //            largest = nums[k];
-            //        sum += nums[k];
-            //        ++k;
-            //    }
 
-            //    if (sum == partOne)
-            //    {
-            //        Console.WriteLine($"P2: {smallest + largest}");
-            //        break;
-            //    }           
-            //}
+            Console.WriteLine($"P2: {nums[x..y].Min() + nums[x..y].Max()}");            
         }
     }
 }
