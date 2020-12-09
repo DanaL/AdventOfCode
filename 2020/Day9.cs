@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -25,6 +24,9 @@ namespace _2020
             using TextReader tr = new StreamReader("inputs/day9.txt");
             var nums = tr.ReadToEnd().Split('\n').Select(n => long.Parse(n)).ToArray();
 
+            // For Part 1, we are seeking a number where in the 25 preceeding numbers,
+            // there aren't two numbers that add up to our target
+            long partOne = -1;
             for (int i = 25; i < nums.Length; i++)
             {
                 bool found = false;
@@ -44,8 +46,37 @@ namespace _2020
 
                 if (!found)
                 {
-                    Console.WriteLine($"P1: {target}");
+                    partOne = target;
                     break;
+                }
+            }
+
+            Console.WriteLine($"P1: {partOne}");
+
+            // For Part 2, we need to find a contiguous block of numbers which add up
+            // to the number we found in Part 1 and then add the smallest and largest in
+            // that series together
+            for (int j = 0; j < nums.Length; j++)
+            {
+                long sum = nums[j];
+                long smallest = nums[j];
+                long largest = nums[j];
+                for (int k = j + 1; k < nums.Length; k++)
+                {
+                    if (nums[k] < smallest)
+                        smallest = nums[k];
+                    if (nums[k] > largest)
+                        largest = nums[k];
+                    sum += nums[k];
+                    if (sum == partOne)
+                    {
+                        Console.WriteLine($"P2: {smallest + largest}");
+                        return;
+                    }
+                    else if (sum > partOne)
+                    {
+                        break;
+                    }
                 }
             }
         }
