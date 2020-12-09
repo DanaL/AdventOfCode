@@ -16,5 +16,6 @@
     <None Include="bin\Debug\net5.0\inputs\day7.txt" />
     <None Include="bin\Debug\net5.0\inputs\day8.txt" />
     <None Include="bin\Debug\net5.0\inputs\day9.txt" />
+    <None Include="bin\Debug\net5.0\inputs\day10.txt" />
   </ItemGroup>
 </Project>
