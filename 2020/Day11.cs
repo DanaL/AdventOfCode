@@ -57,7 +57,13 @@ namespace _2020
                         continue; // skip floor spaces
                     }
 
-                    int occupied = _dirs.Select(d => raycast(grid, r, c, d, range)).Sum();                    
+                    // Replacing:
+                    // int occupied = _dirs.Select(d => raycast(grid, r, c, d, range)).Sum();
+                    // halves the run time!
+                    int occupied = 0;
+                    foreach (var d in _dirs)
+                        occupied += raycast(grid, r, c, d, range);
+                                       
                     if (grid[r][c] == 0 && occupied == 0)
                         row.Add(1);
                     else if (grid[r][c] == 1 && occupied >= tolerance)
@@ -94,8 +100,15 @@ namespace _2020
 
         public void Solve()
         {
-            Console.WriteLine($"P1: {calcEquilibrium(4, 1)}");
-            Console.WriteLine($"P1: {calcEquilibrium(5, 100)}");
+            var before = DateTime.Now;
+            var p1 = calcEquilibrium(4, 1);
+            var after = DateTime.Now;
+            Console.WriteLine($"P1: {p1}, run time: {(after.Subtract(before)).Milliseconds}");
+
+            before = DateTime.Now;
+            var p2 = calcEquilibrium(5, 100);
+            after = DateTime.Now;
+            Console.WriteLine($"P2: {p2}, run time: {(after.Subtract(before)).Milliseconds}");
         }
     }
 }
