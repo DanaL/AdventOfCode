@@ -1,77 +1,64 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace _2020
 {
     public class Day11
     {
+        private static readonly int SEAT = 1;
+        private static readonly int OCCUPIED = 2;
+
         public Day11() { }
 
         private (int, int)[] _dirs = { (-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1) };
 
-        private bool same(List<List<int>> g0, List<List<int>> g1)
+        private bool same(int[,] g0, int[,] g1, HashSet<(int, int)> seats)
         {
-            for (int r = 0; r < g0.Count; r++)
-            {
-                for (int c = 0; c < g0[0].Count; c++)
-                {
-                    if (g0[r][c] != g1[r][c])
-                        return false;
-                }
+            foreach (var seat in seats) {
+                if (g0[seat.Item1, seat.Item2] != g1[seat.Item1, seat.Item2])
+                    return false;
             }
 
             return true;
         }
 
-        private int raycast(List<List<int>> grid, int row, int col, (int, int) dir, int range)
+        private int raycast(int[,] grid, int row, int col, (int, int) dir, int range, int width)
         {
             for (int j = 0; j < range; j++) {
                 row += dir.Item1;
                 col += dir.Item2;
 
-                if (row < 0 || col < 0 || row >= grid.Count || col >= grid[0].Count)
+                if (row < 0 || col < 0 || row >= width || col >= width)
                     return 0;
-                if (grid[row][col] != -1)
-                    return grid[row][col];
+                if (grid[row, col] == OCCUPIED)
+                    return 1;
+                if (grid[row, col] == SEAT)
+                    return 0;
             }
 
             return 0;
         }
 
         // Part 1 is just the case of Part 2's raycasting, but with a range of 1
-        private List<List<int>> iterate(List<List<int>> grid, int tolerance, int range)
+        private int[,] iterate(int[,] grid, HashSet<(int, int)> seats, int tolerance, int range, int width)
         {
-            List<List<int>> next = new List<List<int>>();
+            int[,] next = new int[width, width];
 
-            for (int r = 0; r < grid.Count; r++)
-            {
-                List<int> row = new List<int>();
-                for (int c = 0; c < grid[0].Count; c++)
-                {
-                    // Count adjacent occupied seats and see if we have a state change
-                    if (grid[r][c] == -1)
-                    {
-                        row.Add(-1);
-                        continue; // skip floor spaces
-                    }
+            foreach (var seat in seats) {                                   
+                // Replacing:
+                // int occupied = _dirs.Select(d => raycast(grid, r, c, d, range)).Sum();
+                // halves the run time!
+                int occupied = 0;
+                foreach (var d in _dirs)
+                    occupied += raycast(grid, seat.Item1, seat.Item2, d, range, width);
 
-                    // Replacing:
-                    // int occupied = _dirs.Select(d => raycast(grid, r, c, d, range)).Sum();
-                    // halves the run time!
-                    int occupied = 0;
-                    foreach (var d in _dirs)
-                        occupied += raycast(grid, r, c, d, range);
-                                       
-                    if (grid[r][c] == 0 && occupied == 0)
-                        row.Add(1);
-                    else if (grid[r][c] == 1 && occupied >= tolerance)
-                        row.Add(0);
-                    else
-                        row.Add(grid[r][c]);
-                }
-                next.Add(row);
+                if (grid[seat.Item1, seat.Item2] == SEAT && occupied == 0)
+                    next[seat.Item1, seat.Item2] = OCCUPIED;
+                else if (grid[seat.Item1, seat.Item2] == OCCUPIED && occupied >= tolerance)
+                    next[seat.Item1, seat.Item2] = SEAT;
+                else
+                    next[seat.Item1, seat.Item2] = grid[seat.Item1, seat.Item2];                
             }
 
             return next;
@@ -80,22 +67,45 @@ namespace _2020
         private int calcEquilibrium(int tolerance, int range)
         {
             TextReader tr = new StreamReader("inputs/day11.txt");
+            var lines = tr.ReadToEnd().Split('\n');
+
+            HashSet<(int, int)> seats = new HashSet<(int, int)>();
+            int[,] grid = new int[lines.Length, lines.Length];
             
-            List<List<int>> grid = new List<List<int>>();
-            foreach (var line in tr.ReadToEnd().Split('\n'))
+            int row = 0;
+            foreach (var line in lines)
             {
-                grid.Add(line.ToCharArray().Select(c => c == '.' ? -1 : 0).ToList());
+                var col = 0;
+                foreach (var c in line)
+                {
+                    if (c == 'L')
+                    {                    
+                        grid[row, col] = SEAT;
+                        seats.Add((row, col));
+                    }
+                    ++col;
+                }                
+                ++row;
             }
 
-            var next = iterate(grid, tolerance, range);
-            while (!same(grid, next))
+            var next = iterate(grid, seats, tolerance, range, lines.Length);
+            while (!same(grid, next, seats))
             {
                 var tmp = next;
-                next = iterate(next, tolerance, range);
+                next = iterate(next, seats, tolerance, range, lines.Length);
                 grid = tmp;
             }
 
-            return grid.SelectMany(a => a).Where(a => a == 1).Count();
+            int count = 0;
+            for (int r = 0; r < lines.Length; r++)
+            {
+                for (int c = 0; c < lines.Length; c++)
+                {
+                    if (grid[r, c] == OCCUPIED)
+                        ++count;
+                }
+            }
+            return count;
         }
 
         public void Solve()
@@ -103,12 +113,12 @@ namespace _2020
             var before = DateTime.Now;
             var p1 = calcEquilibrium(4, 1);
             var after = DateTime.Now;
-            Console.WriteLine($"P1: {p1}, run time: {(after.Subtract(before)).Milliseconds}");
+            Console.WriteLine($"P1: {p1}, run time: {after.Subtract(before).Milliseconds}");
 
             before = DateTime.Now;
             var p2 = calcEquilibrium(5, 100);
             after = DateTime.Now;
-            Console.WriteLine($"P2: {p2}, run time: {(after.Subtract(before)).Milliseconds}");
+            Console.WriteLine($"P2: {p2}, run time: {after.Subtract(before).Milliseconds}");
         }
     }
 }
