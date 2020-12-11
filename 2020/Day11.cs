@@ -40,17 +40,6 @@ namespace _2020
             return 0;
         }
 
-        private int countOccupied(List<List<int>> grid, int row, int col, int range)
-        {
-            int occupied = 0;
-            foreach (var d in _dirs)
-            {
-                occupied += raycast(grid, row, col, d, range);
-            }
-
-            return occupied;
-        }
-
         // Part 1 is just the case of Part 2's raycasting, but with a range of 1
         private List<List<int>> iterate(List<List<int>> grid, int tolerance, int range)
         {
@@ -68,7 +57,7 @@ namespace _2020
                         continue; // skip floor spaces
                     }
 
-                    int occupied = countOccupied(grid, r, c, range);                    
+                    int occupied = _dirs.Select(d => raycast(grid, r, c, d, range)).Sum();                    
                     if (grid[r][c] == 0 && occupied == 0)
                         row.Add(1);
                     else if (grid[r][c] == 1 && occupied >= tolerance)
