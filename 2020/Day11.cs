@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-
 using System.IO;
+using System.Linq;
 
 namespace _2020
 {
@@ -49,7 +48,34 @@ namespace _2020
             return true;
         }
 
-        private List<List<int>> iterate(List<List<int>> grid)
+        private int raycast(List<List<int>> grid, int row, int col, (int, int) dir, int range)
+        {
+            for (int j = 0; j < range; j++) {
+                row += dir.Item1;
+                col += dir.Item2;
+
+                if (row < 0 || col < 0 || row >= grid.Count || col >= grid[0].Count)
+                    return 0;
+                if (grid[row][col] != -1)
+                    return grid[row][col];
+            }
+
+            return 0;
+        }
+
+        private int countOccupied(List<List<int>> grid, int row, int col, int range)
+        {
+            int occupied = 0;
+            foreach (var d in _dirs)
+            {
+                occupied += raycast(grid, row, col, d, range);
+            }
+
+            return occupied;
+        }
+
+        // Part 1 is just the case of Part 2's raycasting, but with a range of 1
+        private List<List<int>> iterate(List<List<int>> grid, int tolerance, int range)
         {
             List<List<int>> next = new List<List<int>>();
 
@@ -65,22 +91,10 @@ namespace _2020
                         continue; // skip floor spaces
                     }
 
-                    int occupied = 0;
-                    foreach (var d in _dirs)
-                    {
-                        int nr = r + d.Item1;
-                        int nc = c + d.Item2;
-
-                        if (nr < 0 || nc < 0 || nr >= grid.Count || nc >= grid[0].Count)
-                            continue;
-
-                        if (grid[nr][nc] == 1)
-                            ++occupied;
-                    }
-
+                    int occupied = countOccupied(grid, r, c, range);                    
                     if (grid[r][c] == 0 && occupied == 0)
                         row.Add(1);
-                    else if (grid[r][c] == 1 && occupied >= 4)
+                    else if (grid[r][c] == 1 && occupied >= tolerance)
                         row.Add(0);
                     else
                         row.Add(grid[r][c]);
@@ -91,26 +105,31 @@ namespace _2020
             return next;
         }
 
-        public void Solve()
+        private int calcEquilibrium(int tolerance, int range)
         {
             TextReader tr = new StreamReader("inputs/day11.txt");
-
+            
             List<List<int>> grid = new List<List<int>>();
             foreach (var line in tr.ReadToEnd().Split('\n'))
             {
                 grid.Add(line.ToCharArray().Select(c => c == '.' ? -1 : 0).ToList());
             }
-            
-            var next = iterate(grid);
+
+            var next = iterate(grid, tolerance, range);
             while (!same(grid, next))
             {
                 var tmp = next;
-                next = iterate(next);
+                next = iterate(next, tolerance, range);
                 grid = tmp;
             }
 
-            int p1 = grid.SelectMany(a => a).Where(a => a == 1).Count();
-            Console.WriteLine($"P1: {p1}");
+            return grid.SelectMany(a => a).Where(a => a == 1).Count();
+        }
+
+        public void Solve()
+        {
+            Console.WriteLine($"P1: {calcEquilibrium(4, 1)}");
+            Console.WriteLine($"P1: {calcEquilibrium(5, 100)}");
         }
     }
 }
