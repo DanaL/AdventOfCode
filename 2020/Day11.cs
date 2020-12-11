@@ -11,29 +11,6 @@ namespace _2020
 
         private (int, int)[] _dirs = { (-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1) };
 
-        private void dump(List<List<int>> grid)
-        {
-            foreach (var row in grid)
-            {
-                var s = string.Concat(row.Select(c =>
-                {
-                    switch (c)
-                    {
-                        case -1:
-                            return '.';
-                        case 0:
-                            return 'L';
-                        default:
-                            return '#';
-                    }
-                }));
-
-                Console.WriteLine(s);                
-            }
-
-            Console.Write('\n');
-        }
-
         private bool same(List<List<int>> g0, List<List<int>> g1)
         {
             for (int r = 0; r < g0.Count; r++)
