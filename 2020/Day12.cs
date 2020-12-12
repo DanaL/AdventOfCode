@@ -20,19 +20,6 @@ namespace _2020
             _instructions = lines.Select(d => (d[..1][0], int.Parse(d[1..]))).ToArray();
         }
 
-        private (int, int) rotateShip((int, int) curr, char dir, int degree)
-        {
-            for (int j = 0; j < degree / 90; j++)
-            {
-                if (curr == NORTH || curr == SOUTH)
-                    curr = dir == 'L' ? (curr.Item2, curr.Item1) : (curr.Item2, -curr.Item1);
-                else
-                    curr = dir == 'L' ? (-curr.Item2, curr.Item1) : (curr.Item2, curr.Item1);
-            }
-
-            return curr;
-        }
-
         private void part1()
         {            
             (int, int, (int, int)) pos = (0, 0, EAST);
@@ -41,7 +28,7 @@ namespace _2020
             {
                 if (instr.Item1 == 'L' || instr.Item1 == 'R')
                 {
-                    pos.Item3 = rotateShip(pos.Item3, instr.Item1, instr.Item2);
+                    pos.Item3 = rotate(pos.Item3, instr.Item1, instr.Item2);
                 }
                 else
                 {
@@ -61,7 +48,7 @@ namespace _2020
             Console.WriteLine($"P1: {Util.TaxiDistance(0, 0, pos.Item1, pos.Item2)}");
         }
         
-        private (int, int) rotateWaypoint((int, int) wp, char dir, int degree)
+        private (int, int) rotate((int, int) wp, char dir, int degree)
         {
             // Okay, so clockwise rotations are just the inversion of counterclockwise rotations (ie.,
             // R90 is the same as L270) so we'll just worry about the conterclockwise rotations
@@ -108,7 +95,7 @@ namespace _2020
                         break;
                     case 'R':
                     case 'L':
-                        waypoint = rotateWaypoint(waypoint, instr.Item1, instr.Item2);
+                        waypoint = rotate(waypoint, instr.Item1, instr.Item2);
                         break;                    
                 }
             }
