@@ -8,34 +8,32 @@ namespace _2020
 {
     public class Day14
     {
-        public Day14() { }        
+        private List<Match> _lines;
 
-        private (long Loc, long Val) parseWrite(string line)
+        public Day14()
         {
-            var pieces = Regex.Match(line, @"mem\[(?<p0>\d+)\] = (?<p1>\d+)");
-
-            return (Loc: long.Parse(pieces.Groups["p0"].Value), Val: long.Parse(pieces.Groups["p1"].Value));
-        }
+            string pattern = @"(mask = (?<mask>[01X]{36}))|(mem\[(?<memLoc>\d+)\] = (?<val>\d+))";
+            
+            TextReader tr = new StreamReader("inputs/day14.txt");
+            _lines = tr.ReadToEnd().Split('\n')
+                       .Select(line => Regex.Match(line, pattern))
+                       .ToList();
+        }        
 
         private void part1()
         {
-            TextReader tr = new StreamReader("inputs/day14.txt");
-
             Dictionary<long, long> mem = new Dictionary<long, long>();
             (long Or, long And) mask = (0, 0);
-            foreach (var line in tr.ReadToEnd().Split('\n'))
+            foreach (var line in _lines)
             {
-                if (line.StartsWith("mask"))
+                if (line.Groups["mask"].Success)
                 {
-                    var m = line.Split(" = ")[1];
+                    var m = line.Groups["mask"].Value;
                     mask = (Or: Convert.ToInt64(m.Replace("X", "0"), 2), And: Convert.ToInt64(m.Replace("X", "1"), 2));
                 }
                 else
                 {
-                    var a = parseWrite(line);
-                    a.Val &= mask.And;
-                    a.Val |= mask.Or;
-                    mem[a.Loc] = a.Val;
+                    mem[long.Parse(line.Groups["memLoc"].Value)] = long.Parse(line.Groups["val"].Value) & mask.And | mask.Or;
                 }
             }
 
@@ -62,32 +60,28 @@ namespace _2020
 
         private void part2()
         {
-            TextReader tr = new StreamReader("inputs/day14.txt");
-
             Dictionary<long, long> mem = new Dictionary<long, long>();
             string mask = "";
-            foreach (var line in tr.ReadToEnd().Split('\n'))
+            foreach (var line in _lines)
             {
-                if (line.StartsWith("mask"))
+                if (line.Groups["mask"].Success)
                 {
-                    mask = line.Split(" = ")[1];
+                    mask = line.Groups["mask"].Value;
                 }
                 else
-                {
-                    var a = parseWrite(line);
-
+                {                    
                     // First, flip any bits that are 1 in the mask
                     long or = Convert.ToInt64(mask.Replace('X', '0'), 2);
-                    a.Loc |= or;
-
-                    var loc = Convert.ToString(a.Loc, 2).PadLeft(36, '0').ToCharArray();
+                    var memLoc = long.Parse(line.Groups["memLoc"].Value) | or;
+                    
+                    var loc = Convert.ToString(memLoc, 2).PadLeft(36, '0').ToCharArray();
                     var revMask = string.Concat(mask.ToCharArray().Reverse());
                     for (int j = 0; j < revMask.Length; j++)
                     {
                         if (revMask[j] == 'X')
                             loc[^(j + 1)] = 'X';
                     }
-                    writeToMem(string.Concat(loc), a.Val, mem);
+                    writeToMem(string.Concat(loc), long.Parse(line.Groups["val"].Value), mem);
                 }
             }
 
