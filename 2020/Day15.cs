@@ -7,7 +7,7 @@ namespace _2020
     {
         public Day15() { }
 
-        private int findNth(int[] start, int to, bool verbose)
+        private int findNth(int[] start, int to)
         {
             int prev = start[^1];
             Dictionary<int, int> memory = new Dictionary<int, int>();
@@ -39,9 +39,9 @@ namespace _2020
         public void Solve()
         {
             int[] start = { 2, 0, 1, 9, 5, 19 };
-            Console.WriteLine($"P1: {findNth(start, 2020, false)}");
+            Console.WriteLine($"P1: {findNth(start, 2020)}");
             DateTime before = DateTime.Now;
-            Console.WriteLine($"P1: {findNth(start, 30_000_000, false)}");
+            Console.WriteLine($"P1: {findNth(start, 30_000_000)}");
             var delta = DateTime.Now.Subtract(before);
             Console.WriteLine($"Time for part 2: {delta.TotalMilliseconds} ms");
         }
