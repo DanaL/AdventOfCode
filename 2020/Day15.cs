@@ -10,7 +10,8 @@ namespace _2020
         private int findNth(int[] start, int to)
         {
             int prev = start[^1];
-            Dictionary<int, int> memory = new Dictionary<int, int>();
+            int[] memory = new int[30_000_000];
+            //Dictionary<int, int> memory = new Dictionary<int, int>();
             int c = 0;
             foreach (var v in start[..^1])
                 memory[v] = ++c;
@@ -18,7 +19,7 @@ namespace _2020
 
             while (turn < to)
             {
-                if (!memory.ContainsKey(prev))
+                if (memory[prev] == 0)
                 {
                     memory[prev] = turn;
                     prev = 0;
