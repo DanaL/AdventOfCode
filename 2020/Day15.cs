@@ -7,37 +7,43 @@ namespace _2020
     {
         public Day15() { }
 
-        public void Solve()
+        private int findNth(int[] start, int to, bool verbose)
         {
-            int[] start = { 2, 0, 1, 9, 5, 19 };
-            Stack<int> history = new Stack<int>();            
+            int prev = start[^1];
             Dictionary<int, int> memory = new Dictionary<int, int>();
-            foreach (var v in start)
-                history.Push(v);
             int c = 0;
             foreach (var v in start[..^1])
                 memory[v] = ++c;
-            int turn = history.Count;
+            int turn = start.Length;
 
-            while (turn < 2020)
+            while (turn < to)
             {
-                int prev = history.Peek();
                 if (!memory.ContainsKey(prev))
                 {
                     memory[prev] = turn;
-                    history.Push(0);
+                    prev = 0;
                 }
                 else
                 {
                     var diff = turn - memory[prev];
                     memory[prev] = turn;
-                    history.Push(diff);
+                    prev = diff;
                 }
 
                 ++turn;
             }
 
-            Console.WriteLine($"P1: {history.Peek()}");
+            return prev;
+        }
+
+        public void Solve()
+        {
+            int[] start = { 2, 0, 1, 9, 5, 19 };
+            Console.WriteLine($"P1: {findNth(start, 2020, false)}");
+            DateTime before = DateTime.Now;
+            Console.WriteLine($"P1: {findNth(start, 30_000_000, false)}");
+            var delta = DateTime.Now.Subtract(before);
+            Console.WriteLine($"Time for part 2: {delta.TotalMilliseconds} ms");
         }
     }
 }
