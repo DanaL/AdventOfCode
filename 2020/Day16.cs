@@ -46,31 +46,31 @@ namespace _2020
             return (val >= ranges[0] && val <= ranges[1]) || (val >= ranges[2] && val <= ranges[3]);
         }
 
-        private List<int> invalidValues(HashSet<int> ticket)
+        private bool checkAllFields(int val)
         {
-            List<int> invalid = new List<int>();
-            foreach (var v in ticket)
+            foreach (var field in _fields.Keys)
             {
-                bool valid = false;
-
-                foreach (var field in _fields.Keys)
-                {
-                    if (checkField(v, _fields[field]))
-                    {
-                        valid = true;
-                        break;
-                    }
-                }
-
-                if (!valid)
-                    invalid.Add(v);
+                if (checkField(val, _fields[field]))
+                    return true;
             }
 
-            return invalid;
+            return false;
+        }
+
+        private List<int> invalidValues(HashSet<int> ticket)
+        {
+            return ticket.Where(v => !checkAllFields(v)).ToList();
+        }
+
+        private bool validTicket(HashSet<int> ticket)
+        {
+            var valid = ticket.Where(v => checkAllFields(v));
+
+            return valid.Count() == ticket.Count;
         }
 
         public void Solve()
-        {
+        {         
             Console.WriteLine($"P1: {_nearbyTickets.SelectMany(t => invalidValues(t)).Sum()}");
         }
     }
