@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace _2020
 {
@@ -10,6 +9,10 @@ namespace _2020
         private int findNth(int[] start, int to)
         {
             int prev = start[^1];
+
+            // Using an array to store when the number was previous makes the
+            // processing time for part 2 drop from ~2.4 seconds on my iMac to
+            // 0.5!
             int[] memory = new int[30_000_000];
             //Dictionary<int, int> memory = new Dictionary<int, int>();
             int c = 0;
