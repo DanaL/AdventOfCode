@@ -6,32 +6,24 @@ namespace _2020
 {
     public class Day17
     {
-        private List<(int, int, int)> _neighbouringLocs;
+        private List<(int, int, int)> _neighbouringLocs3d;
 
         public Day17()
         {
-            _neighbouringLocs = new List<(int, int, int)>();
-            for (int x = -1; x < 2; x ++)
-            {
-                for (int y = -1; y < 2; y ++)
-                {
-                    for (int z = -1; z < 2; z++)
-                    {
-                        if (x != 0 || y != 0 || z != 0)
-                            _neighbouringLocs.Add((x, y, z));
-                    }
-                }
-            }
+            _neighbouringLocs3d = Enumerable.Range(-1, 3)
+                                    .SelectMany(x => Enumerable.Range(-1, 3), (x, y) => (x, y))
+                                    .SelectMany(y => Enumerable.Range(-1, 3), (a, b) => (a.x, a.y, b))
+                                    .Where(a => a != (0, 0, 0)).ToList();
         }
 
         private List<(int, int, int)> neighboursOf((int, int, int) loc)
         {
-            return _neighbouringLocs.Select(a => (a.Item1 + loc.Item1, a.Item2 + loc.Item2, a.Item3 + loc .Item3)).ToList();
+            return _neighbouringLocs3d.Select(a => (a.Item1 + loc.Item1, a.Item2 + loc.Item2, a.Item3 + loc .Item3)).ToList();
         }
 
         private int activeNeighboursCount(HashSet<(int, int, int)> grid, (int, int, int) loc)
         {
-            return _neighbouringLocs.Select(a => (a.Item1 + loc.Item1, a.Item2 + loc.Item2, a.Item3 + loc.Item3))
+            return _neighbouringLocs3d.Select(a => (a.Item1 + loc.Item1, a.Item2 + loc.Item2, a.Item3 + loc.Item3))
                              .Where(l => grid.Contains(l)).Count();
         }
 
