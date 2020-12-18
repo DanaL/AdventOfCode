@@ -11,42 +11,39 @@ namespace _2020
 
         private ulong doOp(Stack<ulong> stash, char op)
         {
-            ulong x = op == '+' ? 0 : 1;
-            while (stash.Count > 0)
-            {
-                if (op == '+')
-                    x += stash.Pop();
-                else
-                    x *= stash.Pop();
-            }
-
-            return x;
+            if (op == '+')
+                return stash.Pop() + stash.Pop();
+            else
+                return stash.Pop() * stash.Pop();            
         }
 
-        private ulong eval(Queue<char> expression)
+        private ulong eval(Queue<char> expression, Dictionary<char, int> precedence)
         {
             Stack<ulong> stash = new Stack<ulong>();
-            char op = '\0';
-
+            Stack<char> ops = new Stack<char>();
+            
             while (expression.Count > 0)
             {
                 char c = expression.Dequeue();
                 if (c >= '0' && c <= '9')
                     stash.Push((ulong)c - 48);
                 else if (c == '(')
-                    stash.Push(eval(expression));
+                    stash.Push(eval(expression, precedence));
                 else if (c == ')')
-                    return doOp(stash, op);
-                else if (op == '\0')
-                    op = c;
-                else if (op != c)
+                    break;
+                else if (ops.Count == 0 || precedence[c] < precedence[ops.Peek()])
+                    ops.Push(c);
+                else
                 {
-                    stash.Push(doOp(stash, op));
-                    op = c;
-                }
+                    stash.Push(doOp(stash, ops.Pop()));
+                    ops.Push(c);
+                }                
             }
+                    
+            while (ops.Count > 0)
+                stash.Push(doOp(stash, ops.Pop()));
 
-            return doOp(stash, op);
+            return stash.Peek();
         }
 
         public void Solve()
@@ -54,10 +51,16 @@ namespace _2020
             TextReader tr = new StreamReader("inputs/day18.txt");
             var lines = tr.ReadToEnd().Split('\n');
 
-            ulong sum = 0;
+            var precPt1 = new Dictionary<char, int>() { ['+'] = 0, ['*'] = 0 };
+            var precPt2 = new Dictionary<char, int>() { ['+'] = 0, ['*'] = 1 };
+            ulong p1 = 0, p2 = 0;
             foreach (string line in lines)
-                sum += eval(new Queue<char>(line.ToCharArray().Where(c => c != ' ')));
-            Console.WriteLine($"P1: {sum}");
+            {
+                p1 += eval(new Queue<char>(line.ToCharArray().Where(c => c != ' ')), precPt1);
+                p2 += eval(new Queue<char>(line.ToCharArray().Where(c => c != ' ')), precPt2);
+            }
+            Console.WriteLine($"P1: {p1}");
+            Console.WriteLine($"P2: {p2}");
         }
     }
 }
