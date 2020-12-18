@@ -81,6 +81,10 @@ switch (_day)
         Day17 _d17 = new Day17();
         _d17.Solve();
         break;
+    case 18:
+        Day18 _day18 = new Day18();
+        _day18.Solve();
+        break;
     default:
         Console.WriteLine($"Haven't done Day {_day} yet.");
         break;
