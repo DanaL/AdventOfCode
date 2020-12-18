@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace _2020
 {
-    public class Day4
+    public class Day4 : IDay
     {
         private Dictionary<string, Regex> regexesPt2;
 

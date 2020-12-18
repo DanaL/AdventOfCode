@@ -1,91 +1,38 @@
 ﻿using System;
+using System.Collections.Generic;
+
 using _2020;
 
-int _day;
-if (args.Length == 0 || !int.TryParse(args[0], out _day))
+Dictionary<int, IDay> days = new Dictionary<int, IDay>();
+days.Add(1, new Day1());
+days.Add(2, new Day2());
+days.Add(3, new Day3());
+days.Add(4, new Day4());
+days.Add(5, new Day5());
+days.Add(6, new Day6());
+days.Add(7, new Day7());
+days.Add(8, new Day8());
+days.Add(9, new Day9());
+days.Add(10, new Day10());
+days.Add(11, new Day11());
+days.Add(12, new Day12());
+days.Add(13, new Day13());
+days.Add(14, new Day14());
+days.Add(15, new Day15());
+days.Add(16, new Day16());
+days.Add(17, new Day17());
+days.Add(18, new Day18());
+
+int day;
+if (args.Length == 0 || !int.TryParse(args[0], out day))
 {
-    _day = DateTime.Now.Day;
+    day = DateTime.Now.Day;
     if (DateTime.Now.Hour == 23)
-        ++_day;
+        ++day;
 }
 
-Console.WriteLine($"Solving Day {_day}");
-switch (_day)
-{
-    case 1:
-        Day1 _d1 = new Day1();
-        _d1.SolvePart1();
-        _d1.SolvePart2();
-        break;
-    case 2:
-        Day2.Solve();
-        break;
-    case 3:
-        Day3 _d3 = new Day3();
-        _d3.Solve();
-        break;
-    case 4:
-        Day4 _d4 = new Day4();
-        _d4.Solve();
-        break;
-    case 5:
-        Day5 _d5 = new Day5();
-        _d5.Solve();
-        break;
-    case 6:
-        Day6 _d6 = new Day6();
-        _d6.Solve();
-        break;
-    case 7:
-        Day7 _d7 = new Day7();
-        _d7.Solve();
-        break;
-    case 8:
-        Day8 _d8 = new Day8();
-        _d8.SolveP1();
-        _d8.SolveP2();
-        break;
-    case 9:
-        Day9 _d9 = new Day9();
-        _d9.Solve();
-        break;
-    case 10:
-        Day10 _d10 = new Day10();
-        _d10.Solve();
-        break;
-    case 11:
-        Day11 _d11 = new Day11();
-        _d11.Solve();
-        break;
-    case 12:
-        Day12 _d12 = new Day12();
-        _d12.Solve();
-        break;
-    case 13:
-        Day13 _d13 = new Day13();
-        _d13.Solve();
-        break;
-    case 14:
-        Day14 _d14 = new Day14();
-        _d14.Solve();
-        break;
-    case 15:
-        Day15 _d15 = new Day15();
-        _d15.Solve();
-        break;
-    case 16:
-        Day16 _d16 = new Day16();
-        _d16.Solve();
-        break;
-    case 17:
-        Day17 _d17 = new Day17();
-        _d17.Solve();
-        break;
-    case 18:
-        Day18 _day18 = new Day18();
-        _day18.Solve();
-        break;
-    default:
-        Console.WriteLine($"Haven't done Day {_day} yet.");
-        break;
-}
+Console.WriteLine($"Solving Day {day}");
+if (!days.ContainsKey(day))
+    Console.WriteLine($"Haven't done Day {day} yet.");
+else
+    days[day].Solve();

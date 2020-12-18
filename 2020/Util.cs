@@ -2,6 +2,11 @@
 
 namespace _2020
 {
+    public interface IDay
+    {
+        void Solve();
+    }
+
     public class Util
     {
         public Util() { }

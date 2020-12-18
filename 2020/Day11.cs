@@ -4,7 +4,7 @@ using System.IO;
 
 namespace _2020
 {
-    public class Day11
+    public class Day11 : IDay
     {
         private static readonly int SEAT = 1;
         private static readonly int OCCUPIED = 2;

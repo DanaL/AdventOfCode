@@ -5,9 +5,9 @@ using System.Text.RegularExpressions;
 
 namespace _2020
 {    
-    public class Day2
+    public class Day2 : IDay
     {        
-        public static void Solve()
+        public void Solve()
         {
             int numValidPt1 = 0;
             int numValidPt2 = 0;

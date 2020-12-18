@@ -57,7 +57,7 @@ namespace _2020
         }
     }
 
-    public class Day8
+    public class Day8 : IDay
     {
         public Day8() { }
 
@@ -81,7 +81,13 @@ namespace _2020
             };
         }
 
-        public void SolveP1()
+        public void Solve()
+        {
+            part1();
+            part2();
+        }
+
+        private void part1()
         {
             var cpu = makeCPU();    
 
@@ -96,7 +102,7 @@ namespace _2020
             }
         }
 
-        public void SolveP2()
+        private void part2()
         {
             var cpu = makeCPU();
             while (!cpu.LoopDetected)

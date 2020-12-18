@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace _2020
 {
-    public class Day1
+    public class Day1 : IDay
     {
         private List<int> expenses;
 
@@ -17,7 +17,13 @@ namespace _2020
                               select int.Parse(line)).ToList();
         }
 
-        public void SolvePart1()
+        public void Solve()
+        {
+            part1();
+            part2();
+        }
+
+        private void part1()
         {
             // Keep track of numbers we've seen in the input so far so that we
             // don't actually have to do two loops like my original naive
@@ -37,7 +43,7 @@ namespace _2020
             }
         }
 
-        public void SolvePart2()
+        private void part2()
         {
             // sample/test input
             //_expenses = new List<int>() { 1721, 979, 366, 299, 675, 1456 };

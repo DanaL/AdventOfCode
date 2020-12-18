@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace _2020
 {
-    public class Day17
+    public class Day17 : IDay
     {
         private List<(int, int, int)> _neighbouringLocs3d;
         private List<(int, int, int, int)> _neighbouringLocs4d;

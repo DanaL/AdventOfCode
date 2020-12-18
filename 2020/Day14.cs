@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace _2020
 {
-    public class Day14
+    public class Day14 : IDay
     {
         private List<Match> _lines;
 

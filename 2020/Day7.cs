@@ -16,7 +16,7 @@ namespace _2020
         }
     }
 
-    public class Day7
+    public class Day7 : IDay
     {
         public Day7() { }
 

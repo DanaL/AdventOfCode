@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace _2020
 {
-    public class Day12
+    public class Day12 : IDay
     {
         private (char, int)[] _instructions;
 

@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace _2020
 {
-    public class Day10
+    public class Day10 : IDay
     {
         private Dictionary<int, long> _branches;
 
