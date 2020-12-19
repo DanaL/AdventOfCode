@@ -22,6 +22,7 @@ days.Add(15, new Day15());
 days.Add(16, new Day16());
 days.Add(17, new Day17());
 days.Add(18, new Day18());
+days.Add(19, new Day19());
 
 int day;
 if (args.Length == 0 || !int.TryParse(args[0], out day))
