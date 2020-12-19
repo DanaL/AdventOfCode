@@ -9,10 +9,7 @@ namespace _2020
     {
         private Dictionary<int, long> _branches;
 
-        public Day10()
-        {
-            _branches = new Dictionary<int, long>();
-        }
+        public Day10() { }
 
         private long branchesFrom(int[] adapters, int index)
         {
@@ -37,6 +34,7 @@ namespace _2020
 
         public void Solve()
         {
+            _branches = new Dictionary<int, long>();
             TextReader tr = new StreamReader("inputs/day10.txt");
             var adapters = tr.ReadToEnd().Split('\n')
                              .Select(n => int.Parse(n)).OrderBy(n => n).ToArray();

@@ -12,7 +12,9 @@ namespace _2020
         List<List<int>> _nearbyTickets;
         Dictionary<string, List<int>> _fields;
 
-        public Day16()
+        public Day16() { }
+        
+        private void parseInput()
         {
             bool otherTickets = false;
             string pattern = @"(?<cat>[a-z ]+): (?<a>\d+)-(?<b>\d+) or (?<c>\d+)-(?<d>\d+)";
@@ -21,7 +23,7 @@ namespace _2020
             using TextReader tr = new StreamReader("inputs/day16.txt");
 
             while (tr.Peek() != -1)
-            {                
+            {
                 var line = tr.ReadLine().Trim();
                 if (line == "")
                     continue;
@@ -102,6 +104,8 @@ namespace _2020
 
         public void Solve()
         {
+            parseInput();
+
             // For Part One, we just need to sum up all of the invalid fields found across the
             // various tickets
             Console.WriteLine($"P1: {_nearbyTickets.SelectMany(t => invalidValues(t)).Sum()}");

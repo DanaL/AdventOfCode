@@ -9,16 +9,19 @@ namespace _2020
     {
         private List<int> expenses;
 
-        public Day1()
+        public Day1() { }
+
+        private void parseInput()
         {
             using TextReader tr = new StreamReader("inputs/day1.txt");
 
             this.expenses = (from line in tr.ReadToEnd().Split("\n")
-                              select int.Parse(line)).ToList();
+                             select int.Parse(line)).ToList();
         }
 
         public void Solve()
         {
+            parseInput();
             part1();
             part2();
         }

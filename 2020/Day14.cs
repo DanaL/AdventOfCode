@@ -10,15 +10,17 @@ namespace _2020
     {
         private List<Match> _lines;
 
-        public Day14()
+        public Day14() { }        
+
+        private void parseInput()
         {
             string pattern = @"(mask = (?<mask>[01X]{36}))|(mem\[(?<memLoc>\d+)\] = (?<val>\d+))";
-            
+
             TextReader tr = new StreamReader("inputs/day14.txt");
             _lines = tr.ReadToEnd().Split('\n')
                        .Select(line => Regex.Match(line, pattern))
                        .ToList();
-        }        
+        }
 
         private void part1()
         {
@@ -90,6 +92,7 @@ namespace _2020
 
         public void Solve()
         {
+            parseInput();
             part1();
             part2();
         }

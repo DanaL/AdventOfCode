@@ -8,7 +8,9 @@ namespace _2020
     {
         private (char, int)[] _instructions;
 
-        public Day12()
+        public Day12() { }
+
+        private void parseInput()
         {
             TextReader tr = new StreamReader("inputs/day12.txt");
             var lines = tr.ReadToEnd().Split('\n');
@@ -107,6 +109,7 @@ namespace _2020
 
         public void Solve()
         {
+            parseInput();
             part1();
             part2();
         }
