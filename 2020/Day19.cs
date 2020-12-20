@@ -43,6 +43,7 @@ namespace _2020
             }
         }
 
+        // I bet this doesn't need to be this fucking ugly...
         private string genRegExPattern(string start)
         {
             StringBuilder sb = new StringBuilder();
@@ -86,19 +87,14 @@ namespace _2020
         {
             parseInput();
 
-            int total = 0;
             var pattern = "^" + genRegExPattern(_rules["0"]).Replace(" ", "") + "$";
-            foreach (string msg in _messages)
-            {
-                var m = Regex.Match(msg, pattern, RegexOptions.ExplicitCapture);
-                if (m.Success)
-                {
-                    //Console.WriteLine(msg);
-                    total += 1;
-                }
-            }
-            
-            Console.WriteLine($"P1: {total}");
+            int p1 = _messages.Where(m => Regex.Match(m, pattern, RegexOptions.ExplicitCapture).Success)
+                                 .Count();
+            Console.WriteLine($"P1: {p1}");
+
+            _rules["8"] = "42 | 42 8";
+            _rules["11"] = "42 31 | 42 11 31";
+            //pattern = "^" + genRegExPattern(_rules["0"]).Replace(" ", "") + "$";
         }
     }
 }
