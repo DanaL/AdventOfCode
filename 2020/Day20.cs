@@ -63,6 +63,22 @@ namespace _2020
             return rotated;
         }
 
+        public Piece Flip()
+        {
+            char[] pixels = new char[100];
+            for (int j = 0; j < Pixels.Length; j+= 10)
+            {
+                for (int k = 0; k < 5; k++)
+                {
+                    pixels[j + k] = Pixels[j + 9 - k];
+                    pixels[j + 9 - k] = Pixels[j + k];
+                }
+            }
+
+            Piece flipped = new Piece(string.Concat(pixels));
+            return flipped;
+        }
+
         public void Dump()
         {
             for (int j = 0; j < Pixels.Length; j += 10)
@@ -157,13 +173,21 @@ namespace _2020
             Console.WriteLine("L: " + p.Edges[Piece.LEFT]);
             Console.WriteLine("R: " + p.Edges[Piece.RIGHT]);
 
-            Console.WriteLine("\nFirst rotation:");
-            Piece r1 = p.Rotate();
-            r1.Dump();
-            Console.WriteLine("\nT: " + r1.Edges[Piece.TOP]);
-            Console.WriteLine("B: " + r1.Edges[Piece.BOTTOM]);
-            Console.WriteLine("L: " + r1.Edges[Piece.LEFT]);
-            Console.WriteLine("R: " + r1.Edges[Piece.RIGHT]);
+            Console.WriteLine("\nFlipped:");
+            Piece f1 = p.Flip();
+            f1.Dump();
+            Console.WriteLine("\nT: " + f1.Edges[Piece.TOP]);
+            Console.WriteLine("B: " + f1.Edges[Piece.BOTTOM]);
+            Console.WriteLine("L: " + f1.Edges[Piece.LEFT]);
+            Console.WriteLine("R: " + f1.Edges[Piece.RIGHT]);
+
+            //Console.WriteLine("\nFirst rotation:");
+            //Piece r1 = p.Rotate();
+            //r1.Dump();
+            //Console.WriteLine("\nT: " + r1.Edges[Piece.TOP]);
+            //Console.WriteLine("B: " + r1.Edges[Piece.BOTTOM]);
+            //Console.WriteLine("L: " + r1.Edges[Piece.LEFT]);
+            //Console.WriteLine("R: " + r1.Edges[Piece.RIGHT]);
         }
     }
 }
