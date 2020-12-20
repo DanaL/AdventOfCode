@@ -52,7 +52,7 @@ namespace _2020
             for (int j = 0; j < start.Length; j++)
             {
                 char c = start[j];
-                if (c == '(' || c == 'a' || c == 'b' || c == '|')
+                if (c == '(' || c == 'a' || c == 'b' || c == '|' || c == '+')
                     sb.Append(c);
                 else if (c >= '0' && c <= '9')
                     str += c;
@@ -92,9 +92,27 @@ namespace _2020
                                  .Count();
             Console.WriteLine($"P1: {p1}");
 
-            _rules["8"] = "42 | 42 8";
-            _rules["11"] = "42 31 | 42 11 31";
-            //pattern = "^" + genRegExPattern(_rules["0"]).Replace(" ", "") + "$";
+            //_rules["8"] = "42 | 42 8";
+            //_rules["11"] = "42 31 | 42 11 31";
+            // For P2, just keep growing rules 8 and 11 until we stop matching additional messages
+            string expand8 = "42";
+            string expand11 = "42 31";
+            int p2 = 0, prevCount = p1;
+            while (p2 != prevCount)
+            {
+                // Expand the recursive rules another iteration
+                expand8 += " 42";
+                _rules["8"] += " | " + expand8;
+                expand11 = "42 " + expand11 + " 31";
+                _rules["11"] += " | " + expand11;
+                
+                pattern = "^" + genRegExPattern(_rules["0"]).Replace(" ", "") + "$";
+                int count = _messages.Where(m => Regex.Match(m, pattern, RegexOptions.ExplicitCapture).Success)
+                                     .Count();
+                prevCount = p2;
+                p2 = count;                
+            }
+            Console.WriteLine($"P2: {p2}");
         }
     }
 }
