@@ -1,22 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace _2020
 {
     public class Day19 : IDay 
     {
         List<string> _messages;
-        Dictionary<string, string[]> _rules;
-        Dictionary<string, string[]> _flattenedRules;
-
+        Dictionary<string, string> _rules;
+        
         public Day19() { }
 
         private void parseInput()
         {
             _messages = new List<string>();
-            _rules = new Dictionary<string, string[]>();
+            _rules = new Dictionary<string, string>();
 
             using TextReader tr = new StreamReader("inputs/day19.txt");            
             var lines = tr.ReadToEnd().Split('\n');
@@ -26,14 +27,14 @@ namespace _2020
                 if (sci > 0 && line.IndexOf('"') > 0)
                 {
                     var ruleNum = line.Substring(0, sci);
-                    var subrule = new string[] { line.Replace("\"", "").Substring(sci + 1).Trim() };
+                    var subrule = line.Replace("\"", "").Substring(sci + 1).Trim();
                     _rules.Add(ruleNum, subrule);
                 }
                 else if (sci > 0)
                 {
                     var ruleNum = line.Substring(0, sci);
-                    var subrules = line.Substring(sci + 1).Split('|').Select(l => l.Trim()).ToArray();
-                    _rules.Add(ruleNum, subrules);
+                    var subrule = line.Substring(sci + 1).Trim();
+                    _rules.Add(ruleNum, subrule);
                 }
                 else
                 {
@@ -42,67 +43,62 @@ namespace _2020
             }
         }
 
-        private bool complete(string msg)
+        private string genRegExPattern(string start)
         {
-            return msg.ToCharArray().Where(c => c != 'a' && c != 'b' && c != ' ').Count() == 0;
-        }
+            StringBuilder sb = new StringBuilder();
 
-        private List<string> produceString(string production)
-        {
-            List<string> newPhrases = new List<string>();
-            string[] pieces = production.Split(' ');
-            for (int j = 0; j < pieces.Length; j++)
+            var str = "";
+            for (int j = 0; j < start.Length; j++)
             {
-                if (_rules.ContainsKey(pieces[j]))
+                char c = start[j];
+                if (c == '(' || c == 'a' || c == 'b' || c == '|')
+                    sb.Append(c);
+                else if (c >= '0' && c <= '9')
+                    str += c;
+                else if (c == ' ' || c == ')')
                 {
-                    foreach (var rule in _rules[pieces[j]])
+                    if (str != "")
                     {
-                        pieces[j] = rule;
-                        newPhrases.Add(string.Join(' ', pieces).Trim());
+                        sb.Append('(');
+                        sb.Append(_rules[str]);
+                        sb.Append(')');
                     }
-                    break; // Only doing one bit at a time to avoid creating redundant phrases
+                    sb.Append(c);
+                    str = "";
                 }
             }
 
-            return newPhrases;
+            if (str != "")
+            {
+                sb.Append('(');
+                sb.Append(_rules[str]);
+                sb.Append(')');
+            }
+
+            string next = sb.ToString();
+            if (Regex.Match(next, @"\d+").Success)
+                return genRegExPattern(next);
+            else
+                return next;
         }
 
         public void Solve()
         {
             parseInput();
-            _flattenedRules = new Dictionary<string, string[]>();
 
-            List<string> productions = new List<string>() { _rules["0"][0] } ;
-            bool incomplete = true;
-
-            while (incomplete)
+            int total = 0;
+            var pattern = "^" + genRegExPattern(_rules["0"]).Replace(" ", "") + "$";
+            foreach (string msg in _messages)
             {
-                incomplete = false;
-                List<string> next = new List<string>();
-                foreach (var pr in productions)
+                var m = Regex.Match(msg, pattern, RegexOptions.ExplicitCapture);
+                if (m.Success)
                 {
-                    foreach (var result in produceString(pr))
-                    {
-                        next.Add(result);
-                        if (!complete(result))
-                            incomplete = true;
-                    }
+                    //Console.WriteLine(msg);
+                    total += 1;
                 }
-                productions = next;                
             }
-
-            HashSet<string> possibleMessages = new HashSet<string>();
-            foreach (string msg in productions)
-                possibleMessages.Add(msg.Replace(" ", ""));
-
-            foreach (string m in _messages)
-            {
-                if (possibleMessages.Contains(m))
-                    Console.WriteLine(m);
-            }
-                
             
-            Console.WriteLine($"P1: {_messages.Where(m => possibleMessages.Contains(m)).Count()}");
+            Console.WriteLine($"P1: {total}");
         }
     }
 }
