@@ -92,6 +92,7 @@ namespace _2020
     {
         private Dictionary<string, int> _edgesSeen = new Dictionary<string, int>();
         private List<Tile> _tiles = new List<Tile>();
+        private Dictionary<string, List<Piece>> _catalogue = new Dictionary<string, List<Piece>>();
 
         public Day20() { }
 
@@ -162,32 +163,36 @@ namespace _2020
         {
             parseInput();
 
+            /* Part 1 is so small and easy when I ignore actually assembling the map... */
             var uniqueEdges = _edgesSeen.Keys.Where(e => _edgesSeen[e] == 1).ToArray();
             var corners = _tiles.Where(t => isCorner(t, uniqueEdges)).ToArray();
             Console.WriteLine($"P1: {corners.Select(t => long.Parse(t.Num)).ToArray().Aggregate((total, next) => total * next)}");
 
-            Piece p = new Piece(corners[0].Text.Substring(11));
-            p.Dump();
-            Console.WriteLine("\nT: " + p.Edges[Piece.TOP]);
-            Console.WriteLine("B: " + p.Edges[Piece.BOTTOM]);
-            Console.WriteLine("L: " + p.Edges[Piece.LEFT]);
-            Console.WriteLine("R: " + p.Edges[Piece.RIGHT]);
+            // Build the catalogue of all the pieces in their 8 configurations
+            foreach (var tile in _tiles)
+            {
+                _catalogue.Add(tile.Num, new List<Piece>());
+                _catalogue[tile.Num].Add(new Piece(tile.Text.Replace("\n", "").Substring(10)));
 
-            Console.WriteLine("\nFlipped:");
-            Piece f1 = p.Flip();
-            f1.Dump();
-            Console.WriteLine("\nT: " + f1.Edges[Piece.TOP]);
-            Console.WriteLine("B: " + f1.Edges[Piece.BOTTOM]);
-            Console.WriteLine("L: " + f1.Edges[Piece.LEFT]);
-            Console.WriteLine("R: " + f1.Edges[Piece.RIGHT]);
+                // add all the rotations
+                Piece piece = _catalogue[tile.Num][0];
+                for (int j = 0; j < 3;j ++)
+                {
+                    piece = piece.Rotate();
+                    _catalogue[tile.Num].Add(piece);
+                }
 
-            //Console.WriteLine("\nFirst rotation:");
-            //Piece r1 = p.Rotate();
-            //r1.Dump();
-            //Console.WriteLine("\nT: " + r1.Edges[Piece.TOP]);
-            //Console.WriteLine("B: " + r1.Edges[Piece.BOTTOM]);
-            //Console.WriteLine("L: " + r1.Edges[Piece.LEFT]);
-            //Console.WriteLine("R: " + r1.Edges[Piece.RIGHT]);
+                // add all the rotations of the flipped OG tile
+                piece = _catalogue[tile.Num][0].Flip();
+                _catalogue[tile.Num].Add(piece);
+                for (int j = 0; j < 3; j++)
+                {
+                    piece = piece.Rotate();
+                    _catalogue[tile.Num].Add(piece);
+                }
+            }
+
+            
         }
     }
 }
