@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 
 namespace _2020
-{
+{  
     class Tile
     {
         public string Num { get; set; }
@@ -21,12 +21,15 @@ namespace _2020
         public static short LEFT = 3;
         public static short RIGHT = 4;
 
+        public string ID { get; set; }
         public string Pixels { get; set; }
         public Dictionary<short, string> Edges { get; set; }
+        public HashSet<short> UsedEdges { get; set; }
 
         // txt is the image out of the file with line breaks
-        public Piece(string txt)
+        public Piece(string id, string txt)
         {
+            this.ID = id;
             Pixels = txt.Replace("\n", "");
             Edges = new Dictionary<short, string>();
             Edges.Add(TOP, Pixels.Substring(0, 10));
@@ -40,6 +43,8 @@ namespace _2020
             }
             Edges.Add(LEFT, left);
             Edges.Add(RIGHT, right);
+
+            this.UsedEdges = new HashSet<short>();
         }
 
         // Magic numbers 'cause by spec all our tiles are 10x10
@@ -59,7 +64,7 @@ namespace _2020
             foreach (var i in indices)
                 pixels[indices[i]] = Pixels[i];
                 
-            Piece rotated = new Piece(string.Concat(pixels));
+            Piece rotated = new Piece(this.ID, string.Concat(pixels));
             return rotated;
         }
 
@@ -75,7 +80,7 @@ namespace _2020
                 }
             }
 
-            Piece flipped = new Piece(string.Concat(pixels));
+            Piece flipped = new Piece(this.ID, string.Concat(pixels));
             return flipped;
         }
 
@@ -86,6 +91,15 @@ namespace _2020
                 Console.WriteLine(Pixels.Substring(j, 10));
             }
         }
+    }
+
+    class Neighbour
+    {
+        public Piece Other { get; set; }
+        public short ParentEdge { get; set; }
+        public short OtherEdge { get; set; }
+
+        public Neighbour() { }
     }
 
     public class Day20 : IDay
@@ -159,6 +173,42 @@ namespace _2020
             return c == 2;
         }
 
+        private (short, short) compareEdges(Piece p1, Piece p2)
+        {
+            foreach (var e1 in p1.Edges.Keys)
+            {
+                foreach (var e2 in p2.Edges.Keys)
+                {
+                    if (p1.Edges[e1] == p2.Edges[e2])
+                        return (e1, e2);
+                }
+            }
+
+            return (-1, -1);
+        }
+
+        private Neighbour findMatch(Piece piece, HashSet<string> alreadyUsed)
+        {
+            foreach (var id in _catalogue.Keys.Where(k => !alreadyUsed.Contains(k)))
+            {
+                foreach (var candidate in _catalogue[id])
+                {
+                    var common = compareEdges(piece, candidate);
+                    if (common != (-1, -1))
+                    {
+                        return new Neighbour()
+                        {
+                            Other = candidate,
+                            ParentEdge = common.Item1,
+                            OtherEdge = common.Item2
+                        };
+                    }
+                }
+            }
+
+            return null;
+        }
+
         public void Solve()
         {
             parseInput();
@@ -172,7 +222,7 @@ namespace _2020
             foreach (var tile in _tiles)
             {
                 _catalogue.Add(tile.Num, new List<Piece>());
-                _catalogue[tile.Num].Add(new Piece(tile.Text.Replace("\n", "").Substring(10)));
+                _catalogue[tile.Num].Add(new Piece(tile.Num, tile.Text.Replace("\n", "").Substring(10)));
 
                 // add all the rotations
                 Piece piece = _catalogue[tile.Num][0];
@@ -192,7 +242,38 @@ namespace _2020
                 }
             }
 
-            
+            // We need a tile to start with, so take one of the corner pieces and find two other edges which match it.
+            // Conceptually, this will be the top left corner of my image.
+            string cornerID = corners[0].Num;
+            HashSet<string> alreadyUsed = new HashSet<string>();
+            alreadyUsed.Add(cornerID);
+            Piece startingPiece = null;
+            foreach (Piece corner in _catalogue[cornerID])
+            {
+                var neighbour1 = findMatch(corner, alreadyUsed);
+                alreadyUsed.Add(neighbour1.Other.ID);
+                var neighbour2 = findMatch(corner, alreadyUsed);
+                if (neighbour1 != null && neighbour2 != null)
+                {
+                    startingPiece = corner;
+                    startingPiece.UsedEdges.Add(neighbour1.ParentEdge);
+                    startingPiece.UsedEdges.Add(neighbour2.ParentEdge);
+                    break;
+                }
+            }
+
+            // Alright! We have our corner piece! Let's create our matrix of the pieces, and figure out which corner we
+            // have
+            int width = (int)Math.Floor(Math.Sqrt(_tiles.Count));
+            Piece[,] image = new Piece[width, width];
+            if (startingPiece.UsedEdges.Contains(Piece.BOTTOM) && startingPiece.UsedEdges.Contains(Piece.RIGHT))                
+                image[0, 0] = startingPiece; // Top-Left
+            else if (startingPiece.UsedEdges.Contains(Piece.BOTTOM) && startingPiece.UsedEdges.Contains(Piece.LEFT))
+                image[0, width - 1] = startingPiece; // Top-Right
+            else if (startingPiece.UsedEdges.Contains(Piece.TOP) && startingPiece.UsedEdges.Contains(Piece.RIGHT))
+                image[width - 1, 0] = startingPiece; // Bottom-Left
+            else if (startingPiece.UsedEdges.Contains(Piece.TOP) && startingPiece.UsedEdges.Contains(Piece.LEFT))
+                image[width - 1, width - 1] = startingPiece; // Bottom-Right
         }
     }
 }
