@@ -4,4 +4,6 @@ Two weeks in the 2018 problems, I began to find JavaScript a bit too frustrating
 
 I feel a little guilty abandoning JavaScript so I went back to it for the 2017 problem set.
 
-For 2019, I'm not sure! I am pondering Rust but I've left things to the last minute and aren't sure I'll be able to get up to speed on it in time for this year's puzzles.
+For 2019 I did rust, but it left a bad taste in my mouth. I think this is a "it's not you, it's me" situation. I just never got to the point with rust where coding in it wasn't agony. It's also not well suited to quick, rapid-prototype style coding that Advent of Code encourages.
+
+For 2020, I'm going to do C# and learn some of newer features of C# 8.0 and 9.0 I haven't paid too much attention to, and maybe dive deeper into LINQ than I have in the past.

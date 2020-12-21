@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>_2020</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="bin\Debug\net5.0\inputs\day2.txt" />
+    <None Include="bin\Debug\net5.0\inputs\day3.txt" />
+    <None Include="bin\Debug\net5.0\inputs\day1.txt" />
+    <None Include="bin\Debug\net5.0\inputs\day4.txt" />
+    <None Include="bin\Debug\net5.0\inputs\day5.txt" />
+    <None Include="bin\Debug\net5.0\inputs\day6.txt" />
+    <None Include="bin\Debug\net5.0\inputs\day7.txt" />
+    <None Include="bin\Debug\net5.0\inputs\day8.txt" />
+    <None Include="bin\Debug\net5.0\inputs\day9.txt" />
+    <None Include="bin\Debug\net5.0\inputs\day10.txt" />
+    <None Include="bin\Debug\net5.0\inputs\day11.txt" />
+    <None Include="bin\Debug\net5.0\inputs\day12.txt" />
+    <None Include="bin\Debug\net5.0\inputs\day13.txt" />
+    <None Include="bin\Debug\net5.0\inputs\day14.txt" />
+    <None Include="bin\Debug\net5.0\inputs\day16.txt" />
+    <None Include="bin\Debug\net5.0\inputs\day17.txt" />
+    <None Include="bin\Debug\net5.0\inputs\day18.txt" />
+    <None Include="bin\Debug\net5.0\inputs\day19.txt" />
+    <None Include="bin\Debug\net5.0\inputs\day20.txt" />
+  </ItemGroup>
+</Project>
