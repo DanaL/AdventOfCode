@@ -96,10 +96,6 @@ pub fn find_keys_from(r: usize, c: usize, mask: u64, grid: &Vec<Vec<char>>,
 	let mut queue = VecDeque::new();
 	queue.push_back((r, c, 0));
 
-	if graph.keys().len() > 20 {
-		return;
-	}
-
 	while queue.len() > 0 {
 		let sq = queue.pop_front().unwrap();
 		visited.insert((sq.0, sq.1));
@@ -130,12 +126,12 @@ pub fn find_keys_from(r: usize, c: usize, mask: u64, grid: &Vec<Vec<char>>,
 					let prev_ch = grid[r][c];
 					let new_mask = mask | to_bitmask(ch);
 					
-					//if cache.contains_key(&new_mask) && distance > cache[&new_mask] {
-						//continue;
-					//}
+					if cache.contains_key(&new_mask) && distance == cache[&new_mask] {
+						continue;
+					}
 
-					//let ce = cache.entry(new_mask).or_insert(distance);
-					//*ce = distance;
+					let ce = cache.entry(new_mask).or_insert(distance);
+					*ce = distance;
 					
 					let v = graph.entry((prev_ch, mask))
 								 .or_insert(HashMap::new());

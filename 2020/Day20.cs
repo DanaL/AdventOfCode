@@ -104,9 +104,11 @@ namespace _2020
 
     public class Day20 : IDay
     {
+        private readonly List<(int, int)> _deltas = new List<(int, int)>() { (-1, 0), (1, 0), (0, 1), (0, -1) };
         private Dictionary<string, int> _edgesSeen = new Dictionary<string, int>();
         private List<Tile> _tiles = new List<Tile>();
         private Dictionary<string, List<Piece>> _catalogue = new Dictionary<string, List<Piece>>();
+        private int _imgWidth;
 
         public Day20() { }
 
@@ -209,6 +211,31 @@ namespace _2020
             return null;
         }
 
+        private bool inBounds(int row, int col)
+        {
+            if (row < 0 || col < 0)
+                return false;
+            if (row >= _imgWidth || col >= _imgWidth)
+                return false;
+            return true;
+        }
+
+        private void matchPieces(Piece start, Piece[,] image, int row, int col, HashSet<string> alreadyUsed)
+        {
+            // find which neighbouring squares% are empty
+            foreach (var delta in _deltas)
+            {
+                var adjRow = row + delta.Item1;
+                var adjCol = col + delta.Item2;
+                if (!inBounds(adjRow, adjCol))
+                    continue;
+                if (image[adjRow, adjCol] != null)
+                    continue;
+
+                var neightbor = findMatch(start, alreadyUsed);
+            }
+        }
+
         public void Solve()
         {
             parseInput();
@@ -264,16 +291,39 @@ namespace _2020
 
             // Alright! We have our corner piece! Let's create our matrix of the pieces, and figure out which corner we
             // have
-            int width = (int)Math.Floor(Math.Sqrt(_tiles.Count));
-            Piece[,] image = new Piece[width, width];
-            if (startingPiece.UsedEdges.Contains(Piece.BOTTOM) && startingPiece.UsedEdges.Contains(Piece.RIGHT))                
+            _imgWidth = (int)Math.Floor(Math.Sqrt(_tiles.Count));
+            Piece[,] image = new Piece[_imgWidth, _imgWidth];
+            int startRow = -1, startCol = -1;
+            if (startingPiece.UsedEdges.Contains(Piece.BOTTOM) && startingPiece.UsedEdges.Contains(Piece.RIGHT))
+            {
                 image[0, 0] = startingPiece; // Top-Left
+                startingPiece.UsedEdges = new HashSet<short>(new List<short>(){ Piece.TOP, Piece.LEFT});
+                startRow = 0;
+                startCol = 0;
+            }
             else if (startingPiece.UsedEdges.Contains(Piece.BOTTOM) && startingPiece.UsedEdges.Contains(Piece.LEFT))
-                image[0, width - 1] = startingPiece; // Top-Right
+            {
+                image[0, _imgWidth - 1] = startingPiece; // Top-Right
+                startingPiece.UsedEdges = new HashSet<short>(new List<short>() { Piece.TOP, Piece.RIGHT });
+                startRow = 0;
+                startCol = _imgWidth - 1;
+            }
             else if (startingPiece.UsedEdges.Contains(Piece.TOP) && startingPiece.UsedEdges.Contains(Piece.RIGHT))
-                image[width - 1, 0] = startingPiece; // Bottom-Left
-            else if (startingPiece.UsedEdges.Contains(Piece.TOP) && startingPiece.UsedEdges.Contains(Piece.LEFT))
-                image[width - 1, width - 1] = startingPiece; // Bottom-Right
+            {
+                image[_imgWidth - 1, 0] = startingPiece; // Bottom-Left
+                startingPiece.UsedEdges = new HashSet<short>(new List<short>() { Piece.BOTTOM, Piece.LEFT });
+                startRow = _imgWidth - 1;
+                startCol = 0;
+            }
+            else if (startingPiece.UsedEdges.Contains(Piece.BOTTOM) && startingPiece.UsedEdges.Contains(Piece.RIGHT))
+            {
+                image[_imgWidth - 1, _imgWidth - 1] = startingPiece; // Bottom-Right
+                startingPiece.UsedEdges = new HashSet<short>(new List<short>() { Piece.BOTTOM, Piece.RIGHT });
+                startRow = _imgWidth - 1;
+                startCol = _imgWidth - 1;
+            }
+
+            matchPieces(startingPiece, image, startRow, startCol, new HashSet<string>(new List<string>() { startingPiece.ID }));
         }
     }
 }
