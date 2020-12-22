@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -32,35 +33,30 @@ namespace _2020
                 
                 var card1 = deck1.Dequeue();
                 var card2 = deck2.Dequeue();
+                var winner = -1;
 
                 if (recursiveRules && deck1.Count >= card1 && deck2.Count >= card2)
                 {
                     var sub1 = new Queue<int>(deck1.ToArray().Take(card1));
                     var sub2 = new Queue<int>(deck2.ToArray().Take(card2));
                     var result = play(sub1, sub2, recursiveRules);
-                    if (result.Item1.Count > result.Item2.Count)
-                    {
-                        deck1.Enqueue(card1);
-                        deck1.Enqueue(card2);
-                    }
-                    else
-                    {
-                        deck2.Enqueue(card2);
-                        deck2.Enqueue(card1);
-                    }
+
+                    winner = result.Item1.Count > result.Item2.Count ? 1 : 2;                    
                 }
                 else
                 {
-                    if (card1 > card2)
-                    {
-                        deck1.Enqueue(card1);
-                        deck1.Enqueue(card2);
-                    }
-                    else
-                    {
-                        deck2.Enqueue(card2);
-                        deck2.Enqueue(card1);
-                    }
+                    winner = card1 > card2 ? 1 : 2;                   
+                }
+
+                if (winner == 1)
+                {
+                    deck1.Enqueue(card1);
+                    deck1.Enqueue(card2);
+                }
+                else
+                {
+                    deck2.Enqueue(card2);
+                    deck2.Enqueue(card1);
                 }
             }
 
@@ -77,9 +73,14 @@ namespace _2020
             var winner = result.Item1.Count > 0 ? result.Item1.ToArray() : result.Item2.ToArray();
             Console.WriteLine($"P1: {winner.Zip(Enumerable.Range(1, winner.Length).Reverse(), (a, b) => a * b).Sum()}");
 
+            var sw = new Stopwatch();
+            sw.Start();
             result = play(new Queue<int>(deck1), new Queue<int>(deck2), true);
+            sw.Stop();
             winner = result.Item1.Count > 0 ? result.Item1.ToArray() : result.Item2.ToArray();
             Console.WriteLine($"P2: {winner.Zip(Enumerable.Range(1, winner.Length).Reverse(), (a, b) => a * b).Sum()}");
+            var ts = sw.Elapsed;
+            Console.WriteLine($"{ts.TotalMilliseconds} ms elapsed.");
         }
     }
 }
