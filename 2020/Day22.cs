@@ -21,7 +21,7 @@ namespace _2020
                 if (recursiveRules)
                 {
                     var s1 = string.Join('+', deck1.ToArray().Select(c => c.ToString()));
-                    var s2 = string.Join('+', deck1.ToArray().Select(c => c.ToString()));
+                    var s2 = string.Join('+', deck2.ToArray().Select(c => c.ToString()));
                     if (previousRoundsP1.Contains(s1) || previousRoundsP2.Contains(s2))
                         return (deck1, new Queue<int>()); // Infinite loop so Player 1 automatically wins
                     else
@@ -33,7 +33,7 @@ namespace _2020
                 
                 var card1 = deck1.Dequeue();
                 var card2 = deck2.Dequeue();
-                var winner = -1;
+                int winner;
 
                 if (recursiveRules && deck1.Count >= card1 && deck2.Count >= card2)
                 {
