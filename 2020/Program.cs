@@ -25,6 +25,7 @@ days.Add(18, new Day18());
 days.Add(19, new Day19());
 days.Add(20, new Day20());
 days.Add(21, new Day21());
+days.Add(22, new Day22());
 
 int day;
 if (args.Length == 0 || !int.TryParse(args[0], out day))
@@ -33,8 +34,6 @@ if (args.Length == 0 || !int.TryParse(args[0], out day))
     if (DateTime.Now.Hour == 23)
         ++day;
 }
-
-day = 20;
 
 Console.WriteLine($"Solving Day {day}");
 if (!days.ContainsKey(day))
