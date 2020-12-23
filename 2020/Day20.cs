@@ -16,10 +16,10 @@ namespace _2020
 
     class Piece
     {
-        public static short TOP = 1;
-        public static short BOTTOM = 2;
-        public static short LEFT = 3;
-        public static short RIGHT = 4;
+        public const short TOP = 1;
+        public const short BOTTOM = 2;
+        public const short LEFT = 3;
+        public const short RIGHT = 4;
         public static HashSet<short> EdgeNums = new HashSet<short>() { TOP, BOTTOM, LEFT, RIGHT };
 
         public string ID { get; set; }
@@ -219,17 +219,73 @@ namespace _2020
 
         private void matchPieces(Piece start, Piece[,] image, int row, int col, HashSet<string> alreadyUsed)
         {
-            // find which neighbouring squares% are empty
-            foreach (var delta in _deltas)
+            // Find which neighbouring cells are in bound and empty
+            foreach (var e in Piece.EdgeNums.Where(a => !start.UsedEdges.Contains(a)))
             {
-                var adjRow = row + delta.Item1;
-                var adjCol = col + delta.Item2;
+                int adjRow = row, adjCol = col;
+                switch (e)
+                {
+                    case Piece.TOP:
+                        adjRow -= 1;
+                        break;
+                    case Piece.BOTTOM:
+                        adjRow += 1;
+                        break;
+                    case Piece.LEFT:
+                        adjCol -= 1;
+                        break;
+                    case Piece.RIGHT:
+                        adjCol += 1;
+                        break;
+                }
                 if (!inBounds(adjRow, adjCol))
                     continue;
                 if (image[adjRow, adjCol] != null)
                     continue;
+                Neighbour n = findMatch(start.Edges[e], alreadyUsed);
+                image[adjRow, adjCol] = n.Other;              
+            }
 
-                //var neightbor = findMatch(start, alreadyUsed);
+            dumpImage(image);
+        }
+
+        private void dumpImage(Piece[,] image)
+        {
+            Console.WriteLine("The image so far:");
+            char[,] pixels = new char[_imgWidth * 10, _imgWidth * 10];
+            for (int r = 0; r < _imgWidth; r++)
+            {
+                for (int c = 0; c < _imgWidth; c++)
+                {
+                    List<char> txt;
+                    if (image[r, c] is null)
+                    {
+                        txt = new List<char>();
+                        for (int j = 0; j < 100; j++)
+                            txt.Add(' ');
+                    }
+                    else
+                        txt = image[r, c].Pixels.ToCharArray().ToList();
+
+                    // Okay, I have the pixels to draw in a 1D array, now write them to
+                    // the grid of pxiels
+                    for (int i = 0; i < 100; i ++)
+                    {
+                        int pr = i / 10;
+                        int pc = i % 10;
+
+                        // But I have to transpose them to the larger matrix
+                        pixels[r * 10 + pr, c * 10 + pc] = txt[i];
+                    }                   
+                }
+            }
+
+            for (int r = 0; r < _imgWidth * 10; r++)
+            {
+                char[] row = new char[_imgWidth * 10];
+                for (int c = 0; c < _imgWidth * 10; c++)
+                    row[c] = pixels[r, c];
+                Console.WriteLine(string.Concat(row));
             }
         }
 
