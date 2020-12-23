@@ -61,12 +61,15 @@ namespace _2020
         private void playCrabGame(string initial, int max, int rounds, bool pt2)
         {
             var nums = initial.ToCharArray().Select(n => (int)n - (int)'0');
+            Dictionary<int, Node> index = new Dictionary<int, Node>();
             Node start = new Node(nums.First());
+            index.Add(nums.First(), start);
             Node prev = start;
             int highestID = -1;
             foreach (int v in nums.Skip(1))
             {
                 Node n = new Node(v);
+                index.Add(v, n);
                 prev.Next = n;
                 n.Prev = prev;
                 prev = n;
@@ -88,10 +91,7 @@ namespace _2020
                 // Find the val where we want to insert the cut nodes
                 int destVal = findDestination(curr.Val, cut, highestID);
 
-                Node ip = curr.Next;
-                while (ip.Val != destVal)
-                    ip = ip.Next;
-
+                Node ip = index[destVal];                
                 Node ipn = ip.Next;
                 Node tail = cut.Next.Next;
                 tail.Next = ipn;
@@ -110,7 +110,7 @@ namespace _2020
 
         public void Solve()
         {
-            playCrabGame("389125467", 0, 100, false);
+            playCrabGame("318946572", 0, 100, false);
 
         }
     }
