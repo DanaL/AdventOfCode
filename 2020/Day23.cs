@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
@@ -24,16 +23,11 @@ namespace _2020
         private int findDestination(int start, Node cut, int highestID)
         {
             int dest = start == 1 ? highestID: start - 1;
-            HashSet<int> valsInCut = new HashSet<int>();
-            
-            Node n = cut;
-            for (int j = 0; j < 3; j++)
-            {
-                valsInCut.Add(n.Val);
-                n = n.Next;                    
-            }
-
-            while (valsInCut.Contains(dest))
+            int a = cut.Val;
+            int b = cut.Next.Val;
+            int c = cut.Next.Next.Val;
+  
+            while (dest == a || dest == b || dest == c)
             {
                 --dest;
                 if (dest <= 0)
