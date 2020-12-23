@@ -67,14 +67,14 @@ namespace _2020
             if (max > 0)
                 nums.AddRange(Enumerable.Range(highestID + 1, max - nums.Count));
 
-            Dictionary<int, Node> index = new Dictionary<int, Node>();
+            Node[] index = new Node[max == 0 ? 10 : max + 1];
             Node start = new Node(nums.First());
-            index.Add(nums.First(), start);
+            index[nums.First()] = start;
             Node prev = start;            
             foreach (int v in nums.Skip(1))
             {
                 Node n = new Node(v);
-                index.Add(v, n);
+                index[v] = n;
                 prev.Next = n;
                 n.Prev = prev;
                 prev = n;
