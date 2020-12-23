@@ -8,8 +8,7 @@ namespace _2020
     {
         public int Val { get; set; }
         public Node Next { get; set; }
-        public Node Prev { get; set; }
-
+        
         public Node(int v)
         {
             Val = v;
@@ -70,23 +69,21 @@ namespace _2020
                 Node n = new Node(v);
                 index[v] = n;
                 prev.Next = n;
-                n.Prev = prev;
+                //n.Prev = prev;
                 prev = n;
 
                 if (v > highestID)
                     highestID = v;
             }
             prev.Next = start;
-            start.Prev = prev;
-
+            
             Node curr = start;
             for (int j = 0; j < rounds; j++)
             {
                 // Remove the three times after curr from the list
                 Node cut = curr.Next;
                 curr.Next = cut.Next.Next.Next; // 100% fine and not ugly code...
-                cut.Next.Next.Next.Prev = curr;
-
+                
                 // Find the val where we want to insert the cut nodes
                 int destVal = findDestination(curr.Val, cut, highestID);
 
@@ -94,8 +91,6 @@ namespace _2020
                 Node ipn = ip.Next;
                 Node tail = cut.Next.Next;
                 tail.Next = ipn;
-                cut.Prev = ip;
-                ipn.Prev = tail;
                 ip.Next = cut;
                 
                 curr = curr.Next;
