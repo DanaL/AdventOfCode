@@ -19,9 +19,9 @@ namespace _2020
     {
         public Day23() { }
 
-        private int findDestination(int start, Node cut)
+        private int findDestination(int start, Node cut, int highestID)
         {
-            int dest = start == 1 ? 9: start - 1;
+            int dest = start == 1 ? highestID: start - 1;
             HashSet<int> valsInCut = new HashSet<int>();
             
             Node n = cut;
@@ -35,13 +35,13 @@ namespace _2020
             {
                 --dest;
                 if (dest <= 0)
-                    dest = 9;
+                    dest = highestID;
             }
 
             return dest;
         }
 
-        private void printList(Node node, int startVal)
+        private string listToString(Node node, int startVal)
         {
             while (node.Val != startVal)
                 node = node.Next;
@@ -54,32 +54,35 @@ namespace _2020
                 node = node.Next;
             } while (node.Val != startVal);
 
-            Console.WriteLine(str);
+            return str;
         }
 
-        public void Solve()
+        private void playCrabGame(string initial, int max, int rounds, bool pt2)
         {
-            // Build the initial circular linked list
-            var nums = "318946572".ToCharArray().Select(n => (int)n - (int)'0');
+            var nums = initial.ToCharArray().Select(n => (int)n - (int)'0');
             Node start = new Node(nums.First());
             Node prev = start;
+            int highestID = -1;
             foreach (int v in nums.Skip(1))
             {
                 Node n = new Node(v);
                 prev.Next = n;
                 prev = n;
+
+                if (v > highestID)
+                    highestID = v;
             }
             prev.Next = start;
 
             Node curr = start;
-            for (int j = 0; j < 100; j++)
+            for (int j = 0; j < rounds; j++)
             {
                 // 1) Remove the three times after curr from the list
                 Node cut = curr.Next;
                 curr.Next = cut.Next.Next.Next; // 100% fine and not ugly code...
 
                 // Find the val where we want to insert the cut nodes
-                int destVal = findDestination(curr.Val, cut);
+                int destVal = findDestination(curr.Val, cut, highestID);
 
                 Node ip = curr.Next;
                 while (ip.Val != destVal)
@@ -91,7 +94,14 @@ namespace _2020
                 curr = curr.Next;
             }
 
-            printList(start, 1);
+            if (!pt2)
+                Console.WriteLine($"P1: {listToString(start, 1)}");
+        }
+
+        public void Solve()
+        {
+            playCrabGame("318946572", 0, 100, false);
+
         }
     }
 }
