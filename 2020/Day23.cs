@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace _2020
@@ -60,12 +61,16 @@ namespace _2020
 
         private void playCrabGame(string initial, int max, int rounds, bool pt2)
         {
-            var nums = initial.ToCharArray().Select(n => (int)n - (int)'0');
+            var nums = initial.ToCharArray().Select(n => (int)n - (int)'0').ToList();
+            int highestID = nums.Max();
+
+            if (max > 0)
+                nums.AddRange(Enumerable.Range(highestID + 1, max - nums.Count));
+
             Dictionary<int, Node> index = new Dictionary<int, Node>();
             Node start = new Node(nums.First());
             index.Add(nums.First(), start);
-            Node prev = start;
-            int highestID = -1;
+            Node prev = start;            
             foreach (int v in nums.Skip(1))
             {
                 Node n = new Node(v);
@@ -83,7 +88,7 @@ namespace _2020
             Node curr = start;
             for (int j = 0; j < rounds; j++)
             {
-                // 1) Remove the three times after curr from the list
+                // Remove the three times after curr from the list
                 Node cut = curr.Next;
                 curr.Next = cut.Next.Next.Next; // 100% fine and not ugly code...
                 cut.Next.Next.Next.Prev = curr;
@@ -100,18 +105,27 @@ namespace _2020
                 ip.Next = cut;
                 
                 curr = curr.Next;
-
-                //Console.WriteLine($"{j+1} {listToString(start, 3)}");
             }
 
             if (!pt2)
                 Console.WriteLine($"P1: {listToString(start, 1)}");
+            else
+            {
+                Node n = index[1];
+                ulong res = (ulong)n.Next.Val * (ulong)n.Next.Next.Val;
+                Console.WriteLine($"P2: {res}");
+            }
         }
 
         public void Solve()
         {
             playCrabGame("318946572", 0, 100, false);
 
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            playCrabGame("318946572", 1_000_000, 10_000_000, true);
+            sw.Stop();
+            Console.WriteLine($"{sw.ElapsedMilliseconds} ms");
         }
     }
 }
