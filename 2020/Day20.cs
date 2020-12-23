@@ -20,6 +20,7 @@ namespace _2020
         public static short BOTTOM = 2;
         public static short LEFT = 3;
         public static short RIGHT = 4;
+        public static HashSet<short> EdgeNums = new HashSet<short>() { TOP, BOTTOM, LEFT, RIGHT };
 
         public string ID { get; set; }
         public string Pixels { get; set; }
@@ -175,34 +176,30 @@ namespace _2020
             return c == 2;
         }
 
-        private (short, short) compareEdges(Piece p1, Piece p2)
-        {
-            foreach (var e1 in p1.Edges.Keys)
+        private short compareEdges(string edge, Piece p2)
+        {            
+            foreach (var e2 in p2.Edges.Keys)
             {
-                foreach (var e2 in p2.Edges.Keys)
-                {
-                    if (p1.Edges[e1] == p2.Edges[e2])
-                        return (e1, e2);
-                }
+                if (edge == p2.Edges[e2])
+                    return e2;
             }
 
-            return (-1, -1);
+            return -1;
         }
 
-        private Neighbour findMatch(Piece piece, HashSet<string> alreadyUsed)
+        private Neighbour findMatch(string edge, HashSet<string> alreadyUsed)
         {
             foreach (var id in _catalogue.Keys.Where(k => !alreadyUsed.Contains(k)))
             {
                 foreach (var candidate in _catalogue[id])
                 {
-                    var common = compareEdges(piece, candidate);
-                    if (common != (-1, -1))
+                    var common = compareEdges(edge, candidate);
+                    if (common != -1)
                     {
                         return new Neighbour()
                         {
                             Other = candidate,
-                            ParentEdge = common.Item1,
-                            OtherEdge = common.Item2
+                            OtherEdge = -1
                         };
                     }
                 }
@@ -232,7 +229,7 @@ namespace _2020
                 if (image[adjRow, adjCol] != null)
                     continue;
 
-                var neightbor = findMatch(start, alreadyUsed);
+                //var neightbor = findMatch(start, alreadyUsed);
             }
         }
 
@@ -277,9 +274,29 @@ namespace _2020
             Piece startingPiece = null;
             foreach (Piece corner in _catalogue[cornerID])
             {
-                var neighbour1 = findMatch(corner, alreadyUsed);
-                alreadyUsed.Add(neighbour1.Other.ID);
-                var neighbour2 = findMatch(corner, alreadyUsed);
+                Neighbour neighbour1 = null, neighbour2 = null;
+                foreach (var e in Piece.EdgeNums)
+                {
+                    neighbour1 = findMatch(corner.Edges[e], alreadyUsed);
+                    if (neighbour1 is not null)
+                    {
+                        neighbour1.ParentEdge = e;
+                        alreadyUsed.Add(neighbour1.Other.ID);
+                        break;
+                    }
+                }
+                foreach (var e in Piece.EdgeNums)
+                {
+                    if (e == neighbour1.ParentEdge)
+                        continue;
+                    neighbour2 = findMatch(corner.Edges[e], alreadyUsed);
+                    if (neighbour2 is not null)
+                    {
+                        neighbour2.ParentEdge = e;
+                        break;
+                    }
+                }
+                
                 if (neighbour1 != null && neighbour2 != null)
                 {
                     startingPiece = corner;
