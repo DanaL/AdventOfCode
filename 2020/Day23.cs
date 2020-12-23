@@ -8,6 +8,7 @@ namespace _2020
     {
         public int Val { get; set; }
         public Node Next { get; set; }
+        public Node Prev { get; set; }
 
         public Node(int v)
         {
@@ -67,12 +68,14 @@ namespace _2020
             {
                 Node n = new Node(v);
                 prev.Next = n;
+                n.Prev = prev;
                 prev = n;
 
                 if (v > highestID)
                     highestID = v;
             }
             prev.Next = start;
+            start.Prev = prev;
 
             Node curr = start;
             for (int j = 0; j < rounds; j++)
@@ -80,6 +83,7 @@ namespace _2020
                 // 1) Remove the three times after curr from the list
                 Node cut = curr.Next;
                 curr.Next = cut.Next.Next.Next; // 100% fine and not ugly code...
+                cut.Next.Next.Next.Prev = curr;
 
                 // Find the val where we want to insert the cut nodes
                 int destVal = findDestination(curr.Val, cut, highestID);
@@ -88,10 +92,16 @@ namespace _2020
                 while (ip.Val != destVal)
                     ip = ip.Next;
 
-                cut.Next.Next.Next = ip.Next;
+                Node ipn = ip.Next;
+                Node tail = cut.Next.Next;
+                tail.Next = ipn;
+                cut.Prev = ip;
+                ipn.Prev = tail;
                 ip.Next = cut;
-
+                
                 curr = curr.Next;
+
+                //Console.WriteLine($"{j+1} {listToString(start, 3)}");
             }
 
             if (!pt2)
@@ -100,7 +110,7 @@ namespace _2020
 
         public void Solve()
         {
-            playCrabGame("318946572", 0, 100, false);
+            playCrabGame("389125467", 0, 100, false);
 
         }
     }
