@@ -103,6 +103,56 @@ namespace _2020
         public Neighbour() { }
     }
 
+    class Catalogue
+    {
+        private int openIndex;
+        private Dictionary<string, int> idMap = new Dictionary<string, int>();
+
+        public Piece[] Pieces;
+
+        public Catalogue(int totalPieces)
+        {
+            Pieces = new Piece[totalPieces];
+            openIndex = 0;
+            idMap = new Dictionary<string, int>();
+        }
+
+        public void Add(string pieceID, List<Piece> pieces)
+        {
+            idMap.Add(pieceID, openIndex);
+            for (int j = 0; j < pieces.Count; j++, openIndex++)
+                Pieces[openIndex] = pieces[j];
+        }
+
+        public List<Piece> AllTransformsOf(string pieceID)
+        {
+            int index = idMap[pieceID];
+            List<Piece> pieces = new List<Piece>();
+            for (int j = 0; j < 8; j++)
+                pieces.Add(Pieces[index + j]);
+
+            return pieces;
+        }
+
+        public IEnumerable<Piece> AllPiecesExcept(HashSet<string> excluded)
+        {
+            // This should be cached or pre-generated, I think
+            HashSet<int> excludedIDs = new HashSet<int>();
+            foreach (string pieceID in excluded)
+            {
+                for (int j = idMap[pieceID]; j < idMap[pieceID] + 8; j++)
+                    excludedIDs.Add(j);
+            }
+            
+            for (int j = 0; j < Pieces.Length; j++)
+            {
+                if (excludedIDs.Contains(j))
+                    continue;
+                yield return Pieces[j];
+            }
+        }
+    }
+
     public class Day20 : IDay
     {
         private readonly List<(int, int)> _deltas = new List<(int, int)>() { (-1, 0), (1, 0), (0, 1), (0, -1) };
@@ -187,22 +237,19 @@ namespace _2020
             return -1;
         }
 
-        private Neighbour findMatch(string edge, HashSet<string> alreadyUsed)
+        private Neighbour findMatch(Catalogue catalogue, string edge, HashSet<string> alreadyUsed)
         {
-            foreach (var id in _catalogue.Keys.Where(k => !alreadyUsed.Contains(k)))
-            {
-                foreach (var candidate in _catalogue[id])
+            foreach (Piece candidate in catalogue.AllPiecesExcept(alreadyUsed))
+            {                
+                var common = compareEdges(edge, candidate);
+                if (common != -1)
                 {
-                    var common = compareEdges(edge, candidate);
-                    if (common != -1)
+                    return new Neighbour()
                     {
-                        return new Neighbour()
-                        {
-                            Other = candidate,
-                            OtherEdge = -1
-                        };
-                    }
-                }
+                        Other = candidate,
+                        OtherEdge = -1
+                    };
+                }                
             }
 
             return null;
@@ -217,37 +264,37 @@ namespace _2020
             return true;
         }
 
-        private void matchPieces(Piece start, Piece[,] image, int row, int col, HashSet<string> alreadyUsed)
-        {
-            // Find which neighbouring cells are in bound and empty
-            foreach (var e in Piece.EdgeNums.Where(a => !start.UsedEdges.Contains(a)))
-            {
-                int adjRow = row, adjCol = col;
-                switch (e)
-                {
-                    case Piece.TOP:
-                        adjRow -= 1;
-                        break;
-                    case Piece.BOTTOM:
-                        adjRow += 1;
-                        break;
-                    case Piece.LEFT:
-                        adjCol -= 1;
-                        break;
-                    case Piece.RIGHT:
-                        adjCol += 1;
-                        break;
-                }
-                if (!inBounds(adjRow, adjCol))
-                    continue;
-                if (image[adjRow, adjCol] != null)
-                    continue;
-                Neighbour n = findMatch(start.Edges[e], alreadyUsed);
-                image[adjRow, adjCol] = n.Other;              
-            }
+        //private void matchPieces(Piece start, Piece[,] image, int row, int col, HashSet<string> alreadyUsed)
+        //{
+        //    // Find which neighbouring cells are in bound and empty
+        //    foreach (var e in Piece.EdgeNums.Where(a => !start.UsedEdges.Contains(a)))
+        //    {
+        //        int adjRow = row, adjCol = col;
+        //        switch (e)
+        //        {
+        //            case Piece.TOP:
+        //                adjRow -= 1;
+        //                break;
+        //            case Piece.BOTTOM:
+        //                adjRow += 1;
+        //                break;
+        //            case Piece.LEFT:
+        //                adjCol -= 1;
+        //                break;
+        //            case Piece.RIGHT:
+        //                adjCol += 1;
+        //                break;
+        //        }
+        //        if (!inBounds(adjRow, adjCol))
+        //            continue;
+        //        if (image[adjRow, adjCol] != null)
+        //            continue;
+        //        Neighbour n = findMatch(start.Edges[e], alreadyUsed);
+        //        image[adjRow, adjCol] = n.Other;              
+        //    }
 
-            dumpImage(image);
-        }
+        //    dumpImage(image);
+        //}
 
         private void dumpImage(Piece[,] image)
         {
@@ -298,28 +345,31 @@ namespace _2020
             var corners = _tiles.Where(t => isCorner(t, uniqueEdges)).ToArray();
             Console.WriteLine($"P1: {corners.Select(t => long.Parse(t.Num)).ToArray().Aggregate((total, next) => total * next)}");
 
+            Catalogue catalogue = new Catalogue(_tiles.Count * 8);
             // Build the catalogue of all the pieces in their 8 configurations
             foreach (var tile in _tiles)
             {
-                _catalogue.Add(tile.Num, new List<Piece>());
-                _catalogue[tile.Num].Add(new Piece(tile.Num, tile.Text.Replace("\n", "").Substring(10)));
+                List<Piece> pieces = new List<Piece>();
+                pieces.Add(new Piece(tile.Num, tile.Text.Replace("\n", "").Substring(10)));
 
                 // add all the rotations
-                Piece piece = _catalogue[tile.Num][0];
+                Piece piece = pieces[0];
                 for (int j = 0; j < 3;j ++)
                 {
                     piece = piece.Rotate();
-                    _catalogue[tile.Num].Add(piece);
+                    pieces.Add(piece);
                 }
 
                 // add all the rotations of the flipped OG tile
-                piece = _catalogue[tile.Num][0].Flip();
-                _catalogue[tile.Num].Add(piece);
+                piece = pieces[0].Flip();
+                pieces.Add(piece);
                 for (int j = 0; j < 3; j++)
                 {
                     piece = piece.Rotate();
-                    _catalogue[tile.Num].Add(piece);
+                    pieces.Add(piece);
                 }
+
+                catalogue.Add(tile.Num, pieces);
             }
 
             // We need a tile to start with, so take one of the corner pieces and find two other edges which match it.
@@ -328,12 +378,12 @@ namespace _2020
             HashSet<string> alreadyUsed = new HashSet<string>();
             alreadyUsed.Add(cornerID);
             Piece startingPiece = null;
-            foreach (Piece corner in _catalogue[cornerID])
+            foreach (Piece corner in catalogue.AllTransformsOf(cornerID))
             {
                 Neighbour neighbour1 = null, neighbour2 = null;
                 foreach (var e in Piece.EdgeNums)
                 {
-                    neighbour1 = findMatch(corner.Edges[e], alreadyUsed);
+                    neighbour1 = findMatch(catalogue, corner.Edges[e], alreadyUsed);
                     if (neighbour1 is not null)
                     {
                         neighbour1.ParentEdge = e;
@@ -345,14 +395,14 @@ namespace _2020
                 {
                     if (e == neighbour1.ParentEdge)
                         continue;
-                    neighbour2 = findMatch(corner.Edges[e], alreadyUsed);
+                    neighbour2 = findMatch(catalogue, corner.Edges[e], alreadyUsed);
                     if (neighbour2 is not null)
                     {
                         neighbour2.ParentEdge = e;
                         break;
                     }
                 }
-                
+
                 if (neighbour1 != null && neighbour2 != null)
                 {
                     startingPiece = corner;
@@ -364,39 +414,39 @@ namespace _2020
 
             // Alright! We have our corner piece! Let's create our matrix of the pieces, and figure out which corner we
             // have
-            _imgWidth = (int)Math.Floor(Math.Sqrt(_tiles.Count));
-            Piece[,] image = new Piece[_imgWidth, _imgWidth];
-            int startRow = -1, startCol = -1;
-            if (startingPiece.UsedEdges.Contains(Piece.BOTTOM) && startingPiece.UsedEdges.Contains(Piece.RIGHT))
-            {
-                image[0, 0] = startingPiece; // Top-Left
-                startingPiece.UsedEdges = new HashSet<short>(new List<short>(){ Piece.TOP, Piece.LEFT});
-                startRow = 0;
-                startCol = 0;
-            }
-            else if (startingPiece.UsedEdges.Contains(Piece.BOTTOM) && startingPiece.UsedEdges.Contains(Piece.LEFT))
-            {
-                image[0, _imgWidth - 1] = startingPiece; // Top-Right
-                startingPiece.UsedEdges = new HashSet<short>(new List<short>() { Piece.TOP, Piece.RIGHT });
-                startRow = 0;
-                startCol = _imgWidth - 1;
-            }
-            else if (startingPiece.UsedEdges.Contains(Piece.TOP) && startingPiece.UsedEdges.Contains(Piece.RIGHT))
-            {
-                image[_imgWidth - 1, 0] = startingPiece; // Bottom-Left
-                startingPiece.UsedEdges = new HashSet<short>(new List<short>() { Piece.BOTTOM, Piece.LEFT });
-                startRow = _imgWidth - 1;
-                startCol = 0;
-            }
-            else if (startingPiece.UsedEdges.Contains(Piece.BOTTOM) && startingPiece.UsedEdges.Contains(Piece.RIGHT))
-            {
-                image[_imgWidth - 1, _imgWidth - 1] = startingPiece; // Bottom-Right
-                startingPiece.UsedEdges = new HashSet<short>(new List<short>() { Piece.BOTTOM, Piece.RIGHT });
-                startRow = _imgWidth - 1;
-                startCol = _imgWidth - 1;
-            }
+            //_imgWidth = (int)Math.Floor(Math.Sqrt(_tiles.Count));
+            //Piece[,] image = new Piece[_imgWidth, _imgWidth];
+            //int startRow = -1, startCol = -1;
+            //if (startingPiece.UsedEdges.Contains(Piece.BOTTOM) && startingPiece.UsedEdges.Contains(Piece.RIGHT))
+            //{
+            //    image[0, 0] = startingPiece; // Top-Left
+            //    startingPiece.UsedEdges = new HashSet<short>(new List<short>(){ Piece.TOP, Piece.LEFT});
+            //    startRow = 0;
+            //    startCol = 0;
+            //}
+            //else if (startingPiece.UsedEdges.Contains(Piece.BOTTOM) && startingPiece.UsedEdges.Contains(Piece.LEFT))
+            //{
+            //    image[0, _imgWidth - 1] = startingPiece; // Top-Right
+            //    startingPiece.UsedEdges = new HashSet<short>(new List<short>() { Piece.TOP, Piece.RIGHT });
+            //    startRow = 0;
+            //    startCol = _imgWidth - 1;
+            //}
+            //else if (startingPiece.UsedEdges.Contains(Piece.TOP) && startingPiece.UsedEdges.Contains(Piece.RIGHT))
+            //{
+            //    image[_imgWidth - 1, 0] = startingPiece; // Bottom-Left
+            //    startingPiece.UsedEdges = new HashSet<short>(new List<short>() { Piece.BOTTOM, Piece.LEFT });
+            //    startRow = _imgWidth - 1;
+            //    startCol = 0;
+            //}
+            //else if (startingPiece.UsedEdges.Contains(Piece.BOTTOM) && startingPiece.UsedEdges.Contains(Piece.RIGHT))
+            //{
+            //    image[_imgWidth - 1, _imgWidth - 1] = startingPiece; // Bottom-Right
+            //    startingPiece.UsedEdges = new HashSet<short>(new List<short>() { Piece.BOTTOM, Piece.RIGHT });
+            //    startRow = _imgWidth - 1;
+            //    startCol = _imgWidth - 1;
+            //}
 
-            matchPieces(startingPiece, image, startRow, startCol, new HashSet<string>(new List<string>() { startingPiece.ID }));
+            //matchPieces(startingPiece, image, startRow, startCol, new HashSet<string>(new List<string>() { startingPiece.ID }));
         }
     }
 }

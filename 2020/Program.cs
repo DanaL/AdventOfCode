@@ -36,7 +36,7 @@ if (args.Length == 0 || !int.TryParse(args[0], out day))
         ++day;
 }
 
-//day = 20;
+day = 20;
 
 Console.WriteLine($"Solving Day {day}");
 if (!days.ContainsKey(day))
