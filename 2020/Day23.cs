@@ -69,7 +69,6 @@ namespace _2020
                 Node n = new Node(v);
                 index[v] = n;
                 prev.Next = n;
-                //n.Prev = prev;
                 prev = n;
 
                 if (v > highestID)
