@@ -339,7 +339,6 @@ namespace _2020
 
         private void stitchImageTogether(Catalogue catalogue, Piece topLeft)
         {
-            // Alright! We have our top-left corner! Let's create our matrix of the pieces and add the corner to it.
             _imgWidth = (int)Math.Floor(Math.Sqrt(_tiles.Count));
             Piece[,] image = new Piece[_imgWidth, _imgWidth];
             image[0, 0] = topLeft;
@@ -360,48 +359,48 @@ namespace _2020
                 }
             }
 
-            Console.WriteLine("buh?");
+            dumpImage(image);
         }
 
-        //private void dumpImage(Piece[,] image)
-        //{
-        //    Console.WriteLine("The image so far:");
-        //    char[,] pixels = new char[_imgWidth * 10, _imgWidth * 10];
-        //    for (int r = 0; r < _imgWidth; r++)
-        //    {
-        //        for (int c = 0; c < _imgWidth; c++)
-        //        {
-        //            List<char> txt;
-        //            if (image[r, c] is null)
-        //            {
-        //                txt = new List<char>();
-        //                for (int j = 0; j < 100; j++)
-        //                    txt.Add(' ');
-        //            }
-        //            else
-        //                txt = image[r, c].Pixels.ToCharArray().ToList();
+        private void dumpImage(Piece[,] image)
+        {
+            Console.WriteLine("The image so far:");
+            char[,] pixels = new char[_imgWidth * 10, _imgWidth * 10];
+            for (int r = 0; r < _imgWidth; r++)
+            {
+                for (int c = 0; c < _imgWidth; c++)
+                {
+                    List<char> txt;
+                    if (image[r, c] is null)
+                    {
+                        txt = new List<char>();
+                        for (int j = 0; j < 100; j++)
+                            txt.Add(' ');
+                    }
+                    else
+                        txt = image[r, c].Pixels.ToCharArray().ToList();
 
-        //            // Okay, I have the pixels to draw in a 1D array, now write them to
-        //            // the grid of pxiels
-        //            for (int i = 0; i < 100; i ++)
-        //            {
-        //                int pr = i / 10;
-        //                int pc = i % 10;
+                    // Okay, I have the pixels to draw in a 1D array, now write them to
+                    // the grid of pxiels
+                    for (int i = 0; i < 100; i++)
+                    {
+                        int pr = i / 10;
+                        int pc = i % 10;
 
-        //                // But I have to transpose them to the larger matrix
-        //                pixels[r * 10 + pr, c * 10 + pc] = txt[i];
-        //            }                   
-        //        }
-        //    }
+                        // But I have to transpose them to the larger matrix
+                        pixels[r * 10 + pr, c * 10 + pc] = txt[i];
+                    }
+                }
+            }
 
-        //    for (int r = 0; r < _imgWidth * 10; r++)
-        //    {
-        //        char[] row = new char[_imgWidth * 10];
-        //        for (int c = 0; c < _imgWidth * 10; c++)
-        //            row[c] = pixels[r, c];
-        //        Console.WriteLine(string.Concat(row));
-        //    }
-        //}
+            for (int r = 0; r < _imgWidth * 10; r++)
+            {
+                char[] row = new char[_imgWidth * 10];
+                for (int c = 0; c < _imgWidth * 10; c++)
+                    row[c] = pixels[r, c];
+                Console.WriteLine(string.Concat(row));
+            }
+        }
 
         public void Solve()
         {
