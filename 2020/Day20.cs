@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using Priority_Queue;
-
 namespace _2020
 {
     struct Query
@@ -20,47 +18,6 @@ namespace _2020
             Bottom = b;
             Left = l;
             Right = r;
-        }
-    }
-
-    struct Possibility
-    {
-        public string PieceID { get; init; }
-        public int CatalogueID { get; init; }
-        
-        public Possibility(string pieceID, int catalogueID)
-        {
-            PieceID = pieceID;
-            CatalogueID = catalogueID;
-        }
-    }
-
-    class Image : IComparable
-    {
-        public Possibility[,] Pieces { get; set;  }
-        public HashSet<string> AlreadyUsed { get; set; }
-        private int width { get; init; }
-        public int EmptySqs { get; set; }
-
-        public Image(int size)
-        {
-            width = size;
-            Pieces = new Possibility[size, size];
-            AlreadyUsed = new HashSet<string>();
-            EmptySqs = width * width;
-        }
-
-        public void Add(Possibility opt, int row, int col)
-        {
-            Pieces[row, col] = opt;
-            --EmptySqs;
-        }
-
-        public int CompareTo(object obj)
-        {
-            var other = (Image)obj;
-
-            return this.EmptySqs.CompareTo(other.EmptySqs);
         }
     }
 
@@ -181,7 +138,7 @@ namespace _2020
             return pieceIDs;
         }
 
-        public IEnumerable<(Piece, int)> AllPiecesExcept(HashSet<string> excluded)
+        public IEnumerable<Piece> AllPiecesExcept(HashSet<string> excluded)
         {
             // This should be cached or pre-generated, I think
             HashSet<int> excludedIDs = new HashSet<int>();
@@ -195,7 +152,7 @@ namespace _2020
             {
                 if (excludedIDs.Contains(j))
                     continue;
-                yield return (Pieces[j], j);
+                yield return Pieces[j];
             }
         }
     }
@@ -284,11 +241,10 @@ namespace _2020
             return -1;
         }
 
-        private (Piece, int) findMatch(Catalogue catalogue, Query query, HashSet<string> alreadyUsed)
+        private Piece findMatch(Catalogue catalogue, Query query, HashSet<string> alreadyUsed)
         {
-            foreach ((Piece, int) option in catalogue.AllPiecesExcept(alreadyUsed))
+            foreach (Piece candidate in catalogue.AllPiecesExcept(alreadyUsed))
             {
-                var candidate = option.Item1;
                 // Need to look for a candidate whose edges match the query's (if not null)
                 // Ie., given:
                 //
@@ -327,10 +283,10 @@ namespace _2020
                     continue;
                 }
 
-                return option;
+                return candidate;
             }
 
-            return (null, -1);
+            return null;
         }
 
         private bool inBounds(int row, int col)
@@ -342,68 +298,69 @@ namespace _2020
             return true;
         }
 
-        private Query queryForLoc(int row, int col, Catalogue catalogue, Image image)
+        private Query queryForLoc(int row, int col, Catalogue catalogue, Piece[,] image)
         {
             string left = null, right = null, top = null, bottom = null;
 
             // Look for the top edge we want to match to
             var adjRow = row - 1;
             var adjCol = col;
-            if (inBounds(adjRow, adjCol) && image.Pieces[adjRow, adjCol].PieceID is string)
-            {
-                var neighbour = catalogue.Pieces[image.Pieces[adjRow, adjCol].CatalogueID];
-                top = neighbour.Edges[Piece.BOTTOM];
+            if (inBounds(adjRow, adjCol) && image[adjRow, adjCol] is Piece)
+            {                
+                top = image[adjRow, adjCol].Edges[Piece.BOTTOM];
             }
 
             // Look for the bottom edge we want to match to
             adjRow = row + 1;
             adjCol = col;
-            if (inBounds(adjRow, adjCol) && image.Pieces[adjRow, adjCol].PieceID is string)
+            if (inBounds(adjRow, adjCol) && image[adjRow, adjCol] is Piece)
             {
-                var neighbour = catalogue.Pieces[image.Pieces[adjRow, adjCol].CatalogueID];
-                bottom = neighbour.Edges[Piece.TOP];
+                bottom = image[adjRow, adjCol].Edges[Piece.TOP];
             }
 
             // Look for the left edge we want to match to
             adjRow = row;
             adjCol = col - 1;
-            if (inBounds(adjRow, adjCol) && image.Pieces[adjRow, adjCol].PieceID is string)
+            if (inBounds(adjRow, adjCol) && image[adjRow, adjCol] is Piece)
             {
-                var neighbour = catalogue.Pieces[image.Pieces[adjRow, adjCol].CatalogueID];
-                left = neighbour.Edges[Piece.RIGHT];
+                left = image[adjRow, adjCol].Edges[Piece.RIGHT];
             }
 
             // Look for the right edge we want to match to
             adjRow = row;
             adjCol = col + 1;
-            if (inBounds(adjRow, adjCol) && image.Pieces[adjRow, adjCol].PieceID is string)
+            if (inBounds(adjRow, adjCol) && image[adjRow, adjCol] is Piece)
             {
-                var neighbour = catalogue.Pieces[image.Pieces[adjRow, adjCol].CatalogueID];
-                right = neighbour.Edges[Piece.LEFT];
+                right = image[adjRow, adjCol].Edges[Piece.LEFT];
             }
 
             return new Query(top, bottom, left, right);
         }
 
-        private void matchPieces(Catalogue catalogue, Image image)
+        private void stitchImageTogether(Catalogue catalogue, Piece topLeft)
         {
+            // Alright! We have our top-left corner! Let's create our matrix of the pieces and add the corner to it.
+            _imgWidth = (int)Math.Floor(Math.Sqrt(_tiles.Count));
+            Piece[,] image = new Piece[_imgWidth, _imgWidth];
+            image[0, 0] = topLeft;
+            
             HashSet<string> alreadyUsed = new HashSet<string>();
-            alreadyUsed.Add(image.Pieces[0, 0].PieceID);
+            alreadyUsed.Add(image[0, 0].ID);
 
-            var q = queryForLoc(1, 0, catalogue, image);
-            var match = findMatch(catalogue, q, alreadyUsed);
-            image.Add(new Possibility(match.Item1.ID, match.Item2), 1, 0);
-            alreadyUsed.Add(match.Item1.ID);
+            for (int row = 0; row < _imgWidth; row++)
+            {
+                for (int col = 0; col < _imgWidth; col++)
+                {
+                    if (row == 0 && col == 0)
+                        continue;
+                    var q = queryForLoc(row, col, catalogue, image);
+                    var match = findMatch(catalogue, q, alreadyUsed);
+                    image[row, col] = match;
+                    alreadyUsed.Add(match.ID);
+                }
+            }
 
-            q = queryForLoc(0, 1, catalogue, image);
-            match = findMatch(catalogue, q, alreadyUsed);
-            image.Add(new Possibility(match.Item1.ID, match.Item2), 0, 1);
-            alreadyUsed.Add(match.Item1.ID);
-
-            q = queryForLoc(1, 1, catalogue, image);
-            match = findMatch(catalogue, q, alreadyUsed);
-            image.Add(new Possibility(match.Item1.ID, match.Item2), 1, 1);
-            alreadyUsed.Add(match.Item1.ID);
+            Console.WriteLine("buh?");
         }
 
         //private void dumpImage(Piece[,] image)
@@ -487,27 +444,20 @@ namespace _2020
             HashSet<string> alreadyUsed = new HashSet<string>();
             alreadyUsed.Add(corners[0].Num);
             Piece startingPiece = null;
-            Possibility possibility = new Possibility(null, -1);
             foreach (int id in catalogue.AllTransformIDsOf(corners[0].Num))
             {
                 Piece corner = catalogue.Pieces[id];
-                (Piece, int) match1 = findMatch(catalogue, new Query(corner.Edges[Piece.BOTTOM], null, null, null), alreadyUsed);                
-                (Piece, int) match2 = findMatch(catalogue, new Query(null, null, corner.Edges[Piece.RIGHT], null), alreadyUsed);
+                Piece match1 = findMatch(catalogue, new Query(corner.Edges[Piece.BOTTOM], null, null, null), alreadyUsed);                
+                Piece match2 = findMatch(catalogue, new Query(null, null, corner.Edges[Piece.RIGHT], null), alreadyUsed);
 
-                if (match1.Item1 is Piece && match2.Item1 is Piece)
+                if (match1 is Piece && match2 is Piece)
                 {
                     startingPiece = corner;
-                    possibility = new Possibility(corner.ID, id);
                     break;
                 }
             }
-
-            // Alright! We have our top-left corner! Let's create our matrix of the pieces and add the corner to it.
-            _imgWidth = (int)Math.Floor(Math.Sqrt(_tiles.Count));
-            Image image = new Image(_imgWidth);
-            image.AlreadyUsed.Add(startingPiece.ID);
-            image.Add(possibility, 0, 0); // We found the top-left corner (or *a* top-left corner, really)            
-            matchPieces(catalogue, image);
+       
+            stitchImageTogether(catalogue, startingPiece);
         }
     }
 }
