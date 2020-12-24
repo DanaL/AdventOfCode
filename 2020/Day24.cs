@@ -66,7 +66,17 @@ namespace _2020
                  .Select(b => (tile.Item1 + b.Item1, tile.Item2 + b.Item2, tile.Item3 + b.Item3))
                  .Where(c => tiles.ContainsKey(c) && tiles[c])
                  .Count();
+        }
 
+        private void fillInAdjacent((int, int, int) tile, Dictionary<(int, int, int), bool> tiles)
+        {
+            foreach (string d in _dirs)
+            {
+                var delta = dirToCoords(d);
+                var adj = (tile.Item1 + delta.Item1, tile.Item2 + delta.Item2, tile.Item3 + delta.Item3);
+                if (!tiles.ContainsKey(adj))
+                    tiles.Add(adj, false);
+            }
         }
 
         private Dictionary<(int, int, int), bool> iterate(Dictionary<(int, int, int), bool> tiles)
@@ -81,22 +91,10 @@ namespace _2020
                     next.Add(k, adj == 2);
             }
 
-            var keys = next.Keys.Select(k => k).ToArray();
-            foreach (var k in keys)
+            foreach (var k in next.Keys.Select(k => k).ToArray())
                 fillInAdjacent(k, next);
 
             return next;
-        }
-
-        private void fillInAdjacent((int, int, int) tile, Dictionary<(int, int, int), bool> tiles)
-        {
-            foreach (string d in _dirs)
-            {
-                var delta = dirToCoords(d);
-                var adj = (tile.Item1 + delta.Item1, tile.Item2 + delta.Item2, tile.Item3 + delta.Item3);
-                if (!tiles.ContainsKey(adj))
-                    tiles.Add(adj, false);
-            }
         }
 
         public void Solve()
