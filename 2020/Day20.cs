@@ -4,7 +4,19 @@ using System.IO;
 using System.Linq;
 
 namespace _2020
-{  
+{
+    struct Possibility
+    {
+        public string PieceID { get; init; }
+        public int CatalogueID { get; init; }
+
+        public Possibility(string pieceID, int catalogueID)
+        {
+            PieceID = pieceID;
+            CatalogueID = catalogueID;
+        }
+    }
+
     class Tile
     {
         public string Num { get; set; }
@@ -124,14 +136,14 @@ namespace _2020
                 Pieces[openIndex] = pieces[j];
         }
 
-        public List<Piece> AllTransformsOf(string pieceID)
+        public List<int> AllTransformIDsOf(string pieceID)
         {
             int index = idMap[pieceID];
-            List<Piece> pieces = new List<Piece>();
+            List<int> pieceIDs = new List<int>();
             for (int j = 0; j < 8; j++)
-                pieces.Add(Pieces[index + j]);
+                pieceIDs.Add(index + j);
 
-            return pieces;
+            return pieceIDs;
         }
 
         public IEnumerable<Piece> AllPiecesExcept(HashSet<string> excluded)
@@ -296,45 +308,45 @@ namespace _2020
         //    dumpImage(image);
         //}
 
-        private void dumpImage(Piece[,] image)
-        {
-            Console.WriteLine("The image so far:");
-            char[,] pixels = new char[_imgWidth * 10, _imgWidth * 10];
-            for (int r = 0; r < _imgWidth; r++)
-            {
-                for (int c = 0; c < _imgWidth; c++)
-                {
-                    List<char> txt;
-                    if (image[r, c] is null)
-                    {
-                        txt = new List<char>();
-                        for (int j = 0; j < 100; j++)
-                            txt.Add(' ');
-                    }
-                    else
-                        txt = image[r, c].Pixels.ToCharArray().ToList();
+        //private void dumpImage(Piece[,] image)
+        //{
+        //    Console.WriteLine("The image so far:");
+        //    char[,] pixels = new char[_imgWidth * 10, _imgWidth * 10];
+        //    for (int r = 0; r < _imgWidth; r++)
+        //    {
+        //        for (int c = 0; c < _imgWidth; c++)
+        //        {
+        //            List<char> txt;
+        //            if (image[r, c] is null)
+        //            {
+        //                txt = new List<char>();
+        //                for (int j = 0; j < 100; j++)
+        //                    txt.Add(' ');
+        //            }
+        //            else
+        //                txt = image[r, c].Pixels.ToCharArray().ToList();
 
-                    // Okay, I have the pixels to draw in a 1D array, now write them to
-                    // the grid of pxiels
-                    for (int i = 0; i < 100; i ++)
-                    {
-                        int pr = i / 10;
-                        int pc = i % 10;
+        //            // Okay, I have the pixels to draw in a 1D array, now write them to
+        //            // the grid of pxiels
+        //            for (int i = 0; i < 100; i ++)
+        //            {
+        //                int pr = i / 10;
+        //                int pc = i % 10;
 
-                        // But I have to transpose them to the larger matrix
-                        pixels[r * 10 + pr, c * 10 + pc] = txt[i];
-                    }                   
-                }
-            }
+        //                // But I have to transpose them to the larger matrix
+        //                pixels[r * 10 + pr, c * 10 + pc] = txt[i];
+        //            }                   
+        //        }
+        //    }
 
-            for (int r = 0; r < _imgWidth * 10; r++)
-            {
-                char[] row = new char[_imgWidth * 10];
-                for (int c = 0; c < _imgWidth * 10; c++)
-                    row[c] = pixels[r, c];
-                Console.WriteLine(string.Concat(row));
-            }
-        }
+        //    for (int r = 0; r < _imgWidth * 10; r++)
+        //    {
+        //        char[] row = new char[_imgWidth * 10];
+        //        for (int c = 0; c < _imgWidth * 10; c++)
+        //            row[c] = pixels[r, c];
+        //        Console.WriteLine(string.Concat(row));
+        //    }
+        //}
 
         public void Solve()
         {
@@ -378,8 +390,10 @@ namespace _2020
             HashSet<string> alreadyUsed = new HashSet<string>();
             alreadyUsed.Add(cornerID);
             Piece startingPiece = null;
-            foreach (Piece corner in catalogue.AllTransformsOf(cornerID))
+            Possibility possibility = new Possibility(null, -1);
+            foreach (int id in catalogue.AllTransformIDsOf(cornerID))
             {
+                Piece corner = catalogue.Pieces[id];
                 Neighbour neighbour1 = null, neighbour2 = null;
                 foreach (var e in Piece.EdgeNums)
                 {
@@ -405,6 +419,7 @@ namespace _2020
 
                 if (neighbour1 != null && neighbour2 != null)
                 {
+                    possibility = new Possibility(corner.ID, id);
                     startingPiece = corner;
                     startingPiece.UsedEdges.Add(neighbour1.ParentEdge);
                     startingPiece.UsedEdges.Add(neighbour2.ParentEdge);
@@ -414,37 +429,37 @@ namespace _2020
 
             // Alright! We have our corner piece! Let's create our matrix of the pieces, and figure out which corner we
             // have
-            //_imgWidth = (int)Math.Floor(Math.Sqrt(_tiles.Count));
-            //Piece[,] image = new Piece[_imgWidth, _imgWidth];
-            //int startRow = -1, startCol = -1;
-            //if (startingPiece.UsedEdges.Contains(Piece.BOTTOM) && startingPiece.UsedEdges.Contains(Piece.RIGHT))
-            //{
-            //    image[0, 0] = startingPiece; // Top-Left
-            //    startingPiece.UsedEdges = new HashSet<short>(new List<short>(){ Piece.TOP, Piece.LEFT});
-            //    startRow = 0;
-            //    startCol = 0;
-            //}
-            //else if (startingPiece.UsedEdges.Contains(Piece.BOTTOM) && startingPiece.UsedEdges.Contains(Piece.LEFT))
-            //{
-            //    image[0, _imgWidth - 1] = startingPiece; // Top-Right
-            //    startingPiece.UsedEdges = new HashSet<short>(new List<short>() { Piece.TOP, Piece.RIGHT });
-            //    startRow = 0;
-            //    startCol = _imgWidth - 1;
-            //}
-            //else if (startingPiece.UsedEdges.Contains(Piece.TOP) && startingPiece.UsedEdges.Contains(Piece.RIGHT))
-            //{
-            //    image[_imgWidth - 1, 0] = startingPiece; // Bottom-Left
-            //    startingPiece.UsedEdges = new HashSet<short>(new List<short>() { Piece.BOTTOM, Piece.LEFT });
-            //    startRow = _imgWidth - 1;
-            //    startCol = 0;
-            //}
-            //else if (startingPiece.UsedEdges.Contains(Piece.BOTTOM) && startingPiece.UsedEdges.Contains(Piece.RIGHT))
-            //{
-            //    image[_imgWidth - 1, _imgWidth - 1] = startingPiece; // Bottom-Right
-            //    startingPiece.UsedEdges = new HashSet<short>(new List<short>() { Piece.BOTTOM, Piece.RIGHT });
-            //    startRow = _imgWidth - 1;
-            //    startCol = _imgWidth - 1;
-            //}
+            _imgWidth = (int)Math.Floor(Math.Sqrt(_tiles.Count));
+            Possibility[,] image = new Possibility[_imgWidth, _imgWidth];
+            int startRow = -1, startCol = -1;
+            if (startingPiece.UsedEdges.Contains(Piece.BOTTOM) && startingPiece.UsedEdges.Contains(Piece.RIGHT))
+            {
+                image[0, 0] = possibility; // Top-Left
+                startingPiece.UsedEdges = new HashSet<short>(new List<short>() { Piece.TOP, Piece.LEFT });
+                startRow = 0;
+                startCol = 0;
+            }
+            else if (startingPiece.UsedEdges.Contains(Piece.BOTTOM) && startingPiece.UsedEdges.Contains(Piece.LEFT))
+            {
+                image[0, _imgWidth - 1] = possibility; // Top-Right
+                startingPiece.UsedEdges = new HashSet<short>(new List<short>() { Piece.TOP, Piece.RIGHT });
+                startRow = 0;
+                startCol = _imgWidth - 1;
+            }
+            else if (startingPiece.UsedEdges.Contains(Piece.TOP) && startingPiece.UsedEdges.Contains(Piece.RIGHT))
+            {
+                image[_imgWidth - 1, 0] = possibility; // Bottom-Left
+                startingPiece.UsedEdges = new HashSet<short>(new List<short>() { Piece.BOTTOM, Piece.LEFT });
+                startRow = _imgWidth - 1;
+                startCol = 0;
+            }
+            else if (startingPiece.UsedEdges.Contains(Piece.BOTTOM) && startingPiece.UsedEdges.Contains(Piece.RIGHT))
+            {
+                image[_imgWidth - 1, _imgWidth - 1] = possibility; // Bottom-Right
+                startingPiece.UsedEdges = new HashSet<short>(new List<short>() { Piece.BOTTOM, Piece.RIGHT });
+                startRow = _imgWidth - 1;
+                startCol = _imgWidth - 1;
+            }
 
             //matchPieces(startingPiece, image, startRow, startCol, new HashSet<string>(new List<string>() { startingPiece.ID }));
         }
