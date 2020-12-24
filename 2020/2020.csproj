@@ -29,4 +29,7 @@
     <None Include="bin\Debug\net5.0\inputs\day21.txt" />
     <None Include="bin\Debug\net5.0\inputs\day22.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="OptimizedPriorityQueue" Version="5.0.0" />
+  </ItemGroup>
 </Project>

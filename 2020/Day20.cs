@@ -3,17 +3,49 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using Priority_Queue;
+
 namespace _2020
 {
     struct Possibility
     {
         public string PieceID { get; init; }
         public int CatalogueID { get; init; }
-
+        
         public Possibility(string pieceID, int catalogueID)
         {
             PieceID = pieceID;
             CatalogueID = catalogueID;
+        }
+    }
+
+    class Image : IComparable
+    {
+        public Possibility[,] Pieces { get; set;  }
+        public (int Row, int Col) Next { get; set; }
+        public HashSet<string> AlreadyUsed { get; set; }
+        private int width { get; init; }
+        public int EmptySqs { get; set; }
+
+        public Image(int size)
+        {
+            width = size;
+            Pieces = new Possibility[size, size];
+            AlreadyUsed = new HashSet<string>();
+            EmptySqs = width * width;
+        }
+
+        public void Add(Possibility opt, int row, int col)
+        {
+            Pieces[row, col] = opt;
+            --EmptySqs;
+        }
+
+        public int CompareTo(object obj)
+        {
+            var other = (Image)obj;
+
+            return this.EmptySqs.CompareTo(other.EmptySqs);
         }
     }
 
@@ -276,37 +308,50 @@ namespace _2020
             return true;
         }
 
-        //private void matchPieces(Piece start, Piece[,] image, int row, int col, HashSet<string> alreadyUsed)
-        //{
-        //    // Find which neighbouring cells are in bound and empty
-        //    foreach (var e in Piece.EdgeNums.Where(a => !start.UsedEdges.Contains(a)))
-        //    {
-        //        int adjRow = row, adjCol = col;
-        //        switch (e)
-        //        {
-        //            case Piece.TOP:
-        //                adjRow -= 1;
-        //                break;
-        //            case Piece.BOTTOM:
-        //                adjRow += 1;
-        //                break;
-        //            case Piece.LEFT:
-        //                adjCol -= 1;
-        //                break;
-        //            case Piece.RIGHT:
-        //                adjCol += 1;
-        //                break;
-        //        }
-        //        if (!inBounds(adjRow, adjCol))
-        //            continue;
-        //        if (image[adjRow, adjCol] != null)
-        //            continue;
-        //        Neighbour n = findMatch(start.Edges[e], alreadyUsed);
-        //        image[adjRow, adjCol] = n.Other;              
-        //    }
+        private void matchPieces(Catalogue catalogue, Image start)
+        {
+            SimplePriorityQueue<Image> q = new SimplePriorityQueue<Image>();
+            q.Enqueue(start, start.EmptySqs);
 
-        //    dumpImage(image);
-        //}
+            while (q.Count > 0)
+            {
+                Image img = q.Dequeue();
+                Piece piece = catalogue.Pieces[img.Pieces[img.Next.Row, img.Next.Col].CatalogueID];
+
+                // Find which neighbouring cells are in bounds and empty
+                foreach (var e in Piece.EdgeNums.Where(a => !piece.UsedEdges.Contains(a)))
+                {
+                    int adjRow = img.Next.Row, adjCol = img.Next.Col;
+                    switch (e)
+                    {
+                        case Piece.TOP:
+                            adjRow -= 1;
+                            break;
+                        case Piece.BOTTOM:
+                            adjRow += 1;
+                            break;
+                        case Piece.LEFT:
+                            adjCol -= 1;
+                            break;
+                        case Piece.RIGHT:
+                            adjCol += 1;
+                            break;
+                    }
+                    if (!inBounds(adjRow, adjCol))
+                        continue;
+                    if (img.Pieces[adjRow, adjCol].PieceID != null)
+                        continue;
+                    Neighbour n = findMatch(catalogue, piece.Edges[e], img.AlreadyUsed);
+                    //image[adjRow, adjCol] = n.Other;
+                }
+
+
+            }
+
+
+
+            //    dumpImage(image);
+        }
 
         //private void dumpImage(Piece[,] image)
         //{
@@ -430,38 +475,40 @@ namespace _2020
             // Alright! We have our corner piece! Let's create our matrix of the pieces, and figure out which corner we
             // have
             _imgWidth = (int)Math.Floor(Math.Sqrt(_tiles.Count));
-            Possibility[,] image = new Possibility[_imgWidth, _imgWidth];
+            Image image = new Image(_imgWidth);
+            image.AlreadyUsed.Add(startingPiece.ID);
             int startRow = -1, startCol = -1;
             if (startingPiece.UsedEdges.Contains(Piece.BOTTOM) && startingPiece.UsedEdges.Contains(Piece.RIGHT))
             {
-                image[0, 0] = possibility; // Top-Left
+                image.Add(possibility, 0, 0); // Top Left                
                 startingPiece.UsedEdges = new HashSet<short>(new List<short>() { Piece.TOP, Piece.LEFT });
                 startRow = 0;
                 startCol = 0;
             }
             else if (startingPiece.UsedEdges.Contains(Piece.BOTTOM) && startingPiece.UsedEdges.Contains(Piece.LEFT))
             {
-                image[0, _imgWidth - 1] = possibility; // Top-Right
+                image.Add(possibility, 0, _imgWidth - 1); // Top-Right
                 startingPiece.UsedEdges = new HashSet<short>(new List<short>() { Piece.TOP, Piece.RIGHT });
                 startRow = 0;
                 startCol = _imgWidth - 1;
             }
             else if (startingPiece.UsedEdges.Contains(Piece.TOP) && startingPiece.UsedEdges.Contains(Piece.RIGHT))
             {
-                image[_imgWidth - 1, 0] = possibility; // Bottom-Left
+                image.Add(possibility, _imgWidth - 1, 0); // Bottom-Left
                 startingPiece.UsedEdges = new HashSet<short>(new List<short>() { Piece.BOTTOM, Piece.LEFT });
                 startRow = _imgWidth - 1;
                 startCol = 0;
             }
             else if (startingPiece.UsedEdges.Contains(Piece.BOTTOM) && startingPiece.UsedEdges.Contains(Piece.RIGHT))
             {
-                image[_imgWidth - 1, _imgWidth - 1] = possibility; // Bottom-Right
+                image.Add(possibility, _imgWidth - 1, _imgWidth - 1); // Bottom-Right
                 startingPiece.UsedEdges = new HashSet<short>(new List<short>() { Piece.BOTTOM, Piece.RIGHT });
                 startRow = _imgWidth - 1;
                 startCol = _imgWidth - 1;
             }
 
-            //matchPieces(startingPiece, image, startRow, startCol, new HashSet<string>(new List<string>() { startingPiece.ID }));
+            image.Next = (startRow, startCol);
+            matchPieces(catalogue, image);
         }
     }
 }
