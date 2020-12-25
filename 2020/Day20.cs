@@ -486,8 +486,7 @@ namespace _2020
             // Now, find an orientation which contains sea monsters!
             foreach (int cornerID in allCornerIDs)
             {
-                // We need a tile to start with, so take one of the corner pieces and find two other edges which match it.
-                // Conceptually, this will be the top left corner of my image.
+                // Find one of the possible tiles to use as the top-left corner
                 HashSet<string> alreadyUsed = new HashSet<string>();
                 alreadyUsed.Add(catalogue.Pieces[cornerID].ID);
                 foreach (int id in catalogue.AllTransformIDsOf(catalogue.Pieces[cornerID].ID))
