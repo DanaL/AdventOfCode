@@ -337,7 +337,7 @@ namespace _2020
             return new Query(top, bottom, left, right);
         }
 
-        private void stitchImageTogether(Catalogue catalogue, Piece topLeft)
+        private char[,] stitchImageTogether(Catalogue catalogue, Piece topLeft)
         {
             _imgWidth = (int)Math.Floor(Math.Sqrt(_tiles.Count));
             Piece[,] image = new Piece[_imgWidth, _imgWidth];
@@ -359,79 +359,40 @@ namespace _2020
                 }
             }
 
-            dumpImage(image);
+            return removeBorders(image);
         }
 
-        private char[] removeBorders(Piece[,] image)
+        private char[,] removeBorders(Piece[,] image)
         {
             char[,] pixels = new char[_imgWidth * 8, _imgWidth * 8];
 
-            for (int r = 1; r < _imgWidth - 1; r++)
-            {
-                for (int c = 1; c < _imgWidth - 1; c++)
-                {
-
-                    List<char> txt;
-                    if (image[r, c] is null)
-                    {
-                        txt = new List<char>();
-                        for (int j = 0; j < 100; j++)
-                            txt.Add(' ');
-                    }
-                    else
-                        txt = image[r, c].Pixels.ToCharArray().ToList();
-
-                    // Okay, I have the pixels to draw in a 1D array, now write them to
-                    // the grid of pxiels
-                    for (int i = 0; i < 100; i++)
-                    {
-                        int pr = i / 10;
-                        int pc = i % 10;
-
-                        // But I have to transpose them to the larger matrix
-                        pixels[r * 10 + pr, c * 10 + pc] = txt[i];
-                    }
-                }
-            }
-
-        private void dumpImage(Piece[,] image)
-        {
-            Console.WriteLine("The image so far:");
-            char[,] pixels = new char[_imgWidth * 10, _imgWidth * 10];
             for (int r = 0; r < _imgWidth; r++)
             {
                 for (int c = 0; c < _imgWidth; c++)
                 {
-                    List<char> txt;
-                    if (image[r, c] is null)
+
+                    List<char> txt = new List<char>();
+                    for (int i = 11; i < 90; i++)
                     {
-                        txt = new List<char>();
-                        for (int j = 0; j < 100; j++)
-                            txt.Add(' ');
+                        if (i % 9 == 0 || i % 10 == 0)
+                            continue;
+                        txt.Add(image[r, c].Pixels[i]);
                     }
-                    else
-                        txt = image[r, c].Pixels.ToCharArray().ToList();
 
                     // Okay, I have the pixels to draw in a 1D array, now write them to
                     // the grid of pxiels
-                    for (int i = 0; i < 100; i++)
+                    for (int i = 0; i < 64; i++)
                     {
-                        int pr = i / 10;
-                        int pc = i % 10;
+                        int pr = i / 8;
+                        int pc = i % 8;
 
                         // But I have to transpose them to the larger matrix
-                        pixels[r * 10 + pr, c * 10 + pc] = txt[i];
+                        pixels[r * 8 + pr, c * 8 + pc] = txt[i];
                     }
                 }
             }
 
-            for (int r = 0; r < _imgWidth * 10; r++)
-            {
-                char[] row = new char[_imgWidth * 10];
-                for (int c = 0; c < _imgWidth * 10; c++)
-                    row[c] = pixels[r, c];
-                Console.WriteLine(string.Concat(row));
-            }
+            return pixels;
         }
 
         public void Solve()
@@ -488,7 +449,7 @@ namespace _2020
                 }
             }
        
-            stitchImageTogether(catalogue, startingPiece);
+            char[,] pixels = stitchImageTogether(catalogue, startingPiece);
         }
     }
 }
