@@ -159,10 +159,8 @@ namespace _2020
 
     public class Day20 : IDay
     {
-        private readonly List<(int, int)> _deltas = new List<(int, int)>() { (-1, 0), (1, 0), (0, 1), (0, -1) };
         private Dictionary<string, int> _edgesSeen = new Dictionary<string, int>();
         private List<Tile> _tiles = new List<Tile>();
-        private Dictionary<string, List<Piece>> _catalogue = new Dictionary<string, List<Piece>>();
         private int _imgWidth;
 
         // The sea monster is:
@@ -238,17 +236,6 @@ namespace _2020
             }
 
             return c == 2;
-        }
-
-        private short compareEdges(string edge, Piece p2)
-        {            
-            foreach (var e2 in p2.Edges.Keys)
-            {
-                if (edge == p2.Edges[e2])
-                    return e2;
-            }
-
-            return -1;
         }
 
         private Piece findMatch(Catalogue catalogue, Query query, HashSet<string> alreadyUsed)
@@ -416,8 +403,9 @@ namespace _2020
             }
         }
 
-        private void idSeaMonsters(char[,] pixels)
+        private int countSeaMonsters(char[,] pixels)
         {
+            HashSet<(int, int)> monsterSqs = new HashSet<(int, int)>();
             int monsterCount = 0;
             for (int r = 0; r < _imgWidth * 8 - 3; r ++)
             {
@@ -434,11 +422,21 @@ namespace _2020
                     }
 
                     if (found)
+                    {
                         ++monsterCount;
+                        foreach (var offset in _seaMonster)
+                            monsterSqs.Add((r + offset.Item1, c + offset.Item2));                        
+                    }
                 }
             }
 
-            Console.WriteLine($"P2: {monsterCount}");
+            if (monsterCount > 0)
+            {
+                foreach ((int, int) loc in monsterSqs)
+                    pixels[loc.Item1, loc.Item2] = '0';
+            }
+
+            return monsterCount;
         }
 
         public void Solve()
@@ -477,27 +475,41 @@ namespace _2020
                 catalogue.Add(tile.Num, pieces);
             }
 
-            // We need a tile to start with, so take one of the corner pieces and find two other edges which match it.
-            // Conceptually, this will be the top left corner of my image.
-            HashSet<string> alreadyUsed = new HashSet<string>();
-            alreadyUsed.Add(corners[0].Num);
-            Piece startingPiece = null;
-            foreach (int id in catalogue.AllTransformIDsOf(corners[0].Num))
+            // Lazy coder's way to check all orientations of the map: generate each possible map
+            // with each possible orientation of a top-left corner because I already have that working.
+            List<int> allCornerIDs = new List<int>();
+            foreach (var corner in corners)
             {
-                Piece corner = catalogue.Pieces[id];
-                Piece match1 = findMatch(catalogue, new Query(corner.Edges[Piece.BOTTOM], null, null, null), alreadyUsed);                
-                Piece match2 = findMatch(catalogue, new Query(null, null, corner.Edges[Piece.RIGHT], null), alreadyUsed);
-
-                if (match1 is Piece && match2 is Piece)
-                {
-                    startingPiece = corner;
-                    break;
-                }
+                allCornerIDs.AddRange(catalogue.AllTransformIDsOf(corner.Num));
             }
-       
-            char[,] pixels = stitchImageTogether(catalogue, startingPiece);
-            dumpImage(pixels);
-            idSeaMonsters(pixels);
+
+            // Now, find an orientation which contains sea monsters!
+            foreach (int cornerID in allCornerIDs)
+            {
+                // We need a tile to start with, so take one of the corner pieces and find two other edges which match it.
+                // Conceptually, this will be the top left corner of my image.
+                HashSet<string> alreadyUsed = new HashSet<string>();
+                alreadyUsed.Add(catalogue.Pieces[cornerID].ID);
+                foreach (int id in catalogue.AllTransformIDsOf(catalogue.Pieces[cornerID].ID))
+                {
+                    Piece corner = catalogue.Pieces[id];
+                    Piece match1 = findMatch(catalogue, new Query(corner.Edges[Piece.BOTTOM], null, null, null), alreadyUsed);
+                    Piece match2 = findMatch(catalogue, new Query(null, null, corner.Edges[Piece.RIGHT], null), alreadyUsed);
+
+                    if (match1 is Piece && match2 is Piece)
+                    {
+                        char[,] pixels = stitchImageTogether(catalogue, corner);
+                        int monsters = countSeaMonsters(pixels);
+                        if (monsters > 0)
+                        {
+                            dumpImage(pixels);
+                            Console.WriteLine($"Found {monsters} sea monsters");
+                            Console.WriteLine($"P2: {pixels.Cast<char>().Where(c => c == '#').Count()}");
+                            return;
+                        }                        
+                    }
+                }
+            }            
         }
     }
 }
