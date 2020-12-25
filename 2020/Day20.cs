@@ -165,6 +165,16 @@ namespace _2020
         private Dictionary<string, List<Piece>> _catalogue = new Dictionary<string, List<Piece>>();
         private int _imgWidth;
 
+        // The sea monster is:
+        //                   # 
+        // #    ##    ##    ###
+        //  #  #  #  #  #  #   
+        //
+        // So I want to make a hashset that is those offsets in order to search through the grid
+        private HashSet<(int, int)> _seaMonster = new HashSet<(int, int)>() {
+            (0, 18), (1, 0), (1, 5), (1, 6), (1, 11), (1, 12), (1, 17), (1, 18), (1, 19),
+            (2, 1), (2, 4), (2, 7), (2, 10), (2, 13), (2, 16) };
+
         public Day20() { }
 
         private string reverse(string s)
@@ -370,13 +380,13 @@ namespace _2020
             {
                 for (int c = 0; c < _imgWidth; c++)
                 {
-
                     List<char> txt = new List<char>();
-                    for (int i = 11; i < 90; i++)
+                    for (int i = 10; i < 90; i += 10)
                     {
-                        if (i % 9 == 0 || i % 10 == 0)
-                            continue;
-                        txt.Add(image[r, c].Pixels[i]);
+                        for (int j = 1; j <= 8; j++)
+                        {
+                            txt.Add(image[r, c].Pixels[i + j]);
+                        }                        
                     }
 
                     // Okay, I have the pixels to draw in a 1D array, now write them to
@@ -386,13 +396,49 @@ namespace _2020
                         int pr = i / 8;
                         int pc = i % 8;
 
-                        // But I have to transpose them to the larger matrix
+                        // But I have to transpose them to the larger matri%x
                         pixels[r * 8 + pr, c * 8 + pc] = txt[i];
                     }
                 }
             }
 
             return pixels;
+        }
+
+        private void dumpImage(char[,] pixels)
+        {
+            for (int r = 0; r < _imgWidth * 8; r++)
+            {
+                List<char> line = new List<char>();
+                for (int c = 0; c < _imgWidth * 8; c++)
+                    line.Add(pixels[r, c]);
+                Console.WriteLine(string.Concat(line));
+            }
+        }
+
+        private void idSeaMonsters(char[,] pixels)
+        {
+            int monsterCount = 0;
+            for (int r = 0; r < _imgWidth * 8 - 3; r ++)
+            {
+                for (int c = 0; c < _imgWidth * 8 - 19; c++)
+                {
+                    bool found = true;
+                    foreach (var offset in _seaMonster)
+                    {                        
+                        if (pixels[r + offset.Item1, c + offset.Item2] != '#')
+                        {
+                            found = false;
+                            break;
+                        }                        
+                    }
+
+                    if (found)
+                        ++monsterCount;
+                }
+            }
+
+            Console.WriteLine($"P2: {monsterCount}");
         }
 
         public void Solve()
@@ -450,6 +496,8 @@ namespace _2020
             }
        
             char[,] pixels = stitchImageTogether(catalogue, startingPiece);
+            dumpImage(pixels);
+            idSeaMonsters(pixels);
         }
     }
 }
