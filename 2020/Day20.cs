@@ -362,6 +362,38 @@ namespace _2020
             dumpImage(image);
         }
 
+        private char[] removeBorders(Piece[,] image)
+        {
+            char[,] pixels = new char[_imgWidth * 8, _imgWidth * 8];
+
+            for (int r = 1; r < _imgWidth - 1; r++)
+            {
+                for (int c = 1; c < _imgWidth - 1; c++)
+                {
+
+                    List<char> txt;
+                    if (image[r, c] is null)
+                    {
+                        txt = new List<char>();
+                        for (int j = 0; j < 100; j++)
+                            txt.Add(' ');
+                    }
+                    else
+                        txt = image[r, c].Pixels.ToCharArray().ToList();
+
+                    // Okay, I have the pixels to draw in a 1D array, now write them to
+                    // the grid of pxiels
+                    for (int i = 0; i < 100; i++)
+                    {
+                        int pr = i / 10;
+                        int pc = i % 10;
+
+                        // But I have to transpose them to the larger matrix
+                        pixels[r * 10 + pr, c * 10 + pc] = txt[i];
+                    }
+                }
+            }
+
         private void dumpImage(Piece[,] image)
         {
             Console.WriteLine("The image so far:");
