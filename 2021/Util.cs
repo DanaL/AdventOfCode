@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace _2021
+﻿namespace _2021
 {
     public interface IDay
     {

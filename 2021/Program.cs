@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using _2021;
 
 Dictionary<int, IDay> days = new Dictionary<int, IDay>();
+days.Add(1, new Day01());
 
 int day;
 if (args.Length == 0 || !int.TryParse(args[0], out day))
