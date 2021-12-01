@@ -8,28 +8,29 @@ namespace _2021
     {
         public Day01() {}
 
-        private int[] fetchLines()
+        public void Solve()
         {
-            return File.ReadAllLines("inputs/day01.txt").Select(i => int.Parse(i)).ToArray();
-        }
+            var lines = File.ReadAllLines("inputs/day01.txt").Select(i => int.Parse(i)).ToArray();
+            int sum = lines[0] + lines[1] + lines[2];
 
-        private void part1()
-        {
-            var lines = fetchLines();
-            
-            int increases = 0;
+            int increasesPt1 = 0;
+            int increasesPt2 = 0;
             for (int j = 1; j < lines.Length; j++)
             {
                 if (lines[j] > lines[j - 1])
-                    ++increases;
+                    ++increasesPt1;
+
+                if (j < 3)
+                    continue;
+
+                int nextSum = sum - lines[j - 3] + lines[j];
+                if (nextSum > sum)
+                    ++increasesPt2;
+                sum = nextSum;
             }
 
-            Console.WriteLine($"Part 1: {increases}");
-        }
-
-        public void Solve()
-        {
-            part1();
+            Console.WriteLine($"Part 1: {increasesPt1}");
+            Console.WriteLine($"Part 2: {increasesPt2}");
         }
     }
 }
