@@ -10,7 +10,7 @@ namespace _2021
 
         public void Solve()
         {
-            var lines = File.ReadAllLines("inputs/day01.txt").Select(i => int.Parse(i)).ToArray();
+            var lines = File.ReadAllLines("inputs/day01.txt").Select(int.Parse).ToArray();
             int sum = lines[0] + lines[1] + lines[2];
 
             int increasesPt1 = 0;
