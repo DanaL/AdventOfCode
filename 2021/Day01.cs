@@ -8,9 +8,14 @@ namespace _2021
     {
         public Day01() {}
 
+        private int[] fetchLines()
+        {
+            return File.ReadAllLines("inputs/day01.txt").Select(i => int.Parse(i)).ToArray();
+        }
+
         private void part1()
         {
-            var lines = File.ReadAllLines("inputs/day01.txt").Select(i => int.Parse(i)).ToArray();
+            var lines = fetchLines();
             
             int increases = 0;
             for (int j = 1; j < lines.Length; j++)
