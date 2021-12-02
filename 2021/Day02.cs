@@ -37,7 +37,35 @@ namespace _2021
                 .ToList();
         }
 
-        public void Solve()
+        private void partTwo()
+        {
+            var lines = parseFile();
+
+            int fwd = 0;
+            int depth = 0;
+            int aim = 0;
+            foreach (var line in lines)
+            {
+                int x = line.Item2;
+                switch (line.Item1)
+                {
+                    case Direction.Forward:
+                        fwd += x;
+                        depth += aim * x;
+                        break;
+                    case Direction.Up:
+                        aim -= x;
+                        break;
+                    case Direction.Down:
+                        aim += x;
+                        break;
+                }
+            }
+            
+            Console.WriteLine($"P2: {fwd * depth}");
+        }
+
+        private void partOne()
         {
             var lines = parseFile();
             var fwd = lines.Where(i => i.Item1 == Direction.Forward).Select(i => i.Item2).Sum();
@@ -45,6 +73,12 @@ namespace _2021
             depth -= lines.Where(i => i.Item1 == Direction.Up).Select(i => i.Item2).Sum();
 
             Console.WriteLine($"P1: {fwd * depth}");
+        }
+
+        public void Solve()
+        {
+            partOne();
+            partTwo();
         }
     }
 }
