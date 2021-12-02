@@ -40,6 +40,11 @@ namespace _2021
         public void Solve()
         {
             var lines = parseFile();
+            var fwd = lines.Where(i => i.Item1 == Direction.Forward).Select(i => i.Item2).Sum();
+            var depth = lines.Where(i => i.Item1 == Direction.Down).Select(i => i.Item2).Sum();
+            depth -= lines.Where(i => i.Item1 == Direction.Up).Select(i => i.Item2).Sum();
+
+            Console.WriteLine($"P1: {fwd * depth}");
         }
     }
 }
