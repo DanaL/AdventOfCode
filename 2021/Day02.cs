@@ -5,12 +5,7 @@ using System.Linq;
 
 namespace _2021
 {
-    enum Direction
-    {
-        Forward,
-        Down,
-        Up
-    }
+    enum Direction { Forward, Down, Up }
 
     public class Day02 : IDay
     {
@@ -36,49 +31,32 @@ namespace _2021
                 .Select(i => (toDir(i[0]), int.Parse(i[1])))
                 .ToList();
         }
-
-        private void partTwo()
+        
+        public void Solve()
         {
-            var lines = parseFile();
-
-            int fwd = 0;
-            int depth = 0;
-            int aim = 0;
-            foreach (var line in lines)
+            int fwd = 0, depthPt1 = 0, depthPt2 = 0, aim = 0;
+            foreach (var line in parseFile())
             {
                 int x = line.Item2;
                 switch (line.Item1)
                 {
                     case Direction.Forward:
                         fwd += x;
-                        depth += aim * x;
+                        depthPt2 += aim * x;
                         break;
                     case Direction.Up:
+                        depthPt1 -= x;
                         aim -= x;
                         break;
                     case Direction.Down:
+                        depthPt1 += x;
                         aim += x;
                         break;
                 }
             }
-            
-            Console.WriteLine($"P2: {fwd * depth}");
-        }
 
-        private void partOne()
-        {
-            var lines = parseFile();
-            var fwd = lines.Where(i => i.Item1 == Direction.Forward).Select(i => i.Item2).Sum();
-            var depth = lines.Where(i => i.Item1 == Direction.Down).Select(i => i.Item2).Sum();
-            depth -= lines.Where(i => i.Item1 == Direction.Up).Select(i => i.Item2).Sum();
-
-            Console.WriteLine($"P1: {fwd * depth}");
-        }
-
-        public void Solve()
-        {
-            partOne();
-            partTwo();
+            Console.WriteLine($"P1: {fwd * depthPt1}");
+            Console.WriteLine($"P2: {fwd * depthPt2}");
         }
     }
 }
