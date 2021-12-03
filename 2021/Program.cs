@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 using _2021;
 
@@ -20,4 +21,9 @@ Console.WriteLine($"Solving day {day}...");
 if (!days.ContainsKey(day))
     Console.WriteLine($"Haven't done day {day} yet.");
 else
+{
+    Stopwatch sw = Stopwatch.StartNew();
     days[day].Solve();
+    sw.Stop();
+    Console.WriteLine($"Execution time: {sw.ElapsedMilliseconds} ms.");
+}
