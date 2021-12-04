@@ -50,6 +50,10 @@ namespace _2021
             var lines = File.ReadAllLines("inputs/day04.txt");
             var numbers = lines[0].Split(',').Select(n => int.Parse(n));
 
+            // To track played numbers, I have the list of arrays representing the boards, and
+            // a separate list of bool arrays to track which squares have been dabbed. I could have
+            // done something fancier like stored tuples of (int, bool) and that would have let me
+            // use Linq to more cleaner do things like calculate the scores of a board...
             var marks = new List<int[]>();
             var boards = new List<int[]>();
             foreach (var board in lines.Skip(2).Chunk(width + 1))
