@@ -9,7 +9,7 @@ namespace _2021
     {
         public Day04() { }
 
-        bool bingo(int[] board, int width)
+        bool isBingo(int[] board, int width)
         {
             // check rows
             foreach (var row in board.Chunk(width))
@@ -19,10 +19,10 @@ namespace _2021
             }
 
             // check cols
-            for (int r = 0; r < width; r++)
+            for (int c = 0; c < width; c++)
             {
                 int sum = 0;
-                for (int c = 0; c < width; c++)               
+                for (int r = 0; r < width; r++)               
                     sum += board[r * width + c];
                 if (sum == 5)
                     return true;
@@ -31,9 +31,10 @@ namespace _2021
             return false;
         }
 
-        int calcPt1Score(int[] board, int[] marks, int n)
+        int calcScore(int[] board, int[] marks, int n)
         {
             int sum = 0;
+
             for (int j = 0; j < board.Length; j++)
             {
                 if (marks[j] == 0)
@@ -60,6 +61,8 @@ namespace _2021
                 marks.Add(new int[width * width]);
             }
 
+            int bingoCounts = 0;
+            bool[] bingoed = new bool[boards.Count];
             foreach (int n in numbers)
             {
                 for (int b = 0; b < boards.Count; b++)
@@ -68,9 +71,16 @@ namespace _2021
                     {
                         if (boards[b][x] == n)
                             marks[b][x] = 1;
-                        if (bingo(marks[b], width))
+
+                        if (!isBingo(marks[b], width) || bingoed[b])                        
+                            continue;
+                       
+                        bingoed[b] = true;
+                        if (++bingoCounts == 1)
+                            Console.WriteLine($"P1: {calcScore(boards[b], marks[b], n)}");
+                        else if (bingoCounts == boards.Count)
                         {
-                            Console.WriteLine($"P1: {calcPt1Score(boards[b], marks[b], n)}");
+                            Console.WriteLine($"P2: {calcScore(boards[b], marks[b], n)}");
                             return;
                         }
                     }
