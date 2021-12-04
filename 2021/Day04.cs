@@ -14,7 +14,7 @@ namespace _2021
             // check rows
             foreach (var row in board.Chunk(width))
             {
-                if (row.Sum() == 5)
+                if (row.Sum() == -width)
                     return true;                
             }
 
@@ -24,24 +24,11 @@ namespace _2021
                 int sum = 0;
                 for (int r = 0; r < width; r++)               
                     sum += board[r * width + c];
-                if (sum == 5)
+                if (sum == -width)
                     return true;
             }
 
             return false;
-        }
-
-        int calcScore(int[] board, int[] marks, int n)
-        {
-            int sum = 0;
-
-            for (int j = 0; j < board.Length; j++)
-            {
-                if (marks[j] == 0)
-                    sum += board[j];
-            }
-
-            return sum * n;
         }
 
         public void Solve()
@@ -50,19 +37,13 @@ namespace _2021
             var lines = File.ReadAllLines("inputs/day04.txt");
             var numbers = lines[0].Split(',').Select(n => int.Parse(n));
 
-            // To track played numbers, I have the list of arrays representing the boards, and
-            // a separate list of bool arrays to track which squares have been dabbed. I could have
-            // done something fancier like stored tuples of (int, bool) and that would have let me
-            // use Linq to more cleaner do things like calculate the scores of a board...
-            var marks = new List<int[]>();
             var boards = new List<int[]>();
             foreach (var board in lines.Skip(2).Chunk(width + 1))
             {
                 var b = string.Join(" ", board.Take(width)).Trim().Replace("  ", " ")
                               .Split(' ')
                               .Select(n => int.Parse(n)).ToArray();
-                boards.Add(b);
-                marks.Add(new int[width * width]);
+                boards.Add(b);                
             }
 
             // Track which boards have already had bingos, just in case the number sequence
@@ -76,17 +57,17 @@ namespace _2021
                     for (int x = 0; x < boards[b].Length; x++)
                     {
                         if (boards[b][x] == n)
-                            marks[b][x] = 1;
+                            boards[b][x] = -1;
 
-                        if (!isBingo(marks[b], width) || bingoed[b])                        
+                        if (!isBingo(boards[b], width) || bingoed[b])                        
                             continue;
                        
                         bingoed[b] = true;
                         if (++bingoCounts == 1)
-                            Console.WriteLine($"P1: {calcScore(boards[b], marks[b], n)}");
+                            Console.WriteLine($"P1: {boards[b].Where(sq => sq != -1).Sum() * n}");
                         else if (bingoCounts == boards.Count)
                         {
-                            Console.WriteLine($"P2: {calcScore(boards[b], marks[b], n)}");
+                            Console.WriteLine($"P2: {boards[b].Where(sq => sq != -1).Sum() * n}");
                             return;
                         }
                     }
