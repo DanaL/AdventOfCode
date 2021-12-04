@@ -8,6 +8,7 @@ Dictionary<int, IDay> days = new Dictionary<int, IDay>();
 days.Add(1, new Day01());
 days.Add(2, new Day02());
 days.Add(3, new Day03());
+days.Add(4, new Day04());
 
 int day;
 if (args.Length == 0 || !int.TryParse(args[0], out day))
