@@ -65,6 +65,8 @@ namespace _2021
                 marks.Add(new int[width * width]);
             }
 
+            // Track which boards have already had bingos, just in case the number sequence
+            // is such that a board could get a second bingo before another had its first
             int bingoCounts = 0;
             bool[] bingoed = new bool[boards.Count];
             foreach (int n in numbers)
