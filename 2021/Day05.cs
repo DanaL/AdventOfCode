@@ -17,24 +17,6 @@ namespace _2021
             _re = new Regex(pattern);
         }
 
-        List<string> testLines()
-        {
-            var input = @"  0,9 -> 5,9
-                            8,0 -> 0,8
-                            9,4 -> 3,4
-                            2,2 -> 2,1
-                            7,0 -> 7,4
-                            6,4 -> 2,0
-                            0,9 -> 2,9
-                            3,4 -> 1,4
-                            0,0 -> 8,8
-                            5,5 -> 8,2";
-
-            var lines = input.Split('\n', StringSplitOptions.TrimEntries).ToList();
-
-            return lines;
-        }
-
         ((int, int), (int, int)) parseLine(string line)
         {
             var matches = _re.Match(line);
@@ -43,13 +25,28 @@ namespace _2021
                         (int.Parse(matches.Groups["x2"].Value), int.Parse(matches.Groups["y2"].Value)));
         }
 
-        public void writePts(Dictionary<(int x, int y), int> pts, (int x, int y) p1, (int x, int y) p2)
+        bool at45((int x, int y) p1, (int x, int y) p2)
+        {
+            return Math.Abs(p1.x - p2.x) == Math.Abs(p1.y - p2.y);
+        }
+
+        (int, int) delta45((int x, int y) p1, (int x, int y) p2)
+        {
+            int dx = p1.x < p2.x ? 1 : -1;
+            int dy = p1.y < p2.y ? 1 : -1;
+
+            return (dx, dy);
+        }
+
+        public void writePts(Dictionary<(int x, int y), int> pts, (int x, int y) p1, (int x, int y) p2, bool with45s)
         {
             (int x, int y) delta;
             if (p1.x == p2.x)
                 delta = p1.y < p2.y ? (0, 1) : (0, -1);
             else if (p1.y == p2.y)
                 delta = p1.x < p2.x ? (1, 0) : (-1, 0);
+            else if (with45s && at45(p1, p2))
+                delta = delta45(p1, p2);
             else
                 return;
 
@@ -65,11 +62,12 @@ namespace _2021
         public void Solve()
         {
             var lines = File.ReadAllLines("inputs/day05.txt");
+            //var lines = testLines();
             var pts = new Dictionary<(int, int), int>();
             foreach (((int x, int y), (int x, int y)) pair in lines.Select(p => parseLine(p)))
             {
                 var (p1, p2) = pair;
-                writePts(pts, p1, p2);
+                writePts(pts, p1, p2, true);
             }
 
             var sum = pts.Values.Where(x => x > 1).Count();
