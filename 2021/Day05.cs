@@ -30,30 +30,17 @@ namespace _2021
             return Math.Abs(p1.x - p2.x) == Math.Abs(p1.y - p2.y);
         }
 
-        (int, int) delta45((int x, int y) p1, (int x, int y) p2)
-        {
-            int dx = p1.x < p2.x ? 1 : -1;
-            int dy = p1.y < p2.y ? 1 : -1;
-
-            return (dx, dy);
-        }
-
         public void writePts(Dictionary<(int x, int y), int> pts, (int x, int y) p1, (int x, int y) p2, bool with45s)
         {
-            (int x, int y) delta;
-            if (p1.x == p2.x)
-                delta = p1.y < p2.y ? (0, 1) : (0, -1);
-            else if (p1.y == p2.y)
-                delta = p1.x < p2.x ? (1, 0) : (-1, 0);
-            else if (with45s && at45(p1, p2))
-                delta = delta45(p1, p2);
-            else
+            if (p1.x != p2.x && p1.y != p2.y && !(with45s && at45(p1, p2)))
                 return;
+
+            (int dx, int dy) = (Math.Sign(p2.x - p1.x), Math.Sign(p2.y - p1.y));
 
             while (p1 != p2)
             {
                 pts[p1] = pts.ContainsKey(p1) ? pts[p1] + 1 : 1;
-                p1 = (p1.x + delta.x, p1.y + delta.y);
+                p1 = (p1.x + dx, p1.y + dy);
             }
 
             pts[p2] = pts.ContainsKey(p2) ? pts[p2] + 1 : 1;
