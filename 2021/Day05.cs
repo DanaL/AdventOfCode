@@ -62,16 +62,17 @@ namespace _2021
         public void Solve()
         {
             var lines = File.ReadAllLines("inputs/day05.txt");
-            //var lines = testLines();
-            var pts = new Dictionary<(int, int), int>();
+            var pts1 = new Dictionary<(int, int), int>();
+            var pts2 = new Dictionary<(int, int), int>();
             foreach (((int x, int y), (int x, int y)) pair in lines.Select(p => parseLine(p)))
             {
                 var (p1, p2) = pair;
-                writePts(pts, p1, p2, true);
+                writePts(pts1, p1, p2, false);
+                writePts(pts2, p1, p2, true);
             }
 
-            var sum = pts.Values.Where(x => x > 1).Count();
-            Console.WriteLine($"P1: {sum}");
+            Console.WriteLine($"P1: {pts1.Values.Where(x => x > 1).Count()}");
+            Console.WriteLine($"P2: {pts2.Values.Where(x => x > 1).Count()}");
         }
     }
 }
