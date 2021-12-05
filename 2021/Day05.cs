@@ -12,7 +12,7 @@ namespace _2021
 
         public Day05()
         {
-            string pattern = @"(?<x1>\d+),(?<y1>\d+) -> (?<x2>\d+),(?<y2>\d+)";
+            string pattern = @"(\d+),(\d+) -> (\d+),(\d+)";
 
             _re = new Regex(pattern);
         }
@@ -21,8 +21,8 @@ namespace _2021
         {
             var matches = _re.Match(line);
 
-            return ((int.Parse(matches.Groups["x1"].Value), int.Parse(matches.Groups["y1"].Value)),
-                        (int.Parse(matches.Groups["x2"].Value), int.Parse(matches.Groups["y2"].Value)));
+            return ((int.Parse(matches.Groups[1].Value), int.Parse(matches.Groups[2].Value)),
+                        (int.Parse(matches.Groups[3].Value), int.Parse(matches.Groups[4].Value)));
         }
 
         bool at45((int x, int y) p1, (int x, int y) p2)
