@@ -8,23 +8,8 @@ namespace _2021
 {
     public class Day05 : IDay
     {
-        Regex _re;
-
-        public Day05()
-        {
-            string pattern = @"(\d+),(\d+) -> (\d+),(\d+)";
-
-            _re = new Regex(pattern);
-        }
-
-        ((int, int), (int, int)) parseLine(string line)
-        {
-            var matches = _re.Match(line);
-
-            return ((int.Parse(matches.Groups[1].Value), int.Parse(matches.Groups[2].Value)),
-                        (int.Parse(matches.Groups[3].Value), int.Parse(matches.Groups[4].Value)));
-        }
-
+        public Day05() { }
+        
         bool at45((int x, int y) p1, (int x, int y) p2)
         {
             return Math.Abs(p1.x - p2.x) == Math.Abs(p1.y - p2.y);
@@ -51,9 +36,13 @@ namespace _2021
             var lines = File.ReadAllLines("inputs/day05.txt");
             var pts1 = new Dictionary<(int, int), int>();
             var pts2 = new Dictionary<(int, int), int>();
-            foreach (((int x, int y), (int x, int y)) pair in lines.Select(p => parseLine(p)))
+
+            Regex re = new Regex(@"(\d+),(\d+) -> (\d+),(\d+)");
+            foreach (var line in File.ReadAllLines("inputs/day05.txt"))
             {
-                var (p1, p2) = pair;
+                var m = re.Match(line);
+                (int, int) p1 = (int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value));
+                (int, int) p2 = (int.Parse(m.Groups[3].Value), int.Parse(m.Groups[4].Value));
                 writePts(pts1, p1, p2, false);
                 writePts(pts2, p1, p2, true);
             }
