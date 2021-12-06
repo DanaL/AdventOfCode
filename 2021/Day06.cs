@@ -1,16 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace _2021
 {
     class Day06 : IDay
     {
+        string _input;
+
+        public Day06()
+        {
+            _input = "4,1,1,4,1,1,1,1,1,1,1,1,3,4,1,1,1,3,1,3,1,1,1,1,1,1,1,1,1,3,1,3,1,1,1,5,1,2,1,1,5,3,4,2,1,1,4,1,1,5,1,1,5,5,1,1,5,2,1,4,1,2,1,4,5,4,1,1,1,1,3,1,1,1,4,3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5,1,1,2,1,1,1,1,1,1,1,2,4,4,1,1,3,1,3,2,4,3,1,1,1,1,1,2,1,1,1,1,2,5,1,1,1,1,2,1,1,1,1,1,1,1,2,1,1,4,1,5,1,3,1,1,1,1,1,5,1,1,1,3,1,2,1,2,1,3,4,5,1,1,1,1,1,1,5,1,1,1,1,1,1,1,1,3,1,1,3,1,1,4,1,1,1,1,1,2,1,1,1,1,3,2,1,1,1,4,2,1,1,1,4,1,1,2,3,1,4,1,5,1,1,1,2,1,5,3,3,3,1,5,3,1,1,1,1,1,1,1,1,4,5,3,1,1,5,1,1,1,4,1,1,5,1,2,3,4,2,1,5,2,1,2,5,1,1,1,1,4,1,2,1,1,1,2,5,1,1,5,1,1,1,3,2,4,1,3,1,1,2,1,5,1,3,4,4,2,2,1,1,1,1,5,1,5,2";
+            //_input = "3,4,3,1,2";
+        }
+
         public void Solve()
         {
-            Console.WriteLine("Hello, day 6?");
+            List<int> fish = _input.Split(',').Select(int.Parse).ToList();
+
+            for (int _ = 0; _ < 80; _++) {
+                var nextFish = new List<int>();
+                for (int f = 0; f < fish.Count; f++)
+                {
+                    if (fish[f] == 0)
+                    {
+                        nextFish.Add(6);
+                        nextFish.Add(8);
+                    }
+                    else
+                    {
+                        nextFish.Add(fish[f] - 1);
+                    }
+                }
+                fish = nextFish;
+            }
+
+            Console.WriteLine($"P1: {fish.Count}");
         }
     }
 }
