@@ -9,12 +9,12 @@ namespace _2021
     {
         public Day03() { }
 
-        private List<string> fetchProblemInput()
+        List<string> fetchProblemInput()
         {
             return File.ReadAllLines("inputs/day03.txt").ToList();
         }
 
-        private void part1()
+        void part1()
         {
             var lines = fetchProblemInput();
             int[] signals = new int[lines[0].Length];
@@ -30,7 +30,7 @@ namespace _2021
             Console.WriteLine($"P1: {Convert.ToInt32(gamma, 2) * Convert.ToInt32(epsilon, 2)}");
         }
 
-        private string filter(List<string> lines, int position, Func<int, int, char> f)
+        string filter(List<string> lines, int position, Func<int, int, char> f)
         {
             if (lines.Count == 1)
                 return lines[0];
@@ -43,7 +43,7 @@ namespace _2021
             return filter(keep, position + 1, f);
         }
 
-        private void part2()
+        void part2()
         {
             var lines = fetchProblemInput();
 
