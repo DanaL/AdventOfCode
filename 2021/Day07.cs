@@ -18,9 +18,9 @@ namespace _2021
                            .Select(int.Parse).ToList();
         }
 
-        public void Solve()
+        public void partOne()
         {
-            var numbers = fetchInput();            
+            var numbers = fetchInput();
             var crabs = new Dictionary<int, int>();
             var fuelNeeded = new Dictionary<int, int[]>();
             int maxDistance = numbers.Max();
@@ -33,7 +33,7 @@ namespace _2021
                 {
                     crabs[x] = 1;
                     fuelNeeded[x] = new int[maxDistance + 1];
-                }                
+                }
             }
 
             // Sum up the total amount of distances for crabs to travel to each
@@ -41,11 +41,54 @@ namespace _2021
             var sumsOfDistances = new int[maxDistance + 1];
             foreach (var d in crabs.Keys)
             {
-                for (int j = 0; j <= maxDistance; j++)                
+                for (int j = 0; j <= maxDistance; j++)
                     sumsOfDistances[j] += Math.Abs(j - d) * crabs[d];
             }
 
             Console.WriteLine($"P1: {sumsOfDistances.Min()}");
+        }
+
+        public void partTwo()
+        {
+            var numbers = fetchInput();
+            var crabs = new Dictionary<int, int>();
+            var fuelNeeded = new Dictionary<int, int[]>();
+            int maxDistance = numbers.Max();
+
+            foreach (var x in numbers)
+            {
+                if (crabs.ContainsKey(x))
+                    crabs[x] += 1;
+                else
+                {
+                    crabs[x] = 1;
+                    fuelNeeded[x] = new int[maxDistance + 1];
+                }
+            }
+
+            // Sum up the total amount of distances for crabs to travel to each
+            // point. (Mulitple crabs may begin at the same starting points)
+            var fuelForDistance = new Dictionary<int, int>();
+            var sumsOfDistances = new int[maxDistance + 1];
+            foreach (var d in crabs.Keys)
+            {
+                for (int j = 0; j <= maxDistance; j++)
+                {
+                    var distance = Math.Abs(j - d);
+                    if (!fuelForDistance.ContainsKey(distance))
+                        fuelForDistance[distance] = distance * (1 + distance) / 2;
+                    sumsOfDistances[j] += fuelForDistance[distance] * crabs[d];
+                }
+                    
+            }
+
+            Console.WriteLine($"P1: {sumsOfDistances.Min()}");
+        }
+
+        public void Solve()
+        {
+            partOne();
+            partTwo();
         }
     }
 }
