@@ -10,85 +10,36 @@ namespace _2021
         public Day07() { }
 
         List<int> fetchInput()
-        {
-            //string line = "16,1,2,0,4,2,7,1,2,14";
-            //return line.Split(',').Select(int.Parse).ToList();
-
+        {            
             return File.ReadAllText("inputs/day07.txt").Split(',')
                            .Select(int.Parse).ToList();
         }
 
-        public void partOne()
+        public int calcOptimalFuelUsage(List<int> startingPositions, Func<int, int> fuelCalc)
         {
-            var numbers = fetchInput();
-            var crabs = new Dictionary<int, int>();
-            var fuelNeeded = new Dictionary<int, int[]>();
-            int maxDistance = numbers.Max();
+            int maxDistance = startingPositions.Max();
 
-            foreach (var x in numbers)
-            {
-                if (crabs.ContainsKey(x))
-                    crabs[x] += 1;
-                else
-                {
-                    crabs[x] = 1;
-                    fuelNeeded[x] = new int[maxDistance + 1];
-                }
-            }
+            // Count up how many crabs start at each starting position
+            var crabs = startingPositions
+                                .GroupBy(x => x)
+                                .Select(x => (x.Key, x.Count()));
 
             // Sum up the total amount of distances for crabs to travel to each
             // point. (Mulitple crabs may begin at the same starting points)
             var sumsOfDistances = new int[maxDistance + 1];
-            foreach (var d in crabs.Keys)
+            foreach (var c in crabs)
             {
                 for (int j = 0; j <= maxDistance; j++)
-                    sumsOfDistances[j] += Math.Abs(j - d) * crabs[d];
+                    sumsOfDistances[j] += fuelCalc(Math.Abs(j - c.Item1)) * c.Item2;
             }
-
-            Console.WriteLine($"P1: {sumsOfDistances.Min()}");
-        }
-
-        public void partTwo()
-        {
-            var numbers = fetchInput();
-            var crabs = new Dictionary<int, int>();
-            var fuelNeeded = new Dictionary<int, int[]>();
-            int maxDistance = numbers.Max();
-
-            foreach (var x in numbers)
-            {
-                if (crabs.ContainsKey(x))
-                    crabs[x] += 1;
-                else
-                {
-                    crabs[x] = 1;
-                    fuelNeeded[x] = new int[maxDistance + 1];
-                }
-            }
-
-            // Sum up the total amount of distances for crabs to travel to each
-            // point. (Mulitple crabs may begin at the same starting points)
-            var fuelForDistance = new Dictionary<int, int>();
-            var sumsOfDistances = new int[maxDistance + 1];
-            foreach (var d in crabs.Keys)
-            {
-                for (int j = 0; j <= maxDistance; j++)
-                {
-                    var distance = Math.Abs(j - d);
-                    if (!fuelForDistance.ContainsKey(distance))
-                        fuelForDistance[distance] = distance * (1 + distance) / 2;
-                    sumsOfDistances[j] += fuelForDistance[distance] * crabs[d];
-                }
-                    
-            }
-
-            Console.WriteLine($"P1: {sumsOfDistances.Min()}");
+           
+            return sumsOfDistances.Min();            
         }
 
         public void Solve()
         {
-            partOne();
-            partTwo();
+            Console.WriteLine($"P1: {calcOptimalFuelUsage(fetchInput(), d => d)}");
+            Console.WriteLine($"P1: {calcOptimalFuelUsage(fetchInput(), d => d * (1 + d) / 2)}");
         }
     }
 }
