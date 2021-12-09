@@ -9,6 +9,14 @@ namespace _2021
         void Solve();
     }
 
+    public class Util
+    {
+        public static List<(int, int)> Neighbours()
+        {
+            return new List<(int, int)>() { (-1, 0), (1, 0), (0, -1), (0, 1) };
+        }
+    }
+
     public static class CollectionExtentions
     {
         public static IEnumerable<IEnumerable<T>> Chunk<T>(this IEnumerable<T> src, int size)
