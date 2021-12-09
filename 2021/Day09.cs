@@ -13,7 +13,7 @@ namespace _2021
 
         void FetchInput()
         {
-            //_data = "2199943210\n3987894921\n9856789892\n8767896789989\n9965678";
+            //_data = "2199943210\n3987894921\n9856789892\n8767896789\n9899965678";
             _data = File.ReadAllText("inputs/day09.txt").Trim();
             _height = _data.Where(c => c == '\n').Count() + 1;
             _data = _data.Replace("\n", "");
@@ -44,15 +44,12 @@ namespace _2021
             var toVisit = new Queue<(int, int)>();
             toVisit.Enqueue((startR, startC));
 
-            int total = 0;
             while (toVisit.Count > 0)
             {               
                 var curr = toVisit.Dequeue();
                 if (visited.Contains(curr))
                     continue;
                 visited.Add(curr);
-
-                ++total;
 
                 foreach (var d in Util.Neighbours())
                 {
@@ -68,7 +65,7 @@ namespace _2021
                 }
             }
 
-            return total;
+            return visited.Count;
         }
 
         public void Solve()
@@ -79,7 +76,7 @@ namespace _2021
             var basins = new List<int>();
             for (int x = 0; x < _data.Length; x++)
             {
-                int r = x / _height;
+                int r = x / _width;
                 int c = x - r * _width;
                 if (IsLowPoint(r, c))
                 {
