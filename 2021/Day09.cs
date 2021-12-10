@@ -86,9 +86,7 @@ namespace _2021
             }
 
             basins.Sort();
-            long totalPt2 = 1;
-            foreach (int x in basins.TakeLast(3))
-                totalPt2 *= x;
+            long totalPt2 = basins.TakeLast(3).Aggregate((a, b) => a * b);
 
             Console.WriteLine($"P1: {totalPt1}");
             Console.WriteLine($"P2: {totalPt2}");
