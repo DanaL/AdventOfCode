@@ -47,8 +47,6 @@ namespace _2021
             while (toVisit.Count > 0)
             {               
                 var curr = toVisit.Dequeue();
-                if (visited.Contains(curr))
-                    continue;
                 visited.Add(curr);
 
                 foreach (var d in Util.Neighbours())
