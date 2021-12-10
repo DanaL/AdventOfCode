@@ -13,20 +13,14 @@ namespace _2021
 
             foreach (char c in line)
             {
-                switch (c)
+                if (c == '{' || c == '[' || c == '<' || c == '(')
+                    stack.Push(c);
+                else
                 {
-                    case '{':
-                    case '[':
-                    case '<':
-                    case '(':
-                        stack.Push(c);
-                        break;
-                    default:
-                        char p = stack.Pop();
-                        if (matches[c] != p)
-                            return c;
-                        break;                       
-                }
+                    char p = stack.Pop();
+                    if (matches[c] != p)
+                        return c;
+                }             
             }
 
             return '\0';
@@ -39,24 +33,15 @@ namespace _2021
             int total = 0;
             foreach (var line in lines)
             {
-                var c = ParseLine(line);                
-                switch (c)
-                {
-                    case ')':
-                        total += 3;
-                        break;
-                    case ']':
-                        total += 57;
-                        break;
-                    case '}':
-                        total += 1197;
-                        break;
-                    case '>':
-                        total += 25137;
-                        break;
-                    default:
-                        break;
-                }
+                var c = ParseLine(line);
+                if (c == ')')
+                    total += 3;
+                else if (c == ']')
+                    total += 57;
+                else if (c == '}')
+                    total += 1197;
+                else if (c == '>')
+                    total += 25137;
             }
 
             Console.WriteLine($"P1: {total}");
