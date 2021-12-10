@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace _2021
 {
@@ -30,19 +31,8 @@ namespace _2021
         {
             var lines = File.ReadAllLines("inputs/day10.txt");
 
-            int total = 0;
-            foreach (var line in lines)
-            {
-                var c = ParseLine(line);
-                if (c == ')')
-                    total += 3;
-                else if (c == ']')
-                    total += 57;
-                else if (c == '}')
-                    total += 1197;
-                else if (c == '>')
-                    total += 25137;
-            }
+            var values = new Dictionary<char, int>() { { '}', 1197 }, { ')', 3 }, { '>', 25137 }, { ']', 57 }, { '\0', 0 } };
+            int total = lines.Select(l => values[ParseLine(l)]).Sum();
 
             Console.WriteLine($"P1: {total}");
         }
