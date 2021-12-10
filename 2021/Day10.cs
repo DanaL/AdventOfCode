@@ -7,8 +7,8 @@ using System.Text;
 namespace _2021
 {
     public class Day10 : IDay
-    {        
-        private char ParseLine(string line)
+    {
+        private Stack<char> ParseLine(string line)
         {
             var matches = new Dictionary<char, char>() { { '}', '{' }, { ')', '(' }, { '>', '<' }, { ']', '[' } };
             var stack = new Stack<char>();
@@ -21,59 +21,49 @@ namespace _2021
                 {
                     char p = stack.Pop();
                     if (matches[c] != p)
-                        return c;
+                        throw new Exception(c.ToString());                    
                 }             
             }
 
-            return '\0';
+            return stack;
+        }
+
+        private char CheckForCorruptedLine(string line)
+        {
+            try
+            {
+                ParseLine(line);
+                return '\0';
+            }
+            catch (Exception ex)
+            {
+                return ex.Message[0];
+            }
         }
 
         private string CompleteLine(string line)
         {
-            var matches = new Dictionary<char, char>() { { '}', '{' }, { ')', '(' }, { '>', '<' }, { ']', '[' } };
-            var stack = new Stack<char>();
-
-            foreach (char c in line)
-            {
-                if (c == '{' || c == '[' || c == '<' || c == '(')
-                    stack.Push(c);
-                else
-                {
-                    char p = stack.Pop();
-                    if (matches[c] != p)
-                        return "error";
-                }
-            }
-
-            // We should have only unmatched symbols left
+            var matches = new Dictionary<char, char>() { { '{', '}' }, { '(', ')' }, { '<', '>' }, { '[', ']' } };
             StringBuilder closers = new StringBuilder();
-            while (stack.Count > 0)
+            try
             {
-                char c = stack.Pop();
-                if (c == '{')
-                    closers.Append('}');
-                else if (c == '(')
-                    closers.Append(')');
-                else if (c == '<')
-                    closers.Append('>');
-                else if (c == '[')
-                    closers.Append(']');
+                Stack<char> stack = ParseLine(line);
+                // We should have only unmatched symbols left            
+                while (stack.Count > 0)
+                    closers.Append(matches[stack.Pop()]);
             }
-
+            catch (Exception)
+            {
+                return "error";
+            }
+            
             return closers.ToString();
         }
 
         private long ScorePart2(string s)
         {
             var values = new Dictionary<char, long>() { { '}', 3 }, { ')', 1 }, { '>', 4 }, { ']', 2 } };
-            long score = 0;
-            foreach (char c in s)
-            {
-                score *= 5;
-                score += values[c];
-            }
-
-            return score;
+            return s.Aggregate(0, (long a, char b) => a * 5 + values[b]);            
         }
 
         private void Part1()
@@ -81,7 +71,7 @@ namespace _2021
             var lines = File.ReadAllLines("inputs/day10.txt");
 
             var values = new Dictionary<char, int>() { { '}', 1197 }, { ')', 3 }, { '>', 25137 }, { ']', 57 }, { '\0', 0 } };
-            int total = lines.Select(l => values[ParseLine(l)]).Sum();
+            int total = lines.Select(l => values[CheckForCorruptedLine(l)]).Sum();
 
             Console.WriteLine($"P1: {total}");
         }
@@ -90,14 +80,10 @@ namespace _2021
         {
             var lines = File.ReadAllLines("inputs/day10.txt");
 
-            var scores = new List<long>();
-            foreach (string line in lines)
-            {
-                var s = CompleteLine(line);
-                if (s != "error")
-                    scores.Add(ScorePart2(s));
-            }
-            scores.Sort();
+            List<long> scores = lines.Select(CompleteLine)
+                                     .Where(l => l != "error")
+                                     .Select(ScorePart2)
+                                     .OrderBy(s => s).ToList();            
             Console.WriteLine($"P2: {scores[scores.Count / 2]}");
         }
 
