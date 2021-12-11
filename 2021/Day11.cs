@@ -56,14 +56,11 @@ namespace _2021
 
         int[] Iterate(int[] src)
         {
+            Queue<int> tens = new Queue<int>();
             int[] dest = new int[_area];
             for (int j = 0; j < _area; j++)
-                dest[j] = src[j] + 1;
-
-            
-            Queue<int> tens = new Queue<int>();
-            for (int j = 0; j < _area; j++)
             {
+                dest[j] = src[j] + 1;
                 if (dest[j] == 10)
                 {
                     tens.Enqueue(j);
@@ -89,19 +86,8 @@ namespace _2021
 
             if (_part2 && dest.Sum() == 0)
                 throw new AllFashedException();
-            return dest;
-        }
 
-        void PrintGrid(int[] grid)
-        {
-            for (int r = 0; r < _height; r++)
-            {
-                StringBuilder sb = new StringBuilder();
-                for (int c = 0; c < _width; c++)
-                    sb.Append(grid[r * _width + c]);
-                Console.WriteLine(sb.ToString());
-            }
-            Console.WriteLine("");
+            return dest;
         }
 
         public void Solve()
@@ -128,8 +114,6 @@ namespace _2021
                     break;
                 }
             }
-
-            grid.PrintGrid(_width);
         }
     }
 }
