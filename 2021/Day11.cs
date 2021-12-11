@@ -5,6 +5,8 @@ using System.Text;
 
 namespace _2021
 {
+    class AllFashedException : Exception { }
+
     public class Day11 : IDay
     {
         static int _height = 10;
@@ -14,6 +16,7 @@ namespace _2021
         static int[] _leftSide = new int[] { -10, 1, -9, 10, 11 };
         static int[] _rightSide = new int[] { -11, -10, 9, -1, 10 };
         int _flashes;
+        bool _part2;
 
         int[] FetchData()
         {
@@ -28,7 +31,7 @@ namespace _2021
                     6887875268
                     7635112787
                     7242787273";
-
+      
             return txt.Where(c => char.IsDigit(c)).Select(c => Convert.ToInt32(c) - (int) '0').ToArray();
         }
 
@@ -83,7 +86,9 @@ namespace _2021
                     }                   
                 }
             }
-                
+
+            if (_part2 && dest.Sum() == 0)
+                throw new AllFashedException();
             return dest;
         }
 
@@ -106,6 +111,23 @@ namespace _2021
             for (int _ = 0; _ < 100; _++)
                 grid = Iterate(grid);
             Console.WriteLine($"P1: {_flashes}");
+
+            _part2 = true;
+            grid = FetchData();
+            int step = 0;
+            while (true)
+            {
+                try
+                {
+                    ++step;
+                    grid = Iterate(grid);
+                }
+                catch (AllFashedException)
+                {
+                    Console.WriteLine($"P2: {step}");
+                    break;
+                }
+            }
         }
     }
 }
