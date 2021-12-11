@@ -128,6 +128,8 @@ namespace _2021
                     break;
                 }
             }
+
+            grid.PrintGrid(_width);
         }
     }
 }
