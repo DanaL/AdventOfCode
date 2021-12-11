@@ -19,7 +19,26 @@ namespace _2021
     }
 
     public static class CollectionExtentions
-    {
+    {        
+        public static IEnumerable<int> AdjTo<T>(this IList<T> src, int x, int width)
+        {
+            int count = src.Count();
+            int startC = x % width == 0 ? 0 : -1;
+            int endC = (x + 1) % width == 0 ? 0 : 1;
+            int startR = x < width ? 0 : -1;
+            int endR = x >= count - width ? 0 : 1;
+
+            for (int r = startR; r <= endR; r++)
+            {
+                for (int c = startC; c <= endC; c++)
+                {
+                    if (r == 0 && c == 0)
+                        continue;
+                    yield return x + r * width + c;                    
+                }
+            }            
+        }
+
         public static void PrintGrid<T>(this IList<T> src, int width)
         {
             int height = src.Count() / width;
@@ -43,4 +62,3 @@ namespace _2021
         }
     }
 }
-

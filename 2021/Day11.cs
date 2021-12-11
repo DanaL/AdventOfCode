@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace _2021
 {
@@ -12,9 +11,6 @@ namespace _2021
         static int _height = 10;
         static int _width = 10;
         static int _area = _height * _width;
-        static int[] _adjAll = new int[] { -11, -10, -9, -1, 1, 9, 10, 11 };
-        static int[] _leftSide = new int[] { -10, 1, -9, 10, 11 };
-        static int[] _rightSide = new int[] { -11, -10, 9, -1, 10 };
         int _flashes;
         bool _part2;
 
@@ -35,25 +31,6 @@ namespace _2021
             return txt.Where(c => char.IsDigit(c)).Select(c => Convert.ToInt32(c) - (int) '0').ToArray();
         }
 
-        // All this to avoid bounds checking on array calculations...should have just
-        // set a sentinel perimiter around the grid
-        IEnumerable<int> adjTo(int x)
-        {
-            int[] adj;
-            if (x % 10 == 0)
-                adj = _leftSide;
-            else if ((x + 1) % 10 == 0)
-                adj = _rightSide;
-            else
-                adj = _adjAll;
-            foreach (int d in adj)
-            {
-                int r = x + d;
-                if (r >= 0 && r < _area)
-                    yield return r;
-            }
-        }
-
         int[] Iterate(int[] src)
         {
             Queue<int> tens = new Queue<int>();
@@ -72,7 +49,7 @@ namespace _2021
             {
                 int x = tens.Dequeue();
                 dest[x] = 0;
-                foreach (int d in adjTo(x))
+                foreach (int d in dest.AdjTo(x, _width))
                 {                    
                     if (dest[d] > 0)
                         ++dest[d];
