@@ -10,7 +10,7 @@ namespace _2021
 {
     public class Day10 : IDay
     {
-        private Stack<char> ParseLine(string line)
+        static Stack<char> ParseLine(string line)
         {
             var matches = new Dictionary<char, char>() { { '}', '{' }, { ')', '(' }, { '>', '<' }, { ']', '[' } };
             var stack = new Stack<char>();
@@ -30,7 +30,7 @@ namespace _2021
             return stack;
         }
 
-        private char CheckForCorruptedLine(string line)
+        static char CheckForCorruptedLine(string line)
         {
             try
             {
@@ -68,7 +68,7 @@ namespace _2021
             return s.Aggregate(0, (long a, char b) => a * 5 + values[b]);            
         }
 
-        private void Part1()
+        static void Part1()
         {
             var lines = File.ReadAllLines("inputs/day10.txt");
 

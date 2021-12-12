@@ -16,7 +16,7 @@ namespace _2021
         int _flashes;
         bool _part2;
 
-        int[] FetchData()
+        static int[] FetchData()
         {
             string txt = @"
                     3172537688

@@ -27,7 +27,7 @@ namespace AoC
     {
         public static IEnumerable<int> AdjTo<T>(this IList<T> src, int x, int width)
         {
-            int count = src.Count();
+            int count = src.Count;
             int startC = x % width == 0 ? 0 : -1;
             int endC = (x + 1) % width == 0 ? 0 : 1;
             int startR = x < width ? 0 : -1;
@@ -46,7 +46,7 @@ namespace AoC
 
         public static void PrintGrid<T>(this IList<T> src, int width)
         {
-            int height = src.Count() / width;
+            int height = src.Count / width;
             for (int r = 0; r < height; r++)
             {
                 StringBuilder sb = new StringBuilder();
