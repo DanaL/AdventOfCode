@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
+using AoC;
+
 namespace _2021
 {
     public class Day05 : IDay

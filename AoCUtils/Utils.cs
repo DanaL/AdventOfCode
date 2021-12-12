@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace _2021
+namespace AoC
 {
     public interface IDay
     {
@@ -16,10 +16,15 @@ namespace _2021
         {
             return new List<(int, int)>() { (-1, 0), (1, 0), (0, -1), (0, 1) };
         }
+
+        public static int TaxiDistance(int x0, int y0, int x1, int y1)
+        {
+            return Math.Abs(x0 - x1) + Math.Abs(y0 - y1);
+        }
     }
 
     public static class CollectionExtentions
-    {        
+    {
         public static IEnumerable<int> AdjTo<T>(this IList<T> src, int x, int width)
         {
             int count = src.Count();
@@ -34,9 +39,9 @@ namespace _2021
                 {
                     if (r == 0 && c == 0)
                         continue;
-                    yield return x + r * width + c;                    
+                    yield return x + r * width + c;
                 }
-            }            
+            }
         }
 
         public static void PrintGrid<T>(this IList<T> src, int width)

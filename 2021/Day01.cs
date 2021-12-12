@@ -2,6 +2,8 @@
 using System.IO;
 using System.Linq;
 
+using AoC;
+
 namespace _2021
 {
     public class Day01 : IDay

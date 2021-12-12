@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
+using AoC;
+
 namespace _2021
 {
     public class Day10 : IDay

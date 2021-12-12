@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using AoC;
+
 // https://adventofcode.com/2021/day/8
 
 namespace _2021
