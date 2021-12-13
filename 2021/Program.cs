@@ -18,6 +18,7 @@ days.Add(9, new Day09());
 days.Add(10, new Day10());
 days.Add(11, new Day11());
 days.Add(12, new Day12());
+days.Add(13, new Day13());
 
 int day;
 if (args.Length == 0 || !int.TryParse(args[0], out day))
