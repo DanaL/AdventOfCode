@@ -25,7 +25,6 @@ namespace _2021
 
             foreach (var line in File.ReadAllLines("inputs/day13.txt"))
             {
-                // int.Parse(match.Groups[2].Value)
                 var matchCoord = coord.Match(line);
                 var matchFold = fold.Match(line);
                 if (matchCoord.Success)
@@ -39,9 +38,6 @@ namespace _2021
                     });
                 }
             }
-
-            var maxX = coords.Select(i => i.Item1).Max() + 1;
-            var maxY = coords.Select(i => i.Item2).Max() + 1;
 
             return (coords, folds);
         }
