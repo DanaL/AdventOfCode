@@ -70,7 +70,30 @@ namespace _2021
 
             if (fold.X)
             {
-                result = null;    
+                result = new GridInfo(grid.Height, fold.Loc);
+
+                for (int r = 0; r < result.Height; r++)
+                {
+                    for (int c = 0; c < fold.Loc; c++)
+                    {
+                        int ri = r * result.Width + c;
+                        int si = r * grid.Width + c;
+                        result.Grid[ri] = grid.Grid[si];
+                    }
+                }
+
+                for (int r = 0; r < result.Height; r++)
+                {
+                    for (int c = fold.Loc + 1; c < grid.Width; c++)
+                    {
+                        int i = r * grid.Width + c;
+                        if (grid.Grid[i])
+                        {
+                            int resultCol = fold.Loc - (c - fold.Loc);
+                            result.Grid[r * result.Width + resultCol] = true;
+                        }
+                    }
+                }
             }
             else
             {
@@ -81,8 +104,9 @@ namespace _2021
                 {
                     if (grid.Grid[j])
                     {
-                        int dy = grid.Height - fold.Loc;
-                        result.Grid[j - dy * result.Width] = true;
+                        int row = j / grid.Width;
+                        int delta = (fold.Loc - row) * 2;
+                        result.Grid[j + delta * result.Width] = true;
                     }
                 }
             }
@@ -95,11 +119,9 @@ namespace _2021
             var input = FetchInput();
             GridInfo grid = input.Item1;
             List<Fold> folds = input.Item2;
-            grid.Grid.PrintGrid(grid.Width, d => d ? "#" : ".");
-
-            // You've just transposed the squares not reflected them
+            
             grid = DoFold(grid, folds[0]);
-            grid.Grid.PrintGrid(grid.Width, d => d ? "#" : ".");
+            Console.WriteLine($"P1: {grid.Grid.Where(s => s).Count()}");
         }
     }
 }
