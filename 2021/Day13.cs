@@ -42,33 +42,31 @@ namespace _2021
             return (coords, folds);
         }
 
-        static void DoFold(HashSet<(int, int)> coords, Fold fold)
+        static void DoFold(ref HashSet<(int, int)> coords, Fold fold)
         {
+            IEnumerable<(int, int)> toDel;
             var toAdd = new HashSet<(int, int)>();
-            var toDel = new HashSet<(int, int)>();
             if (fold.X)
             {
-                foreach (var pt in coords.Where(p => p.Item1 > fold.Loc))
+                toDel = coords.Where(p => p.Item1 > fold.Loc).ToList();                
+                foreach (var pt in toDel)
                 {
-                    toDel.Add(pt);
                     var newCol = fold.Loc - (pt.Item1 - fold.Loc);
                     toAdd.Add((newCol, pt.Item2));
                 }
             }
             else
             {
-                foreach (var pt in coords.Where(p => p.Item2 > fold.Loc))
+                toDel = coords.Where(p => p.Item2 > fold.Loc);
+                foreach (var pt in toDel)
                 {
-                    toDel.Add(pt);
                     var newRow = fold.Loc - (pt.Item2 - fold.Loc);
                     toAdd.Add((pt.Item1, newRow));
                 }
             }
 
-            foreach (var pt in toDel)
-                coords.Remove(pt);
-            foreach (var pt in toAdd)
-                coords.Add(pt);            
+            coords = coords.Union(toAdd).ToHashSet();
+            coords = coords.Except(toDel).ToHashSet();                    
         }
 
         static void PrintGrid(HashSet<(int, int)> coords)
@@ -92,10 +90,10 @@ namespace _2021
             var coords = input.Item1;
             var folds = input.Item2;
 
-            DoFold(coords, folds[0]);
+            DoFold(ref coords, folds[0]);
             Console.WriteLine($"P1: {coords.Count}");
             foreach (var fold in folds.Skip(1))
-                DoFold(coords, fold);
+                DoFold(ref coords, fold);
             PrintGrid(coords);
         }
     }
