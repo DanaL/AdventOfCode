@@ -30,7 +30,7 @@ namespace _2021
 
     internal class Day13 : IDay
     {
-        private (GridInfo, List<Fold>) FetchInput()
+        static (GridInfo, List<Fold>) FetchInput()
         {
             Regex coord = new Regex(@"^(\d+),(\d+)$");
             Regex fold = new Regex(@"^fold along ([x|y])=(\d+)$");
@@ -64,11 +64,41 @@ namespace _2021
             return (grid, folds);
         }
 
+        static GridInfo DoFold(GridInfo grid, Fold fold)
+        {
+            GridInfo result;
+
+            if (fold.X)
+            {
+                result = null;    
+            }
+            else
+            {
+                result = new GridInfo(fold.Loc, grid.Width);
+                for (int j = 0; j < result.Height * result.Width; j++)
+                    result.Grid[j] = grid.Grid[j];
+                for (int j = (fold.Loc + 1) * grid.Width; j < grid.Width * grid.Height; j++)
+                {
+                    if (grid.Grid[j])
+                    {
+                        int dy = grid.Height - fold.Loc;
+                        result.Grid[j - dy * result.Width] = true;
+                    }
+                }
+            }
+
+            return result;
+        }
+
         public void Solve()
         {
             var input = FetchInput();
             GridInfo grid = input.Item1;
             List<Fold> folds = input.Item2;
+            grid.Grid.PrintGrid(grid.Width, d => d ? "#" : ".");
+
+            // You've just transposed the squares not reflected them
+            grid = DoFold(grid, folds[0]);
             grid.Grid.PrintGrid(grid.Width, d => d ? "#" : ".");
         }
     }
