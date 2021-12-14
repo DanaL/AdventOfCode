@@ -122,6 +122,11 @@ namespace _2021
             
             grid = DoFold(grid, folds[0]);
             Console.WriteLine($"P1: {grid.Grid.Where(s => s).Count()}");
+
+            foreach (var fold in folds.Skip(1))
+                grid = DoFold(grid, fold);
+
+            grid.Grid.PrintGrid(grid.Width, c => c ? "#" : ".");
         }
     }
 }
