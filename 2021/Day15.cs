@@ -58,11 +58,63 @@ namespace _2021
             return distances[target];
         }
 
+        int[] DangerUp(int[] prev)
+        {
+            int[] next = new int[prev.Length];
+            for (int i = 0; i < prev.Length; i++)            
+                next[i] = prev[i] < 9 ? prev[i] + 1 : 1;
+            return next;
+        }
+
+        void CopyInto(int[] desc, int[] src, int destStartR, int destStartC, int destWidth, int srcStartR, int srcStartC, int srcWidth, int size)
+        {
+            for (int r = srcStartR; r < srcStartR + size; r++)
+            {
+                for (int srcC = srcStartC, destC = 0; srcC < srcStartC + size; srcC++, destC++)
+                {
+                    var di = (destStartR + r) * destWidth + destStartC + destC;
+                    desc[di] = src[r * srcWidth + srcC];
+                }
+            }
+        }
+
+        int[] BuildPart2Grid(int[] initialGrid, int initialWidth)
+        {
+            int destWidth = initialWidth * 5;
+            int[] part2 = new int[initialGrid.Length * 25];
+            CopyInto(part2, initialGrid, 0, 0, destWidth, 0, 0, initialWidth, initialWidth);
+
+            int[] next = new int[initialGrid.Length];
+            CopyInto(next, initialGrid, 0, 0,initialWidth, 0, 0, initialWidth, initialWidth);
+            for (int c = 10; c < destWidth; c += initialWidth)
+            {
+                next = DangerUp(next);
+                CopyInto(part2, next, 0, c, destWidth, 0, 0, initialWidth, initialWidth);
+            }
+
+            for (int c = 0; c < destWidth; c+= initialWidth)
+            {
+                CopyInto(next, part2, 0, 0, initialWidth, 0, c, initialWidth * 5, initialWidth);
+                
+                for (int r = initialWidth; r < destWidth; r += initialWidth)
+                {
+                    next = DangerUp(next);
+                    CopyInto(part2, next, r, c, destWidth, 0, 0, initialWidth, initialWidth);
+                }                
+            }
+
+            part2.PrintGrid(destWidth);
+
+            return part2;
+        }
+
         public void Solve()
         {
             GridInfo grid = new GridInfo();
 
             Console.WriteLine($"P1: {dijkstra(grid.Grid, 0, grid.Width, grid.Grid.Length - 1)}");
+
+            var part2Grid = BuildPart2Grid(grid.Grid, grid.Width);
         }
     }
 }

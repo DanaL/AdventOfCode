@@ -26,32 +26,20 @@ namespace _2021
                     p++;
                 }
 
-                switch (x)
+                return x switch
                 {
-                    case 119:
-                        return 0;
-                    case 18:
-                        return 1;
-                    case 93:
-                        return 2;
-                    case 91:
-                        return 3;
-                    case 58:
-                        return 4;
-                    case 107:
-                        return 5;
-                    case 111:
-                        return 6;
-                    case 82:
-                        return 7;
-                    case 127:
-                        return 8;
-                    case 123:
-                        return 9;
-                    default:
-                        // This is an error condition actually but...
-                        return -1;
-                }
+                    119 => 0,
+                    18 => 1,
+                    93 => 2,
+                    91 => 3,
+                    58 => 4,
+                    107 => 5,
+                    111 => 6,
+                    82 => 7,
+                    127 => 8,
+                    123 => 9,
+                    _ => -1,// This is an error condition actually but...
+                };
             }
         }
 
