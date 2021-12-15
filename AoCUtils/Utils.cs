@@ -44,6 +44,18 @@ namespace AoC
             }
         }
 
+        public static IEnumerable<int> CardinalTo<T>(this IList<T> src, int x, int width)
+        {
+            if (x - width >= 0)
+                yield return x - width;
+            if (x + width < src.Count)
+                yield return x + width;
+            if (x % width > 0)
+                yield return x - 1;
+            if ((x + 1) % width != 0)
+                yield return x + 1;
+        }
+
         public static void PrintGrid<T>(this IList<T> src, int width)
         {
             int height = src.Count / width;
