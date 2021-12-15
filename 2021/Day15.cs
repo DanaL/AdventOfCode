@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -10,13 +9,11 @@ namespace _2021
     class GridInfo
     {
         public int[] Grid { get; }
-        public int Height { get; }
         public int Width { get; }
 
         public GridInfo()
         {
             var lines = File.ReadAllLines("inputs/day15.txt");
-            Height = lines.Length;
             Width = lines[0].Length;
 
             Grid = string.Join("", lines).Replace("\n", "")
@@ -24,31 +21,48 @@ namespace _2021
         }
     }
 
-    class PathInfo
-    {
-        public HashSet<int> Visited { get; set; }
-
-        public PathInfo()
-        {
-            Visited = new HashSet<int>();
-        }
-    }
-
     public class Day15 : IDay
-    {
-        void foo(PathInfo path)
+    {        
+        // Pretty much straight out of the Algorithm Design Manual by Skiena
+        int dijkstra(int[] graph, int start, int width, int target)
         {
-            path.Visited.Add(4);
-            path.Visited.Add(7);
+            bool[] visited = new bool[graph.Length];
+            int[] distances = new int[graph.Length];
+
+            distances[start] = 0;
+            for (int j = 1; j < graph.Length; j++)
+                distances[j] = int.MaxValue;
+
+            int v = start;
+            while (!visited[v])
+            {
+                visited[v] = true;
+                foreach (int x in graph.CardinalTo(v, width))
+                {
+                    int weight = graph[x];
+                    if (distances[x] > distances[v] + weight)                    
+                        distances[x] = distances[v] + weight;                    
+                }
+
+                int dist = int.MaxValue;
+                for (int j = 1;j < graph.Length; j++)
+                {
+                    if (!visited[j] && dist > distances[j])
+                    {
+                        dist = distances[j];
+                        v = j;
+                    }
+                }
+            }
+
+            return distances[target];
         }
 
         public void Solve()
         {
             GridInfo grid = new GridInfo();
 
-            PathInfo p = new PathInfo();
-            foo(p);
-            Console.WriteLine(p.Visited.Count);
+            Console.WriteLine($"P1: {dijkstra(grid.Grid, 0, grid.Width, grid.Grid.Length - 1)}");
         }
     }
 }
