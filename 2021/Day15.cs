@@ -86,7 +86,7 @@ namespace _2021
 
             int[] next = new int[initialGrid.Length];
             CopyInto(next, initialGrid, 0, 0,initialWidth, 0, 0, initialWidth, initialWidth);
-            for (int c = 10; c < destWidth; c += initialWidth)
+            for (int c = initialWidth; c < destWidth; c += initialWidth)
             {
                 next = DangerUp(next);
                 CopyInto(part2, next, 0, c, destWidth, 0, 0, initialWidth, initialWidth);
@@ -103,18 +103,16 @@ namespace _2021
                 }                
             }
 
-            part2.PrintGrid(destWidth);
-
             return part2;
         }
 
         public void Solve()
         {
             GridInfo grid = new GridInfo();
-
             Console.WriteLine($"P1: {dijkstra(grid.Grid, 0, grid.Width, grid.Grid.Length - 1)}");
 
             var part2Grid = BuildPart2Grid(grid.Grid, grid.Width);
+            Console.WriteLine($"p2: {dijkstra(part2Grid, 0, grid.Width * 5, part2Grid.Length - 1)}");
         }
     }
 }
