@@ -15,15 +15,12 @@ namespace _2021
 
         private Direction toDir(string d)
         {
-            switch (d)
+            return d switch
             {
-                case "forward":
-                    return Direction.Forward;
-                case "down":
-                    return Direction.Down;
-                default:
-                    return Direction.Up;
-            }
+                "forward" => Direction.Forward,
+                "down" => Direction.Down,
+                _ => Direction.Up,
+            };
         }
 
         private List<(Direction, int)> parseFile()
