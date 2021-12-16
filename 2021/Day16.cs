@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using AoC;
 
@@ -21,12 +19,19 @@ namespace _2021
         public int Literal { get; set; }
         public int LengthTypeID { get; set; }
         public int SubpacketLength { get; set; }
+        public int NumOfSubpackets { get; set; }        
     }
 
     internal class Day16 : IDay
     {
         int _pos;
         string _binaryString;
+        List<PacketInfo> _packets;
+
+        public Day16()
+        {
+            _packets = new List<PacketInfo>();
+        }
 
         // Pretty sure C# has something built in for this but can't
         // google everything!
@@ -81,9 +86,23 @@ namespace _2021
                 // just skip them for name
                 _pos += subpacketLength;
             }
+            else
+            {
+                var numOfSubpackets = Convert.ToInt32(_binaryString.Substring(_pos, 11), 2);
+                packet.NumOfSubpackets = numOfSubpackets;
+                _pos += 11;
+
+                while (numOfSubpackets > 0)
+                {
+                    ParsePacket();
+                }
+            }
         }
 
-        PacketInfo ParsePacketString()
+        // Not quite working right currently.
+        // Subpackets won't have headers (with version + type) so I have to separate out
+        // that
+        void ParsePacket()
         {
             PacketInfo packet = new PacketInfo()
             {
@@ -110,28 +129,23 @@ namespace _2021
                     break;
             }
 
-            return packet;
+            _packets.Add(packet);
         }
 
-        List<PacketInfo> ParsePacketString(string binaryString)
+        void ParsePacketString(string binaryString)
         {
-            List<PacketInfo> packets = new List<PacketInfo>();
             _pos = 0;
             _binaryString = binaryString;
 
             while (_pos < binaryString.Length) 
-            {
-                packets.Add(ParsePacketString());
-            }
-            
-            return packets;
+                ParsePacket();            
         }
 
         public void Solve()
         {                        
-            var packets = ParsePacketString("0011100000000000011011110100010100101001000100100");
+            ParsePacketString("111011100000000011010100000011001000001000110000011");
 
-            foreach (var packet in packets)  
+            foreach (var packet in _packets)  
                 Console.WriteLine($"version: {packet.Version}, type: {packet.Type}, value: {packet.Literal}");
         }
     }
