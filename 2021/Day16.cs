@@ -10,7 +10,8 @@ namespace _2021
 {
     enum PacketType 
     {
-        Literal = 4
+        Literal = 4,
+        Operator = 0
     }
 
     class PacketInfo
@@ -18,6 +19,8 @@ namespace _2021
         public int Version { get; set; }
         public PacketType Type { get; set; }
         public int Literal { get; set; }
+        public int LengthTypeID { get; set; }
+        public int SubpacketLength { get; set; }
     }
 
     internal class Day16 : IDay
@@ -62,6 +65,24 @@ namespace _2021
             _pos += 18; // 18 because the literal has three trailing bits we don't care about
         }
 
+        void ParseOperator(PacketInfo packet)
+        {
+            int lengthTypeID = _binaryString[_pos++] - '0';
+            packet.LengthTypeID = lengthTypeID;
+
+            if (lengthTypeID == 0)
+            {
+                // 15 bits represent the length in bits of sub-packets in this packet
+                var subpacketLength = Convert.ToInt32(_binaryString.Substring(_pos, 15), 2);
+                _pos += 15;
+                packet.SubpacketLength = subpacketLength;
+
+                // ofc we'll have to do something with that string but for part 1 we can
+                // just skip them for name
+                _pos += subpacketLength;
+            }
+        }
+
         PacketInfo ParsePacketString()
         {
             PacketInfo packet = new PacketInfo()
@@ -69,14 +90,23 @@ namespace _2021
                 Version = Convert.ToInt32(_binaryString.Substring(_pos, 3), 2)
             };
 
-            PacketType typeID = (PacketType) Convert.ToInt32(_binaryString.Substring(_pos + 3, 3), 2);
-            packet.Type = typeID;
+            int typeID = Convert.ToInt32(_binaryString.Substring(_pos + 3, 3), 2);
+            packet.Type = typeID switch
+            {
+                4 => PacketType.Literal,
+                _ => PacketType.Operator
+            };
             _pos += 6;
 
-            switch (typeID)
+            switch (packet.Type)
             {
                 case PacketType.Literal:
                     ParseLiteral(packet);
+                    break;
+                default:
+                    // # doesn't distinguish between operator types but I suspect that'll
+                    // change in part 2 so at least for now I'll leave this switch stmt in
+                    ParseOperator(packet);
                     break;
             }
 
@@ -99,7 +129,7 @@ namespace _2021
 
         public void Solve()
         {                        
-            var packets = ParsePacketString("110100101111111000101000100100100111111001000111001100100001100100011010");
+            var packets = ParsePacketString("0011100000000000011011110100010100101001000100100");
 
             foreach (var packet in packets)  
                 Console.WriteLine($"version: {packet.Version}, type: {packet.Type}, value: {packet.Literal}");
