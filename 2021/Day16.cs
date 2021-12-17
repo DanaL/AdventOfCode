@@ -10,20 +10,20 @@ namespace _2021
     enum PacketType 
     {
         Literal = 4,
-        Operator = 0
-    }
-
-    struct PacketInfo
-    {
-        public PacketType PType { get; init; }
-        public int Version { get; init; }
+        Sum = 0,
+        Product = 1,
+        Min = 2,
+        Max = 3,
+        GT = 5,
+        LT = 6,
+        Equal = 7
     }
 
     internal class Day16 : IDay
     {
         int _pos;
         string _binaryString;
-        List<PacketInfo> _packets;
+        int _verTotals;
 
         // Pretty sure C# has something built in for this but can't
         // google everything!
@@ -67,31 +67,6 @@ namespace _2021
             return Convert.ToUInt64(literalBits, 2);
         }
 
-        void ParseOperator()
-        {
-            int lengthTypeID = _binaryString[_pos++] - '0';
-            //packet.LengthTypeID = lengthTypeID;
-
-            if (lengthTypeID == 0)
-            {
-                // 15 bits represent the length in bits of sub-packets in this packet
-                var subpacketLength = Convert.ToInt32(_binaryString.Substring(_pos, 15), 2);
-                _pos += 15;
-
-                ParsePacket();
-            }
-            else
-            {
-                var numOfSubpackets = Convert.ToInt32(_binaryString.Substring(_pos, 11), 2);
-                _pos += 11;
-
-                while (numOfSubpackets-- > 0)
-                {
-                    ParsePacket();
-                }
-            }
-        }
-
         (int, PacketType) ParseHeader()
         {
             int version = Convert.ToInt32(_binaryString.Substring(_pos, 3), 2);
@@ -101,40 +76,121 @@ namespace _2021
             return (version, type);
         }
 
+        List<ulong> FetchSubpacketValues()
+        {
+            var values = new List<ulong>();
+
+            int lengthTypeID = _binaryString[_pos++] - '0';
+
+            if (lengthTypeID == 0)
+            {
+                var endOfSubpackets = 15 + _pos + Convert.ToInt32(_binaryString.Substring(_pos, 15), 2);
+                _pos += 15;
+
+                while (_pos < endOfSubpackets)
+                    values.Add(ParsePacket());
+            }
+            else
+            {
+                var numOfSubpackets = Convert.ToInt32(_binaryString.Substring(_pos, 11), 2);
+                _pos += 11;
+
+                while (numOfSubpackets-- > 0)
+                {
+                    values.Add(ParsePacket());
+                }
+            }
+
+            return values;
+        }
+
+        ulong DoSum()
+        {
+            ulong sum = 0;
+            foreach (var val in FetchSubpacketValues())
+                sum += val;
+
+            return sum;
+        }
+
+        ulong DoProduct()
+        {
+            ulong prod = 1;
+            foreach (var val in FetchSubpacketValues())
+                prod *= val;
+
+            return prod;
+        }
+
+        ulong DoMin()
+        {
+            return FetchSubpacketValues().Min();
+        }
+
+        ulong DoMax()
+        {
+            return FetchSubpacketValues().Max();
+        }
+
+        ulong DoGreaterThan()
+        {
+            var values = FetchSubpacketValues();
+
+            return (ulong) (values[0] > values[1] ? 1 : 0);
+        }
+
+        ulong DoLessThan()
+        {
+            var values = FetchSubpacketValues();
+
+            return (ulong)(values[0] < values[1] ? 1 : 0);
+        }
+
+        ulong DoEqual()
+        {
+            var values = FetchSubpacketValues();
+
+            return (ulong)(values[0] == values[1] ? 1 : 0);
+        }
+
         // Not quite working right currently.
         // Subpackets won't have headers (with version + type) so I have to separate out
         // that
-        void ParsePacket()
+        ulong ParsePacket()
         {
-            (int ver, PacketType ptype) = ParseHeader();
-            PacketInfo packet = new PacketInfo()
-            {
-                PType = ptype,
-                Version = ver
-            };
-            _packets.Add(packet);
+            (int ver, PacketType ptype) = ParseHeader();            
+            _verTotals += ver;
 
             switch (ptype)
             {
                 case PacketType.Literal:
-                    var num = ParseLiteral();
-                    break;
-                default:
-                    // # doesn't distinguish between operator types but I suspect that'll
-                    // change in part 2 so at least for now I'll leave this switch stmt in
-                    ParseOperator();
-                    break;
+                    return ParseLiteral();
+                case PacketType.Sum:
+                    return DoSum();
+                case PacketType.Product:
+                    return DoProduct();
+                case PacketType.Min:
+                    return DoMin();
+                case PacketType.Max:
+                    return DoMax();
+                case PacketType.GT:
+                    return DoGreaterThan();
+                case PacketType.LT:
+                    return DoLessThan();
+                case PacketType.Equal:
+                    return DoEqual();                
             }
+
+            return 0;
         }
 
-        void ParsePacketString(string binaryString)
+        ulong ParsePacketString(string binaryString)
         {
-            _packets = new List<PacketInfo>();
             _pos = 0;
             _binaryString = binaryString;
-           
-            while (binaryString.Length - _pos > 11) // 11 is the minimal packet size
-                ParsePacket();            
+            _verTotals = 0;
+            
+            return ParsePacket();
         }
 
         string Input()
@@ -144,12 +200,12 @@ namespace _2021
 
         public void Solve()
         {
-            //var hexString = "D2FE28";
             var hexString = Input();
             var binString = string.Join("", hexString.Select(HexToBinary));
-            ParsePacketString(binString);
+            var value = ParsePacketString(binString);
 
-            Console.WriteLine($"P1: {_packets.Select(p => p.Version).Sum()}");
+            Console.WriteLine($"P1: {_verTotals}");
+            Console.WriteLine($"P2: {value}");
         }
     }
 }
