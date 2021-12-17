@@ -67,15 +67,6 @@ namespace _2021
             return Convert.ToUInt64(literalBits, 2);
         }
 
-        (int, PacketType) ParseHeader()
-        {
-            int version = Convert.ToInt32(_binaryString.Substring(_pos, 3), 2);
-            PacketType type = (PacketType) Convert.ToInt32(_binaryString.Substring(_pos + 3, 3), 2);
-            _pos += 6;
-
-            return (version, type);
-        }
-
         List<ulong> FetchSubpacketValues()
         {
             var values = new List<ulong>();
@@ -103,7 +94,9 @@ namespace _2021
 
          ulong ParsePacket()
         {
-            (int ver, PacketType ptype) = ParseHeader();            
+            int ver = Convert.ToInt32(_binaryString.Substring(_pos, 3), 2);
+            PacketType ptype = (PacketType)Convert.ToInt32(_binaryString.Substring(_pos + 3, 3), 2);
+            _pos += 6;
             _verTotals += ver;
 
             List<ulong> values;
