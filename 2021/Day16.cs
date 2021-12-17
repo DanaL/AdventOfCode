@@ -58,29 +58,28 @@ namespace _2021
             };
         }
 
-        void ParseLiteral(PacketInfo packet)
+        int ParseLiteral()
         {
             var firstPiece = _binaryString.Substring(_pos + 1, 4);
             var secondPiece = _binaryString.Substring(_pos + 6, 4);
             var thirdPiece = _binaryString.Substring(_pos + 11, 4);
+            _pos += 18; // 18 because the literal has three trailing bits we don't care about
 
             var bs = $"{firstPiece}{secondPiece}{thirdPiece}";
-            packet.Literal = Convert.ToInt32(bs, 2);
-
-            _pos += 18; // 18 because the literal has three trailing bits we don't care about
+            return Convert.ToInt32(bs, 2);
         }
 
-        void ParseOperator(PacketInfo packet)
+        void ParseOperator()
         {
             int lengthTypeID = _binaryString[_pos++] - '0';
-            packet.LengthTypeID = lengthTypeID;
+            //packet.LengthTypeID = lengthTypeID;
 
             if (lengthTypeID == 0)
             {
                 // 15 bits represent the length in bits of sub-packets in this packet
                 var subpacketLength = Convert.ToInt32(_binaryString.Substring(_pos, 15), 2);
                 _pos += 15;
-                packet.SubpacketLength = subpacketLength;
+                //packet.SubpacketLength = subpacketLength;
 
                 // ofc we'll have to do something with that string but for part 1 we can
                 // just skip them for name
@@ -89,47 +88,43 @@ namespace _2021
             else
             {
                 var numOfSubpackets = Convert.ToInt32(_binaryString.Substring(_pos, 11), 2);
-                packet.NumOfSubpackets = numOfSubpackets;
+                //packet.NumOfSubpackets = numOfSubpackets;
                 _pos += 11;
 
-                while (numOfSubpackets > 0)
+                while (numOfSubpackets-- > 0)
                 {
-                    ParsePacket();
+                    // It seems like from the problem description the sub packets are always
+                    // literals of 11 bits?
+                    _pos += 11;
                 }
             }
+        }
+
+        (int, PacketType) ParseHeader()
+        {
+            int version = Convert.ToInt32(_binaryString.Substring(_pos, 3), 2);
+            PacketType type = (PacketType) Convert.ToInt32(_binaryString.Substring(_pos + 3, 3), 2);
+            _pos += 6;
+
+            return (version, type);
         }
 
         // Not quite working right currently.
         // Subpackets won't have headers (with version + type) so I have to separate out
         // that
-        void ParsePacket()
-        {
-            PacketInfo packet = new PacketInfo()
-            {
-                Version = Convert.ToInt32(_binaryString.Substring(_pos, 3), 2)
-            };
-
-            int typeID = Convert.ToInt32(_binaryString.Substring(_pos + 3, 3), 2);
-            packet.Type = typeID switch
-            {
-                4 => PacketType.Literal,
-                _ => PacketType.Operator
-            };
-            _pos += 6;
-
-            switch (packet.Type)
+        void ParsePacket(PacketType ptype)
+        {                       
+            switch (ptype)
             {
                 case PacketType.Literal:
-                    ParseLiteral(packet);
+                    ParseLiteral();
                     break;
                 default:
                     // # doesn't distinguish between operator types but I suspect that'll
                     // change in part 2 so at least for now I'll leave this switch stmt in
-                    ParseOperator(packet);
+                    ParseOperator();
                     break;
             }
-
-            _packets.Add(packet);
         }
 
         void ParsePacketString(string binaryString)
@@ -137,16 +132,24 @@ namespace _2021
             _pos = 0;
             _binaryString = binaryString;
 
-            while (_pos < binaryString.Length) 
-                ParsePacket();            
+            int versionsTotal = 0;
+            while (_pos < binaryString.Length)
+            {
+                (int ver, PacketType ptype) = ParseHeader();
+                versionsTotal += ver;
+                ParsePacket(ptype);
+            }
         }
 
         public void Solve()
-        {                        
-            ParsePacketString("111011100000000011010100000011001000001000110000011");
+        {
+            var hexString = "8A004A801A8002F478";
+            var binString = string.Join("", hexString.Select(HexToBinary));
+            Console.WriteLine(binString);
+            //ParsePacketString(binString);
 
-            foreach (var packet in _packets)  
-                Console.WriteLine($"version: {packet.Version}, type: {packet.Type}, value: {packet.Literal}");
+            //foreach (var packet in _packets)  
+            //    Console.WriteLine($"version: {packet.Version}, type: {packet.Type}, value: {packet.Literal}");
         }
     }
 }
