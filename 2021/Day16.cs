@@ -79,7 +79,6 @@ namespace _2021
         List<ulong> FetchSubpacketValues()
         {
             var values = new List<ulong>();
-
             int lengthTypeID = _binaryString[_pos++] - '0';
 
             if (lengthTypeID == 0)
@@ -95,114 +94,59 @@ namespace _2021
                 var numOfSubpackets = Convert.ToInt32(_binaryString.Substring(_pos, 11), 2);
                 _pos += 11;
 
-                while (numOfSubpackets-- > 0)
-                {
-                    values.Add(ParsePacket());
-                }
+                while (numOfSubpackets-- > 0)               
+                    values.Add(ParsePacket());                
             }
 
             return values;
         }
 
-        ulong DoSum()
-        {
-            ulong sum = 0;
-            foreach (var val in FetchSubpacketValues())
-                sum += val;
-
-            return sum;
-        }
-
-        ulong DoProduct()
-        {
-            ulong prod = 1;
-            foreach (var val in FetchSubpacketValues())
-                prod *= val;
-
-            return prod;
-        }
-
-        ulong DoMin()
-        {
-            return FetchSubpacketValues().Min();
-        }
-
-        ulong DoMax()
-        {
-            return FetchSubpacketValues().Max();
-        }
-
-        ulong DoGreaterThan()
-        {
-            var values = FetchSubpacketValues();
-
-            return (ulong) (values[0] > values[1] ? 1 : 0);
-        }
-
-        ulong DoLessThan()
-        {
-            var values = FetchSubpacketValues();
-
-            return (ulong)(values[0] < values[1] ? 1 : 0);
-        }
-
-        ulong DoEqual()
-        {
-            var values = FetchSubpacketValues();
-
-            return (ulong)(values[0] == values[1] ? 1 : 0);
-        }
-
-        // Not quite working right currently.
-        // Subpackets won't have headers (with version + type) so I have to separate out
-        // that
-        ulong ParsePacket()
+         ulong ParsePacket()
         {
             (int ver, PacketType ptype) = ParseHeader();            
             _verTotals += ver;
 
+            List<ulong> values;
+            ulong acc;
             switch (ptype)
             {
                 case PacketType.Literal:
                     return ParseLiteral();
                 case PacketType.Sum:
-                    return DoSum();
+                    acc = 0;
+                    foreach (var val in FetchSubpacketValues())
+                        acc += val;
+                    return acc;
                 case PacketType.Product:
-                    return DoProduct();
+                    acc = 1;
+                    foreach (var val in FetchSubpacketValues())
+                        acc *= val;
+                    return acc;
                 case PacketType.Min:
-                    return DoMin();
+                    return FetchSubpacketValues().Min();
                 case PacketType.Max:
-                    return DoMax();
+                    return FetchSubpacketValues().Max();
                 case PacketType.GT:
-                    return DoGreaterThan();
+                    values = FetchSubpacketValues();
+                    return (ulong)(values[0] > values[1] ? 1 : 0);
                 case PacketType.LT:
-                    return DoLessThan();
+                    values = FetchSubpacketValues();
+                    return (ulong)(values[0] < values[1] ? 1 : 0);
                 case PacketType.Equal:
-                    return DoEqual();                
+                    values = FetchSubpacketValues();
+                    return (ulong)(values[0] == values[1] ? 1 : 0);
             }
 
             return 0;
         }
 
-        ulong ParsePacketString(string binaryString)
-        {
-            _pos = 0;
-            _binaryString = binaryString;
-            _verTotals = 0;
-            
-            return ParsePacket();
-        }
-
-        string Input()
-        {
-            return File.ReadAllText("inputs/day16.txt").Trim();
-        }
-
         public void Solve()
         {
-            var hexString = Input();
-            var binString = string.Join("", hexString.Select(HexToBinary));
-            var value = ParsePacketString(binString);
+            _pos = 0;
+            _verTotals = 0;
+            var hexString = File.ReadAllText("inputs/day16.txt").Trim();
+            _binaryString = string.Join("", hexString.Select(HexToBinary));
+            var value = ParsePacket();
 
             Console.WriteLine($"P1: {_verTotals}");
             Console.WriteLine($"P2: {value}");
