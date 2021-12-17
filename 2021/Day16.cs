@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 using AoC;
@@ -12,14 +13,10 @@ namespace _2021
         Operator = 0
     }
 
-    class PacketInfo
+    struct PacketInfo
     {
-        public int Version { get; set; }
-        public PacketType Type { get; set; }
-        public int Literal { get; set; }
-        public int LengthTypeID { get; set; }
-        public int SubpacketLength { get; set; }
-        public int NumOfSubpackets { get; set; }        
+        public PacketType PType { get; init; }
+        public int Version { get; init; }
     }
 
     internal class Day16 : IDay
@@ -27,11 +24,6 @@ namespace _2021
         int _pos;
         string _binaryString;
         List<PacketInfo> _packets;
-
-        public Day16()
-        {
-            _packets = new List<PacketInfo>();
-        }
 
         // Pretty sure C# has something built in for this but can't
         // google everything!
@@ -58,15 +50,21 @@ namespace _2021
             };
         }
 
-        int ParseLiteral()
+        ulong ParseLiteral()
         {
-            var firstPiece = _binaryString.Substring(_pos + 1, 4);
-            var secondPiece = _binaryString.Substring(_pos + 6, 4);
-            var thirdPiece = _binaryString.Substring(_pos + 11, 4);
-            _pos += 18; // 18 because the literal has three trailing bits we don't care about
-
-            var bs = $"{firstPiece}{secondPiece}{thirdPiece}";
-            return Convert.ToInt32(bs, 2);
+            int bitsRead = 6;
+            string literalBits = "";
+            while (true)
+            {
+                string section = _binaryString.Substring(_pos, 5);
+                _pos += 5;
+                literalBits += section.Substring(1);
+                bitsRead += 5;
+                if (section[0] == '0')
+                    break;
+            }
+            
+            return Convert.ToUInt64(literalBits, 2);
         }
 
         void ParseOperator()
@@ -79,23 +77,17 @@ namespace _2021
                 // 15 bits represent the length in bits of sub-packets in this packet
                 var subpacketLength = Convert.ToInt32(_binaryString.Substring(_pos, 15), 2);
                 _pos += 15;
-                //packet.SubpacketLength = subpacketLength;
 
-                // ofc we'll have to do something with that string but for part 1 we can
-                // just skip them for name
-                _pos += subpacketLength;
+                ParsePacket();
             }
             else
             {
                 var numOfSubpackets = Convert.ToInt32(_binaryString.Substring(_pos, 11), 2);
-                //packet.NumOfSubpackets = numOfSubpackets;
                 _pos += 11;
 
                 while (numOfSubpackets-- > 0)
                 {
-                    // It seems like from the problem description the sub packets are always
-                    // literals of 11 bits?
-                    _pos += 11;
+                    ParsePacket();
                 }
             }
         }
@@ -112,12 +104,20 @@ namespace _2021
         // Not quite working right currently.
         // Subpackets won't have headers (with version + type) so I have to separate out
         // that
-        void ParsePacket(PacketType ptype)
-        {                       
+        void ParsePacket()
+        {
+            (int ver, PacketType ptype) = ParseHeader();
+            PacketInfo packet = new PacketInfo()
+            {
+                PType = ptype,
+                Version = ver
+            };
+            _packets.Add(packet);
+
             switch (ptype)
             {
                 case PacketType.Literal:
-                    ParseLiteral();
+                    var num = ParseLiteral();
                     break;
                 default:
                     // # doesn't distinguish between operator types but I suspect that'll
@@ -129,27 +129,27 @@ namespace _2021
 
         void ParsePacketString(string binaryString)
         {
+            _packets = new List<PacketInfo>();
             _pos = 0;
             _binaryString = binaryString;
+           
+            while (binaryString.Length - _pos > 11) // 11 is the minimal packet size
+                ParsePacket();            
+        }
 
-            int versionsTotal = 0;
-            while (_pos < binaryString.Length)
-            {
-                (int ver, PacketType ptype) = ParseHeader();
-                versionsTotal += ver;
-                ParsePacket(ptype);
-            }
+        string Input()
+        {
+            return File.ReadAllText("inputs/day16.txt").Trim();
         }
 
         public void Solve()
         {
-            var hexString = "8A004A801A8002F478";
+            //var hexString = "D2FE28";
+            var hexString = Input();
             var binString = string.Join("", hexString.Select(HexToBinary));
-            Console.WriteLine(binString);
-            //ParsePacketString(binString);
+            ParsePacketString(binString);
 
-            //foreach (var packet in _packets)  
-            //    Console.WriteLine($"version: {packet.Version}, type: {packet.Type}, value: {packet.Literal}");
+            Console.WriteLine($"P1: {_packets.Select(p => p.Version).Sum()}");
         }
     }
 }
