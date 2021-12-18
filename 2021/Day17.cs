@@ -21,8 +21,6 @@ namespace _2021
                     --xv;
                 y += yv--;
 
-                // TODO: We can bail out if we've reached the apex and it is 
-                // less than _yApex
                 if (y > _yApex)
                     _yApex = y;
 
@@ -33,6 +31,14 @@ namespace _2021
             return false;
         }
 
+        int MinStartX(int leftBound)
+        {
+            int n = 0;
+            for ( ; n * (n + 1) < 2 * leftBound; n++)
+                ;
+            return n;
+        }
+
         public void Solve()
         {
             // target area: x=25..67, y=-260..-200
@@ -40,22 +46,27 @@ namespace _2021
             //int minY = -5, maxY = -10;
             int minX = 25, maxX = 67;
             int minY = -200, maxY = -260;
-            
-            int maxDistance = Util.TaxiDistance(0, 0, maxX, maxY);
 
+            int startX = MinStartX(minX);
             _yApex = 0;
             int loftiest = 0;
-            for (int x = 0; x < minX; x++)
+            int hitTarget = 0;
+            for (int x = startX; x <= maxX; x++)
             {
-                for (int y = 1; Util.TaxiDistance(0, 0, x ,y) < maxDistance; y++)                
+                for (int y = maxY; y < -maxY; y++)
                 {
                     _yApex = 0;
-                    if (FireProbe(x, y, minX, maxX, minY, maxY) && _yApex > loftiest)
-                        loftiest = _yApex;                  
-                }                
+                    if (FireProbe(x, y, minX, maxX, minY, maxY))
+                    {
+                        if (_yApex > loftiest)
+                            loftiest = _yApex;
+                        ++hitTarget;                
+                    }
+                }     
             }
             
-            Console.WriteLine(loftiest);
+            Console.WriteLine($"P1: {loftiest}");
+            Console.WriteLine($"P2: {hitTarget}");
         }
     }
 }
