@@ -126,7 +126,8 @@ namespace _2021
             {
                 if (t.Bit == '[')
                     ++bcount;
-                // I think I need to subtract ] found here
+                if (t.Bit == ']')
+                    --bcount;
                 if (bcount >= 5 && t.Right.IsDigit() && t.Right.Right.Right.IsDigit())
                 {
                     ExplodeAt(t);
@@ -186,14 +187,16 @@ namespace _2021
             sn.CheckForExplosion();
             Console.WriteLine(sn);
 
-            var sn2 = new SnailNum("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]");
+            var sn3 = new SnailNum("[=,0]");
+            sn3.CheckForSplit();
+            Console.WriteLine(sn3);
+
+            var sn2 = new SnailNum("[[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]");
             Console.WriteLine(sn2);
             sn2.CheckForExplosion();
             Console.WriteLine(sn2);
 
-            var sn3 = new SnailNum("[=,0]");
-            sn3.CheckForSplit();
-            Console.WriteLine(sn3);
+            
         }
     }
 }
