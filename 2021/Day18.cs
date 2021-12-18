@@ -122,18 +122,44 @@ namespace _2021
         public void CheckForExplosion()
         {
             int bcount = 0;
-            Token d = _head;
-            while (d != null)
+            for (var t = _head; t != null; t = t.Right)
             {
-                if (d.Bit == '[')
+                if (t.Bit == '[')
                     ++bcount;
-                if (bcount >= 5 && d.Right.IsDigit() && d.Right.Right.Right.IsDigit())
+                // I think I need to subtract ] found here
+                if (bcount >= 5 && t.Right.IsDigit() && t.Right.Right.Right.IsDigit())
                 {
-                    ExplodeAt(d);
+                    ExplodeAt(t);
                     break;
                 }
-                d = d.Right;
             }
+        }
+
+        void DoSplit(Token t)
+        {
+            float tval = t.Bit - '0';
+            int leftVal = (int)Math.Floor(tval / 2);
+            int rightVal = (int)Math.Ceiling(tval / 2);
+
+            var newPair = new SnailNum($"[{leftVal},{rightVal}]");
+            t.Left.Right = newPair._head;
+            newPair._head.Left = t.Left;
+            var tail = newPair._head.Tail();
+            tail.Right = t.Right;
+            tail.Right.Left = tail;
+        }
+
+        public void CheckForSplit()
+        {
+            for (var t = _head; t != null; t = t.Right)
+            {
+                if (t.IsDigit() && t.Bit > '9')
+                {
+                    DoSplit(t);
+                    break;
+                }
+            }
+
         }
 
         public override string ToString()
@@ -164,6 +190,10 @@ namespace _2021
             Console.WriteLine(sn2);
             sn2.CheckForExplosion();
             Console.WriteLine(sn2);
+
+            var sn3 = new SnailNum("[=,0]");
+            sn3.CheckForSplit();
+            Console.WriteLine(sn3);
         }
     }
 }
