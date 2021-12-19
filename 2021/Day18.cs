@@ -5,7 +5,7 @@ using System.Text;
 using AoC;
 
 namespace _2021
-{
+{    
     enum TokenType
     {
         LeftBracket,
@@ -16,7 +16,7 @@ namespace _2021
 
     class Token
     {
-        public int Val { get; set; }
+        public ulong Val { get; set; }
         public Token Left { get; set; }
         public Token Right { get; set; }
         public TokenType TType { get; set; }
@@ -28,7 +28,7 @@ namespace _2021
                 '[' => new Token() { TType = TokenType.LeftBracket },
                 ']' => new Token() { TType = TokenType.RightBracket },
                 ',' => new Token() { TType = TokenType.Comma },
-                _ => new Token() { TType = TokenType.Digit, Val = c - '0' }
+                _ => new Token() { TType = TokenType.Digit, Val = (ulong) (c - '0') }
             };            
         }
 
@@ -105,7 +105,7 @@ namespace _2021
         {
             var v = d.Right;
             // scan left looking for a number
-            int leftVal = v.Val;
+            ulong leftVal = v.Val;
 
             for (var n = v.Left; n.Left != null; n = n.Left)
             {
@@ -118,7 +118,7 @@ namespace _2021
 
             // check for rightward number
             v = d.Right.Right.Right; // skip comma
-            int rightVal = v.Val;
+            ulong rightVal = v.Val;
             v = v.Right; // pass right value
             for (var n = v.Right; n.Right != null; n = n.Right)
             {
@@ -208,17 +208,49 @@ namespace _2021
 
             return sb.ToString();
         }
+
+        public ulong Magnitiude()
+        {
+            var sn = new SnailNum(this.ToString());
+
+            while (true)
+            {
+                bool simplePair = false;
+                var n = sn._head;
+                while (n.Right != null)
+                {
+                    if (n.Right.TType == TokenType.Digit && n.Right.Right.Right.TType == TokenType.Digit)
+                    {
+                        var left = n.Right.Val;
+                        var right = n.Right.Right.Right.Val;
+                        var m = n.Right;
+                        m.Val = left * 3 + right * 2;
+                        if (n.Left == null || n.Right.Right.Right.Right == null)
+                            return m.Val;
+                        n.Left.Right = m;
+                        m.Right = n.Right.Right.Right.Right.Right; // perfectly ordinary double linked list code...
+                        simplePair = true;                        
+                    }
+                    n = n.Right;
+                }
+
+                if (!simplePair)
+                    break;
+            }
+            
+            return 0;
+        }
     }
 
     public class Day18 : IDay
     {       
         public void Solve()
-        {            
+        {
             var lines = File.ReadAllLines("inputs/day18.txt");
             var res = new SnailNum(lines[0]);
             for (int j = 1; j < lines.Length; j++)
                 res = res.Add(new SnailNum(lines[j]));
-            Console.WriteLine(res);
+            Console.WriteLine($"P1: {res.Magnitiude()}");
         }
     }
 }
