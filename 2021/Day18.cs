@@ -6,15 +6,30 @@ using AoC;
 
 namespace _2021
 {
+    enum TokenType
+    {
+        LeftBracket,
+        RightBracket,
+        Digit,
+        Comma
+    }
+
     class Token
     {
-        public char Bit { get; set; }
+        public int Val { get; set; }
         public Token Left { get; set; }
         public Token Right { get; set; }
+        public TokenType TType { get; set; }
 
-        public Token(char bit)
+        public static Token GetToken(char c)
         {
-            Bit = bit;
+            return c switch
+            {
+                '[' => new Token() { TType = TokenType.LeftBracket },
+                ']' => new Token() { TType = TokenType.RightBracket },
+                ',' => new Token() { TType = TokenType.Comma },
+                _ => new Token() { TType = TokenType.Digit, Val = c - '0' }
+            };            
         }
 
         public Token Tail()
@@ -23,17 +38,6 @@ namespace _2021
             for (n = this; n.Right != null; n = n.Right)
                 ;
             return n;
-        }
-
-        public bool IsDigit()
-        {
-            return Bit switch
-            {
-                '[' => false,
-                ']' => false,
-                ',' => false,
-                _ => true
-            };
         }
     }
 
@@ -48,11 +52,11 @@ namespace _2021
 
         public SnailNum(string snailStr)
         {
-            _head = new Token(snailStr[0]);
+            _head = Token.GetToken(snailStr[0]);
             Token curr = _head, prev = _head;
             for (int j = 1; j < snailStr.Length; j++)
             {
-                var d = new Token(snailStr[j]);
+                var d = Token.GetToken(snailStr[j]);
                 d.Left = curr;
                 curr.Right = d;
                 curr = d;
@@ -61,9 +65,9 @@ namespace _2021
 
         public SnailNum Add(SnailNum other)
         {
-            var newHead = new Token('[');
-            var comma = new Token(',');
-            var close = new Token(']');
+            var newHead = Token.GetToken('[');
+            var comma = Token.GetToken(',');
+            var close = Token.GetToken(']');
 
             newHead.Right = _head;
             _head.Left = newHead;
@@ -101,40 +105,40 @@ namespace _2021
         {
             var v = d.Right;
             // scan left looking for a number
-            int leftVal = v.Bit - '0';
+            int leftVal = v.Val;
 
             for (var n = v.Left; n.Left != null; n = n.Left)
             {
-                if (n.IsDigit())
+                if (n.TType == TokenType.Digit)
                 {
-                    n.Bit = (char)(n.Bit + leftVal);   // I think this should temporarily handle the case of 9 + 3 = 12?
-                    break;                             // It'll store 12 as '<' and those are the numbers to shrink later
+                    n.Val += leftVal;
+                    break;
                 }
             }
 
             // check for rightward number
             v = d.Right.Right.Right; // skip comma
-            int rightVal = v.Bit - '0';
+            int rightVal = v.Val;
             v = v.Right; // pass right value
             for (var n = v.Right; n.Right != null; n = n.Right)
             {
-                if (n.IsDigit())
+                if (n.TType == TokenType.Digit)
                 {
-                    n.Bit = (char)(n.Bit + rightVal);   // I think this should temporarily handle the case of 9 + 3 = 12?
-                    break;                             // It'll store 12 as '<' and those are the numbers to shrink later
+                    n.Val += rightVal;
+                    break;
                 }
             }
 
             // Now, replace pair with 0
             var prev = d.Left;
             var next = d.Right.Right.Right.Right.Right;
-            var zero = new Token('0');
+            var zero = Token.GetToken('0');
             prev.Right = zero;
             zero.Left = prev;
             zero.Right = next;
             next.Left = zero;
 
-            Console.WriteLine($"After explosion: {this}");
+            //Console.WriteLine($"After explosion: {this}");
         }
 
         public bool CheckForExplosion()
@@ -142,11 +146,11 @@ namespace _2021
             int bcount = 0;
             for (var t = _head; t != null; t = t.Right)
             {
-                if (t.Bit == '[')
+                if (t.TType == TokenType.LeftBracket)
                     ++bcount;
-                if (t.Bit == ']')
+                if (t.TType == TokenType.RightBracket)
                     --bcount;
-                if (bcount >= 5 && t.Right.IsDigit() && t.Right.Right.Right.IsDigit())
+                if (bcount >= 5 && t.Right.TType == TokenType.Digit && t.Right.Right.Right.TType == TokenType.Digit)
                 {
                     ExplodeAt(t);
                     return true;
@@ -158,7 +162,7 @@ namespace _2021
 
         void DoSplit(Token t)
         {
-            float tval = t.Bit - '0';
+            float tval = t.Val;
             int leftVal = (int)Math.Floor(tval / 2);
             int rightVal = (int)Math.Ceiling(tval / 2);
 
@@ -169,14 +173,14 @@ namespace _2021
             tail.Right = t.Right;
             tail.Right.Left = tail;
 
-            Console.WriteLine($"After split: {this}");
+            //Console.WriteLine($"After split: {this}");
         }
 
         public bool CheckForSplit()
         {
             for (var t = _head; t != null; t = t.Right)
             {
-                if (t.IsDigit() && t.Bit > '9')
+                if (t.TType == TokenType.Digit && t.Val > 9)
                 {
                     DoSplit(t);
                     return true;
@@ -192,12 +196,14 @@ namespace _2021
 
             for (var n = _head; n != null; n = n.Right)
             {
-                if (n.IsDigit() && n.Bit > '9')
-                    sb.Append(n.Bit - '0');
-                else
-                    sb.Append(n.Bit);
-                //if (n.Bit == ',')
-                //    sb.Append(' ');                
+                string s = n.TType switch
+                {
+                    TokenType.LeftBracket => "[",
+                    TokenType.RightBracket => "]",
+                    TokenType.Comma => ",",
+                    _ => n.Val.ToString()
+                };
+                sb.Append(s);
             }
 
             return sb.ToString();
@@ -207,22 +213,12 @@ namespace _2021
     public class Day18 : IDay
     {       
         public void Solve()
-        {
-            //var sn1 = new SnailNum("[[[[4,3],4],4],[7,[[8,4],9]]]");
-            //var sn2 = new SnailNum("[1,1]");
-            //var res = sn1.Add(sn2);
-            //Console.WriteLine(res);
-
-            //var lines = File.ReadAllLines("inputs/day18.txt");
-            //var res = new SnailNum(lines[0]);
-            //for (int j = 1; j < lines.Length; j++)
-            //    res = res.Add(new SnailNum(lines[j]));
-            //Console.WriteLine(res);
-
-            var s = new SnailNum("[[[[0,6],[7,6]],[[6,[6,7]],[T,0]]],[[2,[2,2]],[8,[8,1]]]]");
-            Console.WriteLine(s);
-            s.CheckForExplosion();
-            Console.WriteLine(s);
+        {            
+            var lines = File.ReadAllLines("inputs/day18.txt");
+            var res = new SnailNum(lines[0]);
+            for (int j = 1; j < lines.Length; j++)
+                res = res.Add(new SnailNum(lines[j]));
+            Console.WriteLine(res);
         }
     }
 }
