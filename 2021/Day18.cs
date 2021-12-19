@@ -209,36 +209,47 @@ namespace _2021
             return sb.ToString();
         }
 
+        bool IsSimplePair(Token t)
+        {
+            if (t == null || t.TType != TokenType.LeftBracket)
+                return false;
+            if (t.Right == null || t.Right.TType != TokenType.Digit)
+                return false;
+            if (t.Right.Right == null || t.Right.Right.TType != TokenType.Comma)
+                return false;
+            if (t.Right.Right.Right == null || t.Right.Right.Right.TType != TokenType.Digit)
+                return false;
+
+            return true;
+        }
+
         public ulong Magnitiude()
         {
             var sn = new SnailNum(this.ToString());
 
             while (true)
             {
-                bool simplePair = false;
                 var n = sn._head;
+
+                if (IsSimplePair(n) && n.Left == null)
+                {
+                    return n.Right.Val * 3 + n.Right.Right.Right.Val * 2;
+                }
+
                 while (n.Right != null)
                 {
-                    if (n.Right.TType == TokenType.Digit && n.Right.Right.Right.TType == TokenType.Digit)
+                    if (IsSimplePair(n))
                     {
                         var left = n.Right.Val;
                         var right = n.Right.Right.Right.Val;
                         var m = n.Right;
                         m.Val = left * 3 + right * 2;
-                        if (n.Left == null || n.Right.Right.Right.Right == null)
-                            return m.Val;
                         n.Left.Right = m;
-                        m.Right = n.Right.Right.Right.Right.Right; // perfectly ordinary double linked list code...
-                        simplePair = true;                        
+                        m.Right = n.Right.Right.Right.Right.Right; // perfectly ordinary double linked list code...                
                     }
                     n = n.Right;
                 }
-
-                if (!simplePair)
-                    break;
-            }
-            
-            return 0;
+            }            
         }
     }
 
@@ -252,38 +263,33 @@ namespace _2021
                 res = res.Add(new SnailNum(lines[j]));
             Console.WriteLine($"P1: {res.Magnitiude()}");
 
-            var sn0 = new SnailNum(lines[68]);
-            var sn1 = new SnailNum(lines[84]);           
-            //var r = sn0.Add(sn1);
-            //Console.WriteLine(r);
-            //Console.WriteLine(r.Magnitiude());
-            //ulong greatest = 0;
-            //for (int j = 0; j < lines.Length - 1; j++)
-            //{
-            //    for (int k = j + 1; k < lines.Length - 2; k++)
-            //    {
-            //        var sn0 = new SnailNum(lines[j]);
-            //        var sn1 = new SnailNum(lines[k]);
-            //        try
-            //        {                        
-            //            ulong mn = sn0.Add(sn1).Magnitiude();
-            //            if (mn > greatest)
-            //                greatest = mn;
-            //            //sn0 = new SnailNum(lines[j]);
-            //            //sn1 = new SnailNum(lines[k]);
-            //            //mn = sn0.Add(sn1).Magnitiude();
-            //            //if (mn > greatest)
-            //            //    greatest = mn;
-            //        }
-            //        catch (Exception)
-            //        {
-            //            Console.WriteLine($"{j}, {k}");
-            //            Console.WriteLine(sn0);
-            //            Console.WriteLine(sn1);
-            //        }
-            //    }
-            //}
-            //Console.WriteLine($"P2: {greatest}");
+            ulong greatest = 0;
+            for (int j = 0; j < lines.Length - 1; j++)
+            {
+                for (int k = j + 1; k < lines.Length - 2; k++)
+                {
+                    var sn0 = new SnailNum(lines[j]);
+                    var sn1 = new SnailNum(lines[k]);
+                    try
+                    {
+                        ulong mn = sn0.Add(sn1).Magnitiude();
+                        if (mn > greatest)
+                            greatest = mn;
+                        sn0 = new SnailNum(lines[j]);
+                        sn1 = new SnailNum(lines[k]);
+                        mn = sn1.Add(sn0).Magnitiude();
+                        if (mn > greatest)
+                            greatest = mn;
+                    }
+                    catch (Exception)
+                    {
+                        Console.WriteLine($"{j}, {k}");
+                        Console.WriteLine(sn0);
+                        Console.WriteLine(sn1);
+                    }
+                }
+            }
+            Console.WriteLine($"P2: {greatest}");
         }
     }
 }
