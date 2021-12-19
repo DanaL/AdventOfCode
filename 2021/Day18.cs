@@ -1,10 +1,11 @@
 ﻿using System;
+using System.IO;
 using System.Text;
 
 using AoC;
 
 namespace _2021
-{    
+{
     class Token
     {
         public char Bit { get; set; }
@@ -13,7 +14,7 @@ namespace _2021
 
         public Token(char bit)
         {
-            Bit = bit;            
+            Bit = bit;
         }
 
         public Token Tail()
@@ -78,7 +79,22 @@ namespace _2021
             tail.Right = close;
             close.Left = tail;
 
-            return new SnailNum(newHead);
+            var newSN = new SnailNum(newHead);
+            newSN.Reduce();
+
+            return newSN;
+        }
+
+        private void Reduce()
+        {            
+            do
+            {
+                if (CheckForExplosion())
+                    continue;
+                if (CheckForSplit())
+                    continue;
+                break;
+            } while (true);
         }
 
         private void ExplodeAt(Token d)
@@ -117,9 +133,11 @@ namespace _2021
             zero.Left = prev;
             zero.Right = next;
             next.Left = zero;
+
+            Console.WriteLine($"After explosion: {this}");
         }
 
-        public void CheckForExplosion()
+        public bool CheckForExplosion()
         {
             int bcount = 0;
             for (var t = _head; t != null; t = t.Right)
@@ -131,9 +149,11 @@ namespace _2021
                 if (bcount >= 5 && t.Right.IsDigit() && t.Right.Right.Right.IsDigit())
                 {
                     ExplodeAt(t);
-                    break;
+                    return true;
                 }
             }
+
+            return false;
         }
 
         void DoSplit(Token t)
@@ -142,25 +162,28 @@ namespace _2021
             int leftVal = (int)Math.Floor(tval / 2);
             int rightVal = (int)Math.Ceiling(tval / 2);
 
-            var newPair = new SnailNum($"[{leftVal},{rightVal}]");
+            var newPair = new SnailNum($"[{(char)(leftVal +'0')},{(char)(rightVal +'0')}]");
             t.Left.Right = newPair._head;
             newPair._head.Left = t.Left;
             var tail = newPair._head.Tail();
             tail.Right = t.Right;
             tail.Right.Left = tail;
+
+            Console.WriteLine($"After split: {this}");
         }
 
-        public void CheckForSplit()
+        public bool CheckForSplit()
         {
             for (var t = _head; t != null; t = t.Right)
             {
                 if (t.IsDigit() && t.Bit > '9')
                 {
                     DoSplit(t);
-                    break;
+                    return true;
                 }
             }
 
+            return false;
         }
 
         public override string ToString()
@@ -169,9 +192,12 @@ namespace _2021
 
             for (var n = _head; n != null; n = n.Right)
             {
-                sb.Append(n.Bit);
-                if (n.Bit == ',')
-                    sb.Append(' ');
+                if (n.IsDigit() && n.Bit > '9')
+                    sb.Append(n.Bit - '0');
+                else
+                    sb.Append(n.Bit);
+                //if (n.Bit == ',')
+                //    sb.Append(' ');                
             }
 
             return sb.ToString();
@@ -182,21 +208,21 @@ namespace _2021
     {       
         public void Solve()
         {
-            var sn = new SnailNum("[[[[[9,8],1],2],3],4]");            
-            Console.WriteLine(sn);
-            sn.CheckForExplosion();
-            Console.WriteLine(sn);
+            //var sn1 = new SnailNum("[[[[4,3],4],4],[7,[[8,4],9]]]");
+            //var sn2 = new SnailNum("[1,1]");
+            //var res = sn1.Add(sn2);
+            //Console.WriteLine(res);
 
-            var sn3 = new SnailNum("[=,0]");
-            sn3.CheckForSplit();
-            Console.WriteLine(sn3);
+            //var lines = File.ReadAllLines("inputs/day18.txt");
+            //var res = new SnailNum(lines[0]);
+            //for (int j = 1; j < lines.Length; j++)
+            //    res = res.Add(new SnailNum(lines[j]));
+            //Console.WriteLine(res);
 
-            var sn2 = new SnailNum("[[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]");
-            Console.WriteLine(sn2);
-            sn2.CheckForExplosion();
-            Console.WriteLine(sn2);
-
-            
+            var s = new SnailNum("[[[[0,6],[7,6]],[[6,[6,7]],[T,0]]],[[2,[2,2]],[8,[8,1]]]]");
+            Console.WriteLine(s);
+            s.CheckForExplosion();
+            Console.WriteLine(s);
         }
     }
 }
