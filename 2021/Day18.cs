@@ -251,6 +251,39 @@ namespace _2021
             for (int j = 1; j < lines.Length; j++)
                 res = res.Add(new SnailNum(lines[j]));
             Console.WriteLine($"P1: {res.Magnitiude()}");
+
+            var sn0 = new SnailNum(lines[68]);
+            var sn1 = new SnailNum(lines[84]);           
+            //var r = sn0.Add(sn1);
+            //Console.WriteLine(r);
+            //Console.WriteLine(r.Magnitiude());
+            //ulong greatest = 0;
+            //for (int j = 0; j < lines.Length - 1; j++)
+            //{
+            //    for (int k = j + 1; k < lines.Length - 2; k++)
+            //    {
+            //        var sn0 = new SnailNum(lines[j]);
+            //        var sn1 = new SnailNum(lines[k]);
+            //        try
+            //        {                        
+            //            ulong mn = sn0.Add(sn1).Magnitiude();
+            //            if (mn > greatest)
+            //                greatest = mn;
+            //            //sn0 = new SnailNum(lines[j]);
+            //            //sn1 = new SnailNum(lines[k]);
+            //            //mn = sn0.Add(sn1).Magnitiude();
+            //            //if (mn > greatest)
+            //            //    greatest = mn;
+            //        }
+            //        catch (Exception)
+            //        {
+            //            Console.WriteLine($"{j}, {k}");
+            //            Console.WriteLine(sn0);
+            //            Console.WriteLine(sn1);
+            //        }
+            //    }
+            //}
+            //Console.WriteLine($"P2: {greatest}");
         }
     }
 }
