@@ -137,8 +137,6 @@ namespace _2021
             zero.Left = prev;
             zero.Right = next;
             next.Left = zero;
-
-            //Console.WriteLine($"After explosion: {this}");
         }
 
         public bool CheckForExplosion()
@@ -172,8 +170,6 @@ namespace _2021
             var tail = newPair._head.Tail();
             tail.Right = t.Right;
             tail.Right.Left = tail;
-
-            //Console.WriteLine($"After split: {this}");
         }
 
         public bool CheckForSplit()
