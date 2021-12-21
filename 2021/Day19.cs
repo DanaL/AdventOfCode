@@ -9,7 +9,7 @@ namespace _2021
 {
     public class Day19 : IDay
     {
-        List<List<int[]>> _scanners;
+        Dictionary<int, List<(int, int, int)>> _scanners;
 
         static int[] _r0  = new int[] {  0,  0,  1,  0,  1,  0, -1,  0,  0 };
         static int[] _r1  = new int[] { -1,  0,  0,  0,  1,  0,  0,  0, -1 };
@@ -46,101 +46,58 @@ namespace _2021
                                                   _r11, _r12, _r13, _r14, _r15, _r16, _r17, _r18, _r19,
                                                   _r20, _r21, _r22, _r23 };
 
-        int[] Rotate(int[] v0, int r)
+        (int, int, int) Rotate((int X, int Y, int Z) v0, int r)
         {
-            var v1 = new int[3];
             var rot = _rotations[r];
 
-            v1[0] = v0[0] * rot[0] + v0[1] * rot[1] + v0[2] * rot[2];
-            v1[1] = v0[0] * rot[3] + v0[1] * rot[4] + v0[2] * rot[5];
-            v1[2] = v0[0] * rot[6] + v0[1] * rot[7] + v0[2] * rot[8];
+            var r0 = v0.X * rot[0] + v0.Y * rot[1] + v0.Z * rot[2];
+            var r1 = v0.X * rot[3] + v0.Y * rot[4] + v0.Z * rot[5];
+            var r2 = v0.X * rot[6] + v0.Y * rot[7] + v0.Z * rot[8];
 
-            return v1;
+            return (r0, r1, r2);
         }
 
         void Input()
         {
             var lines = File.ReadAllLines("inputs/day19.txt").Where(l => l.Trim() != "");
-            _scanners = new List<List<int[]>>();
+            _scanners = new Dictionary<int, List<(int, int, int)>>();
 
             foreach (var line in lines)
             {
-                if (line.StartsWith("---"))
-                {
-                    _scanners.Add(new List<int[]>());
+                if (line.StartsWith("---")) {
+                    // I'm too tired and sad to remember how to format regexes...
+                    int scannerNum = int.Parse(line.Split(' ')[2]);
+                    _scanners.Add(scannerNum, new List<(int, int, int)>());                   
                 }
                 else
                 {
-                    int[] beacon = line.Split(',').Select(int.Parse).ToArray();
-                    _scanners[_scanners.Count - 1].Add(beacon);
+                    int[] b = line.Split(',').Select(int.Parse).ToArray();
+                    _scanners[_scanners.Count - 1].Add((b[0], b[1], b[2]));
                 }
                         
             }
         }
-
-        bool Same(int[] a, int[] b)
+        
+        void CheckScanner(int scannerNum)
         {
-            return a[0] == b[0] && a[1] == b[1] && a[2] == b[2];
-        }
+            // First, generate all the rotations of our selected scanner
+            var pts = _scanners[scannerNum];
+            (int, int, int)[,] rotated = new (int, int, int)[pts.Count, _rotations.Length];
 
-        void Blah()
-        {
-            var s0 = _scanners[0];
-            var setS0 = new HashSet<(int, int, int)>();
-            foreach (var b in s0)
+            for (int p = 0; p < pts.Count; p++)
             {
-                setS0.Add((b[0], b[1], b[2]));
-            }
-
-            var s1 = _scanners[1];
-
-            List<(int[], int[])> samsies = new();
-            foreach (var b0 in s0)
-            {
-                // 1. For each point in s0, test by pretending it is the same
-                //    as a point in s1.
-                // 2. Calc transpose.
-                // 3. See if any other transposed point from s1 is the same as
-                //    a point in s0
-
-                for (int j = 0; j < s1.Count; j++)
+                for (int r = 0; r < _rotations.Length; r++)
                 {
-                    var b1 = s1[j];
-                    int dx = b0[0] - b1[0];
-                    int dy = b0[1] - b1[1];
-                    int dz = b0[2] - b1[2];
-
-                    List<(int, int, int)> transposed = new();
-                    for (int k = 0; k < s1.Count; k++)
-                    {
-                        if (j == k) continue;
-                        var bk = s1[k];
-                        var t = (bk[0] + dx, bk[1] + dy, bk[2] + dz);
-                        if (setS0.Contains(t))
-                        {
-                            Console.WriteLine($"holy fucking shit {t}");
-                        }
-
-                    }
+                    rotated[p, r] = Rotate(pts[p], r);
                 }
-            }
+            }            
         }
 
         public void Solve()
         {
-            var v = new int[] { 8, 0, 7 };
-
             Input();
 
-            var a = ( -7, 4, 14 );
-            var b = ( -7, 4, 14 );
-
-            var set = new HashSet<(int, int, int)>();
-
-            set.Add(a);
-            Console.WriteLine(set.Contains(b));
-
-            Blah();            
+            CheckScanner(0);
         }
     }
 }
