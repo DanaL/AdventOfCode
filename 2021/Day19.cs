@@ -76,41 +76,57 @@ namespace _2021
                 }
             }
         }
-        
+
+        bool AreEqual((int, int, int) a, (int, int, int) b)
+        {
+            return a.Item1 == b.Item1 && a.Item2 == b.Item2 && a.Item3 == b.Item3;
+        }
+
         void PretendPointIsOtherPoint((int X, int Y, int Z) pt, (int X, int Y, int Z) otherPt, List<(int X, int Y, int Z)> pts, HashSet<(int, int, int)> otherPts)
         {
             var transpose = (otherPt.X - pt.X, otherPt.Y - pt.Y, otherPt.Z - pt.Z);
 
+            var matches = new List<((int, int, int), (int, int, int))>();
             int count = 0;
             foreach (var p in pts)
             {
                 var tp = (p.X + transpose.Item1, p.Y + transpose.Item2, p.Z + transpose.Item3);
                 if (otherPts.Contains(tp))
+                {
                     ++count;
+                    matches.Add((p, tp));
+                }
             }
 
             if (count >= 12)
+            {
                 Console.WriteLine($"Fuck yeah, we found {count} matching points!");
+                foreach (var m in matches)
+                {
+                    Console.WriteLine(m);
+                }
+            }
         }
 
         void ComparePtsToOtherScanners(List<(int, int, int)> pts, int otherScannerID)
         {
-            for (int p = 0; p < pts.Count; p++)
+            var otherPts = _scanners[otherScannerID];
+            foreach (var pt in pts)
             {
-                foreach (var otherPt in _scanners[otherScannerID])
+                foreach (var otherPt in otherPts)
                 {
-                    PretendPointIsOtherPoint(pts[p], otherPt, pts, _scanners[otherScannerID]);
+                    PretendPointIsOtherPoint(pt, otherPt, pts, otherPts);
                 }
             }            
         }
 
         void CompareToOtherScanners((int, int, int)[,] allRotations, int otherScannerID)
         {
-            for (int r = 0; r < 24; r++)
+            for (int rot = 0; rot < allRotations.GetLength(1); rot++)
             {
                 var pts = new List<(int, int, int)>();
-                for (int p = 0; p < allRotations.GetLength(1); p++)
-                    pts.Add(allRotations[r, p]);
+                for (int pt = 0; pt < allRotations.GetLength(0); pt++)
+                    pts.Add(allRotations[pt, rot]);
 
                 // Okay, pts is one of the sets of rotated points from a scanner. We
                 // want to transpose/compare them to the other sets
@@ -134,11 +150,30 @@ namespace _2021
                 ++p;
             }
 
-            // Next up: compare to the other points
-            foreach (var otherScanner in _scanners.Keys.Where(k => k != scannerNum))
+            int targetScanner = 1;
+            for (int col = 0; col < rotated.GetLength(1); col++)
             {
-                CompareToOtherScanners(rotated, otherScanner);
+                // We don't actually need to build the list of rotated points everytime, but this is helping
+                // me to conceptualize what is happening. If performance matters later on I can, say, build
+                // a giant array of rotated points and just know that I need to look at, say, indexes 25-50
+                var rotatedPoints = new List<(int, int, int)>();
+                for (int row = 0; row < rotated.GetLength(0); row++)
+                    rotatedPoints.Add(rotated[row, col]);
+
+                foreach (var srcPt in rotatedPoints)
+                {
+                    foreach (var otherPt in _scanners[targetScanner])
+                    {
+                        PretendPointIsOtherPoint(srcPt, otherPt, rotatedPoints, _scanners[targetScanner]);
+                    }
+                }
             }
+            
+            // Next up: compare to the other points
+            //foreach (var otherScanner in _scanners.Keys.Where(k => k != scannerNum))
+            //{
+            //    CompareToOtherScanners(rotated, 1);
+            //}
         }
 
         public void Solve()
