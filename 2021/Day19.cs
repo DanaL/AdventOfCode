@@ -17,7 +17,8 @@ namespace _2021
     public class Day19 : IDay
     {
         Dictionary<int, HashSet<(int, int, int)>> _scanners;
-        
+        Dictionary<int, (int, int, int)> _scannerLocations;
+
         static int[] _r0 = new int[] { 1,  0,  0,  0,  1,  0,  0,  0,  1 };
         static int[] _r1 = new int[] { 1, 0, 0, 0, 0, -1, 0, 1, 0 };
         static int[] _r2 = new int[] { 1, 0, 0, 0, -1, 0, 0, 0, -1 };
@@ -109,7 +110,6 @@ namespace _2021
         {            
             var sourcePts = _scanners[sourceScanner];
 
-            // Generated the rotations for target pts
             var targetPts = _scanners[targetScanner];
             (int, int, int)[,] rotated = new (int, int, int)[targetPts.Count, _rotations.Length];
             int p = 0;
@@ -147,6 +147,9 @@ namespace _2021
                                 normalized.Add((X + tranpose.X, Y + tranpose.Y, Z + tranpose.Z));
                             _scanners[targetScanner] = normalized;
                             Console.WriteLine($"Success! {sourceScanner} -> {targetScanner}: {tranpose}");
+                            if (!_scannerLocations.ContainsKey(targetScanner))
+                                _scannerLocations.Add(targetScanner, tranpose);
+
                             return true;
                         }
                     }
@@ -160,27 +163,44 @@ namespace _2021
         {
             Input();
 
-            var alreadyChecked = new HashSet<int>();
+            _scannerLocations = new Dictionary<int, (int, int, int)>();
+            _scannerLocations.Add(0, (0, 0, 0));
+
+            var alreadyChecked = new HashSet<(int, int)>();
             var toCheck = new Queue<int>();
             toCheck.Enqueue(0);
 
-            var scanners = _scanners.Keys.OrderBy(k => k);
+            var scannerNums = _scanners.Keys.OrderBy(k => k);
             while (toCheck.Count > 0)
             {
                 var s = toCheck.Dequeue();
-                if (alreadyChecked.Contains(s))
-                    continue;
+                
                 Console.WriteLine($"Checking against {s}");
-                alreadyChecked.Add(s);
-                foreach (var t in scanners)
+                foreach (var t in scannerNums)
                 {
                     if (s == t) continue;
+                    if (alreadyChecked.Contains((s, t)) || alreadyChecked.Contains((t, s)))
+                        continue;
+                    alreadyChecked.Add((s, t));
+                    alreadyChecked.Add((t, s));                    
                     if (CheckScanner(s, t)) 
                         toCheck.Enqueue(t);
                 }
             }
-           
-            Console.WriteLine(_scanners.Values.Select(s => s).SelectMany(s => s).Distinct().Count());
+
+            Console.WriteLine($"P1: {_scanners.Values.Select(s => s).SelectMany(s => s).Distinct().Count()}");
+
+            ulong greatestDistance = 0;
+            foreach ((int x0, int y0, int z0) in _scannerLocations.Values)
+            {
+                foreach ((int x1, int y1, int z1)in _scannerLocations.Values)
+                {
+                    ulong d = (ulong) Util.TaxiDistance(x0, y0, z0, x1, y1, z1);
+                    if (d > greatestDistance)
+                        greatestDistance = d;
+                }
+            }
+            Console.WriteLine($"P2: {greatestDistance}");
         }
     }
 }

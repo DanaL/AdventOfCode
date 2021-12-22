@@ -21,6 +21,11 @@ namespace AoC
         {
             return Math.Abs(x0 - x1) + Math.Abs(y0 - y1);
         }
+
+        public static int TaxiDistance(int x0, int y0, int z0, int x1, int y1, int z1)
+        {
+            return Math.Abs(x0 - x1) + Math.Abs(y0 - y1) + Math.Abs(z0 - z1);
+        }
     }
 
     public static class CollectionExtentions
