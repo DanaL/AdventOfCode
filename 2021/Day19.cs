@@ -7,6 +7,13 @@ using AoC;
 
 namespace _2021
 {
+    class MatchSuccess : Exception
+    {
+        public (int, int, int) Transpose { get; set; }
+
+        public MatchSuccess() { }
+    }
+
     public class Day19 : IDay
     {
         Dictionary<int, HashSet<(int, int, int)>> _scanners;
@@ -77,19 +84,19 @@ namespace _2021
             }
         }
 
-        void PretendPointIsOtherPoint((int X, int Y, int Z) pt, (int X, int Y, int Z) otherPt, List<(int X, int Y, int Z)> pts, HashSet<(int, int, int)> otherPts, int rotation)
+        void PretendPointIsOtherPoint((int X, int Y, int Z) targetPt, (int X, int Y, int Z) sourcePt, List<(int X, int Y, int Z)> pts, HashSet<(int, int, int)> sourcePts, int rotation)
         {
-            var transpose = (otherPt.X - pt.X, otherPt.Y - pt.Y, otherPt.Z - pt.Z);
+            var transpose = (sourcePt.X - targetPt.X, sourcePt.Y - targetPt.Y, sourcePt.Z - targetPt.Z);
 
-            var matches = new List<((int, int, int), (int, int, int))>();
+            var matches = new List<((int, int, int), (int, int, int), (int, int, int))>();
             int count = 0;
             foreach (var p in pts)
             {
                 var tp = (p.X + transpose.Item1, p.Y + transpose.Item2, p.Z + transpose.Item3);
-                if (otherPts.Contains(tp))
+                if (sourcePts.Contains(tp))
                 {
                     ++count;
-                    matches.Add((p, tp));
+                    matches.Add((p, tp, transpose));
                 }
             }
 
@@ -101,17 +108,20 @@ namespace _2021
                 {
                     Console.WriteLine(m);
                 }
+                throw new MatchSuccess() { Transpose = transpose };
             }
         }
 
         void CheckScanner(int scannerNum)
-        {
-            // First, generate all the rotations of our selected scanner
-            var pts = _scanners[scannerNum];
-            (int, int, int)[,] rotated = new (int, int, int)[pts.Count, _rotations.Length];
+        {            
+            var sourcePts = _scanners[scannerNum];
 
+            // Generated the rotations for target pts
+            int targetScanner = 1;
+            var targetPts = _scanners[targetScanner];
+            (int, int, int)[,] rotated = new (int, int, int)[targetPts.Count, _rotations.Length];
             int p = 0;
-            foreach (var pt in pts)
+            foreach (var pt in targetPts)
             {
                 for (int r = 0; r < _rotations.Length; r++)
                 {
@@ -120,23 +130,34 @@ namespace _2021
                 ++p;
             }
 
-            int targetScanner = 1;
             for (int col = 0; col < rotated.GetLength(1); col++)
             {
                 // We don't actually need to build the list of rotated points everytime, but this is helping
                 // me to conceptualize what is happening. If performance matters later on I can, say, build
                 // a giant array of rotated points and just know that I need to look at, say, indexes 25-50
-                var rotatedPoints = new List<(int, int, int)>();
+                var rotatedTargetPts = new List<(int, int, int)>();
                 for (int row = 0; row < rotated.GetLength(0); row++)
-                    rotatedPoints.Add(rotated[row, col]);
+                    rotatedTargetPts.Add(rotated[row, col]);
 
-                foreach (var srcPt in rotatedPoints)
+                foreach (var srcPt in sourcePts)
                 {
-                    foreach (var otherPt in _scanners[targetScanner])
+                    foreach (var targetPt in rotatedTargetPts)
                     {
-                        PretendPointIsOtherPoint(srcPt, otherPt, rotatedPoints, _scanners[targetScanner], col);
+                        try
+                        {
+                            PretendPointIsOtherPoint(targetPt, srcPt, rotatedTargetPts, sourcePts, col);                            
+                        }
+                        catch (MatchSuccess ms)
+                        {
+                            HashSet<(int, int, int)> normalized = new();
+                            (int X, int Y, int Z) tranpose = ms.Transpose;
+                            foreach ((int X, int Y, int Z) pt in rotatedTargetPts)
+                                normalized.Add((pt.X + tranpose.X, pt.Y + tranpose.Y, pt.Z + tranpose.Z));
+                            _scanners[targetScanner] = normalized;
+                            return;
+                        }
                     }
-                }
+                }                
             }            
         }
 
