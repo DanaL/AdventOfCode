@@ -77,12 +77,7 @@ namespace _2021
             }
         }
 
-        bool AreEqual((int, int, int) a, (int, int, int) b)
-        {
-            return a.Item1 == b.Item1 && a.Item2 == b.Item2 && a.Item3 == b.Item3;
-        }
-
-        void PretendPointIsOtherPoint((int X, int Y, int Z) pt, (int X, int Y, int Z) otherPt, List<(int X, int Y, int Z)> pts, HashSet<(int, int, int)> otherPts)
+        void PretendPointIsOtherPoint((int X, int Y, int Z) pt, (int X, int Y, int Z) otherPt, List<(int X, int Y, int Z)> pts, HashSet<(int, int, int)> otherPts, int rotation)
         {
             var transpose = (otherPt.X - pt.X, otherPt.Y - pt.Y, otherPt.Z - pt.Z);
 
@@ -101,36 +96,11 @@ namespace _2021
             if (count >= 12)
             {
                 Console.WriteLine($"Fuck yeah, we found {count} matching points!");
+                Console.WriteLine($"Source rotation: {rotation}");
                 foreach (var m in matches)
                 {
                     Console.WriteLine(m);
                 }
-            }
-        }
-
-        void ComparePtsToOtherScanners(List<(int, int, int)> pts, int otherScannerID)
-        {
-            var otherPts = _scanners[otherScannerID];
-            foreach (var pt in pts)
-            {
-                foreach (var otherPt in otherPts)
-                {
-                    PretendPointIsOtherPoint(pt, otherPt, pts, otherPts);
-                }
-            }            
-        }
-
-        void CompareToOtherScanners((int, int, int)[,] allRotations, int otherScannerID)
-        {
-            for (int rot = 0; rot < allRotations.GetLength(1); rot++)
-            {
-                var pts = new List<(int, int, int)>();
-                for (int pt = 0; pt < allRotations.GetLength(0); pt++)
-                    pts.Add(allRotations[pt, rot]);
-
-                // Okay, pts is one of the sets of rotated points from a scanner. We
-                // want to transpose/compare them to the other sets
-                ComparePtsToOtherScanners(pts, otherScannerID);
             }
         }
 
@@ -164,16 +134,10 @@ namespace _2021
                 {
                     foreach (var otherPt in _scanners[targetScanner])
                     {
-                        PretendPointIsOtherPoint(srcPt, otherPt, rotatedPoints, _scanners[targetScanner]);
+                        PretendPointIsOtherPoint(srcPt, otherPt, rotatedPoints, _scanners[targetScanner], col);
                     }
                 }
-            }
-            
-            // Next up: compare to the other points
-            //foreach (var otherScanner in _scanners.Keys.Where(k => k != scannerNum))
-            //{
-            //    CompareToOtherScanners(rotated, 1);
-            //}
+            }            
         }
 
         public void Solve()
