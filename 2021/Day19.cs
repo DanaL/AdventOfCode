@@ -17,39 +17,37 @@ namespace _2021
     public class Day19 : IDay
     {
         Dictionary<int, HashSet<(int, int, int)>> _scanners;
-        HashSet<int> _found;
+        
+        static int[] _r0 = new int[] { 1,  0,  0,  0,  1,  0,  0,  0,  1 };
+        static int[] _r1 = new int[] { 1, 0, 0, 0, 0, -1, 0, 1, 0 };
+        static int[] _r2 = new int[] { 1, 0, 0, 0, -1, 0, 0, 0, -1 };
+        static int[] _r3 = new int[] { 1, 0, 0, 0, 0, 1, 0, -1, 0 };
 
-        static int[] _r0  = new int[] {  0,  0,  1,  0,  1,  0, -1,  0,  0 };
-        static int[] _r1  = new int[] { -1,  0,  0,  0,  1,  0,  0,  0, -1 };
-        static int[] _r2  = new int[] {  0,  0, -1,  0,  1,  0,  1,  0,  0 };
+        static int[] _r4 = new int[] { 0, -1, 0, 1, 0, 0, 0, 0, 1 };
+        static int[] _r5 = new int[] { 0, 0, 1, 1, 0, 0, 0, 1, 0 };
+        static int[] _r6 = new int[] { 0, 1, 0, 1, 0, 0, 0, 0, -1 };
+        static int[] _r7 = new int[] { 0, 0, -1, 1, 0, 0, 0, -1, 0 };
 
-        static int[] _r3  = new int[] {  0, -1,  0,  1,  0,  0,  0,  0,  1 };
-        static int[] _r4  = new int[] {  0,  0,  1,  1,  0,  0,  0,  1,  0 };
-        static int[] _r5  = new int[] {  0,  1,  0,  1,  0,  0,  0,  0, -1 };
-        static int[] _r6  = new int[] {  0,  0, -1,  1,  0,  0,  0, -1,  0 };
+        static int[] _r8 = new int[] { -1, 0, 0, 0, -1, 0, 0, 0, 1 };
+        static int[] _r9 = new int[] { -1, 0, 0, 0, 0, -1, 0, -1, 0 };
+        static int[] _r10 = new int[] { -1, 0, 0, 0, 1, 0, 0, 0, -1 };
+        static int[] _r11 = new int[] { -1, 0, 0, 0, 0, 1, 0, 1, 0 };
 
-        static int[] _r7  = new int[] {  0,  1,  0, -1,  0,  0,  0,  0,  1 };
-        static int[] _r8  = new int[] {  0,  0,  1, -1,  0,  0,  0, -1,  0 };
-        static int[] _r9  = new int[] {  0, -1,  0, -1,  0,  0,  0,  0, -1 };
-        static int[] _r10 = new int[] {  0,  0, -1, -1,  0,  0,  0, -1,  0 };
+        static int[] _r12 = new int[] { 0, 1, 0, -1, 0, 0, 0, 0, 1 };
+        static int[] _r13 = new int[] { 0, 0, 1, -1, 0, 0, 0, -1, 0 };
+        static int[] _r14 = new int[] { 0, -1, 0, -1, 0, 0, 0, 0, -1 };
+        static int[] _r15 = new int[] { 0, 0, -1, -1, 0, 0, 0, 1, 0 };
 
-        static int[] _r11 = new int[] {  1,  0,  0,  0,  0, -1,  0,  1,  0 };
-        static int[] _r12 = new int[] {  0,  1,  0,  0,  0, -1, -1,  0,  0 };
-        static int[] _r13 = new int[] { -1,  0,  0,  0,  0, -1,  0,  1,  0 };
-        static int[] _r14 = new int[] {  0, -1,  0,  0,  0, -1,  1,  0,  0 };
+        static int[] _r16 = new int[] { 0, 0, -1, 0, 1, 0, 1, 0, 0 };
+        static int[] _r17 = new int[] { 0, 1, 0, 0, 0, 1, 1, 0, 0 };
+        static int[] _r18 = new int[] { 0, 0, 1, 0, -1, 0, 1, 0, 0 };
+        static int[] _r19 = new int[] { 0, -1, 0, 0, 0, -1, 1, 0 ,0 };
 
-        static int[] _r15 = new int[] {  1,  0,  0,  0, -1,  0,  0,  0, -1 };
-        static int[] _r16 = new int[] {  0,  0, -1,  0, -1,  0, -1,  0,  0 };
-        static int[] _r17 = new int[] { -1,  0,  0,  0, -1,  0,  0,  0,  1 };
-        static int[] _r18 = new int[] {  0,  0,  1,  0, -1,  0,  1,  0,  0 };
-
-        static int[] _r19 = new int[] {  1,  0,  0,  0,  0,  1,  0, -1,  0 };
-        static int[] _r20 = new int[] {  0, -1,  0,  0,  0,  1, -1,  0,  0 };
-        static int[] _r21 = new int[] { -1,  0,  0,  0,  0,  1,  0,  1,  0 };
-        static int[] _r22 = new int[] {  0,  1,  0,  0,  0,  1,  1,  0,  0 };
-
-        static int[] _r23 = new int[] {  1,  0,  0,  0,  1,  0,  0,  0,  1 };
-
+        static int[] _r20 = new int[] { 0, 0, -1, 0, -1, 0, -1, 0 ,0 };
+        static int[] _r21 = new int[] {0,-1,0, 0, 0, 1, -1, 0 ,0 };
+        static int[] _r22 = new int[] {0, 0, 1, 0, 1, 0, -1, 0 ,0};
+        static int[] _r23 = new int[] { 0, 1, 0, 0, 0, -1, -1, 0, 0 };
+        
         static int[][] _rotations = new int[][] { _r0, _r1, _r2, _r3, _r4, _r5, _r6, _r7, _r8, _r9, _r10,
                                                   _r11, _r12, _r13, _r14, _r15, _r16, _r17, _r18, _r19,
                                                   _r20, _r21, _r22, _r23 };
@@ -103,12 +101,6 @@ namespace _2021
 
             if (count >= 12)
             {
-                //Console.WriteLine($"Fuck yeah, we found {count} matching points!");
-                //Console.WriteLine($"Source rotation: {rotation}");
-                //foreach (var m in matches)
-                //{
-                //    Console.WriteLine(m);
-                //}
                 throw new MatchSuccess() { Transpose = transpose };
             }
         }
@@ -168,48 +160,26 @@ namespace _2021
         {
             Input();
 
-            CheckScanner(0, 13);
-            CheckScanner(13, 11);
-            CheckScanner(13, 26);
-            CheckScanner(11, 2);
-            CheckScanner(11, 15);
-            CheckScanner(11, 20);
-            CheckScanner(11, 25);
-            CheckScanner(20, 7);
-            CheckScanner(15, 21);
-            CheckScanner(2, 28);
-            CheckScanner(7, 5);
-            CheckScanner(21, 9);
-            CheckScanner(21, 12);
-            CheckScanner(21, 32);
-            CheckScanner(21, 35);
-            CheckScanner(12, 17);
-            CheckScanner(5, 34);
-            CheckScanner(17, 4);
-            CheckScanner(17, 19);
-            CheckScanner(17, 22);
-            CheckScanner(17, 24);
-            CheckScanner(22, 1);
-            CheckScanner(19, 6);
-            CheckScanner(4, 10);
-            CheckScanner(4, 23);
-            CheckScanner(19, 37);
-            CheckScanner(6, 14);
-            CheckScanner(1, 16);
-            CheckScanner(1, 18);
-            CheckScanner(6, 29);
-            CheckScanner(23, 33);
-            CheckScanner(1, 38);
-            CheckScanner(18, 27);
-            CheckScanner(29, 30);
-            CheckScanner(18, 31);
-            CheckScanner(30, 3);
-            CheckScanner(27, 8);
-            CheckScanner(31, 36);
+            var alreadyChecked = new HashSet<int>();
+            var toCheck = new Queue<int>();
+            toCheck.Enqueue(0);
 
-            for (int x = 1; x < 38; x++)
-                CheckScanner(36, x);
-
+            var scanners = _scanners.Keys.OrderBy(k => k);
+            while (toCheck.Count > 0)
+            {
+                var s = toCheck.Dequeue();
+                if (alreadyChecked.Contains(s))
+                    continue;
+                Console.WriteLine($"Checking against {s}");
+                alreadyChecked.Add(s);
+                foreach (var t in scanners)
+                {
+                    if (s == t) continue;
+                    if (CheckScanner(s, t)) 
+                        toCheck.Enqueue(t);
+                }
+            }
+           
             Console.WriteLine(_scanners.Values.Select(s => s).SelectMany(s => s).Distinct().Count());
         }
     }
