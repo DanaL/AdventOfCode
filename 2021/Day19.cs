@@ -102,28 +102,27 @@ namespace _2021
 
             if (count >= 12)
             {
-                Console.WriteLine($"Fuck yeah, we found {count} matching points!");
-                Console.WriteLine($"Source rotation: {rotation}");
-                foreach (var m in matches)
-                {
-                    Console.WriteLine(m);
-                }
+                //Console.WriteLine($"Fuck yeah, we found {count} matching points!");
+                //Console.WriteLine($"Source rotation: {rotation}");
+                //foreach (var m in matches)
+                //{
+                //    Console.WriteLine(m);
+                //}
                 throw new MatchSuccess() { Transpose = transpose };
             }
         }
 
-        void CheckScanner(int scannerNum)
+        bool CheckScanner(int sourceScanner, int targetScanner)
         {            
-            var sourcePts = _scanners[scannerNum];
+            var sourcePts = _scanners[sourceScanner];
 
             // Generated the rotations for target pts
-            int targetScanner = 1;
             var targetPts = _scanners[targetScanner];
-            (int, int, int)[,] rotated = new (int, int, int)[targetPts.Count, _rotations.Length];
+            (int, int, int)[,] rotated = new (int, int, int)[targetPts.Count, _rotations.Length - 1];
             int p = 0;
             foreach (var pt in targetPts)
             {
-                for (int r = 0; r < _rotations.Length; r++)
+                for (int r = 0; r < _rotations.Length - 1; r++)
                 {
                     rotated[p, r] = Rotate(pt, r);
                 }
@@ -154,18 +153,31 @@ namespace _2021
                             foreach ((int X, int Y, int Z) pt in rotatedTargetPts)
                                 normalized.Add((pt.X + tranpose.X, pt.Y + tranpose.Y, pt.Z + tranpose.Z));
                             _scanners[targetScanner] = normalized;
-                            return;
+                            Console.WriteLine($"Success! {sourceScanner} -> {targetScanner}: {tranpose}");
+                            return true;
                         }
                     }
                 }                
-            }            
+            }
+
+            return false;
         }
 
         public void Solve()
         {
             Input();
 
-            CheckScanner(0);
+            for (int j = 1; j < 38; j++)
+                CheckScanner(0, j);
+            for (int j = 1; j < 38; j++)
+            {
+                for (int k = 0; k < 38; k++)
+                    if (j != k) CheckScanner(j, k);
+            }
+            for (int j = 1; j < 38; j++)
+                CheckScanner(0, j);
+
+            Console.WriteLine(_scanners.Values.Select(s => s).SelectMany(s => s).Distinct().Count());
         }
     }
 }
