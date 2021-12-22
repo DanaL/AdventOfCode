@@ -17,6 +17,7 @@ namespace _2021
     public class Day19 : IDay
     {
         Dictionary<int, HashSet<(int, int, int)>> _scanners;
+        HashSet<int> _found;
 
         static int[] _r0  = new int[] {  0,  0,  1,  0,  1,  0, -1,  0,  0 };
         static int[] _r1  = new int[] { -1,  0,  0,  0,  1,  0,  0,  0, -1 };
@@ -118,11 +119,11 @@ namespace _2021
 
             // Generated the rotations for target pts
             var targetPts = _scanners[targetScanner];
-            (int, int, int)[,] rotated = new (int, int, int)[targetPts.Count, _rotations.Length - 1];
+            (int, int, int)[,] rotated = new (int, int, int)[targetPts.Count, _rotations.Length];
             int p = 0;
             foreach (var pt in targetPts)
             {
-                for (int r = 0; r < _rotations.Length - 1; r++)
+                for (int r = 0; r < _rotations.Length; r++)
                 {
                     rotated[p, r] = Rotate(pt, r);
                 }
@@ -150,8 +151,8 @@ namespace _2021
                         {
                             HashSet<(int, int, int)> normalized = new();
                             (int X, int Y, int Z) tranpose = ms.Transpose;
-                            foreach ((int X, int Y, int Z) pt in rotatedTargetPts)
-                                normalized.Add((pt.X + tranpose.X, pt.Y + tranpose.Y, pt.Z + tranpose.Z));
+                            foreach ((int X, int Y, int Z) in rotatedTargetPts)
+                                normalized.Add((X + tranpose.X, Y + tranpose.Y, Z + tranpose.Z));
                             _scanners[targetScanner] = normalized;
                             Console.WriteLine($"Success! {sourceScanner} -> {targetScanner}: {tranpose}");
                             return true;
@@ -167,15 +168,47 @@ namespace _2021
         {
             Input();
 
-            for (int j = 1; j < 38; j++)
-                CheckScanner(0, j);
-            for (int j = 1; j < 38; j++)
-            {
-                for (int k = 0; k < 38; k++)
-                    if (j != k) CheckScanner(j, k);
-            }
-            for (int j = 1; j < 38; j++)
-                CheckScanner(0, j);
+            CheckScanner(0, 13);
+            CheckScanner(13, 11);
+            CheckScanner(13, 26);
+            CheckScanner(11, 2);
+            CheckScanner(11, 15);
+            CheckScanner(11, 20);
+            CheckScanner(11, 25);
+            CheckScanner(20, 7);
+            CheckScanner(15, 21);
+            CheckScanner(2, 28);
+            CheckScanner(7, 5);
+            CheckScanner(21, 9);
+            CheckScanner(21, 12);
+            CheckScanner(21, 32);
+            CheckScanner(21, 35);
+            CheckScanner(12, 17);
+            CheckScanner(5, 34);
+            CheckScanner(17, 4);
+            CheckScanner(17, 19);
+            CheckScanner(17, 22);
+            CheckScanner(17, 24);
+            CheckScanner(22, 1);
+            CheckScanner(19, 6);
+            CheckScanner(4, 10);
+            CheckScanner(4, 23);
+            CheckScanner(19, 37);
+            CheckScanner(6, 14);
+            CheckScanner(1, 16);
+            CheckScanner(1, 18);
+            CheckScanner(6, 29);
+            CheckScanner(23, 33);
+            CheckScanner(1, 38);
+            CheckScanner(18, 27);
+            CheckScanner(29, 30);
+            CheckScanner(18, 31);
+            CheckScanner(30, 3);
+            CheckScanner(27, 8);
+            CheckScanner(31, 36);
+
+            for (int x = 1; x < 38; x++)
+                CheckScanner(36, x);
 
             Console.WriteLine(_scanners.Values.Select(s => s).SelectMany(s => s).Distinct().Count());
         }
