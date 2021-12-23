@@ -21,7 +21,7 @@ namespace _2021
             return sum;
         }
 
-        public void Solve()
+        void PartOne()
         {
             for (int j = 0; j < 100; j++)
                 _rolls[j] = j + 1;
@@ -58,6 +58,25 @@ namespace _2021
             Console.WriteLine($"Player 1: {player1Score}");
             Console.WriteLine($"Player 2: {player2Score}");
             Console.WriteLine($"{rollNum * 3 * loser}");
+        }
+
+        void PartTwo()
+        {
+            // We need to calculate all possible outcomes. That is, all possible
+            // combos of starting positions and scores (I think?).
+            // Remember each turn is 3 die rolls
+            // Maybe something like:
+            // Dictionary<(int, int, int, int), (ulong, ulong)>
+            // key is player 1 pos, player 2 pos, score, score and
+            // value is # of player 1 wins, # of player 2 wins
+            // So gist of logic is:
+            // start with (1, 1) board pos, either look up result at this config
+            // or call Simulate() (which will populate our table as it runs)
+        }
+
+        public void Solve()
+        {
+            PartOne();
         }
     }
 }
