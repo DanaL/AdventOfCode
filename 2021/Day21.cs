@@ -26,7 +26,7 @@ namespace _2021
             IsPlayer1 = p1;
         }
 
-        public override int GetHashCode() => Player1Pos ^ Player1Score ^ Player2Pos ^ Player2Score;
+        public override int GetHashCode() => Player1Pos ^ Player1Score ^ Player2Pos ^ Player2Score ^ (IsPlayer1 ? 1 : 0);
 
         public override bool Equals(object obj)
         {
@@ -39,7 +39,8 @@ namespace _2021
         public bool Equals(State other)
         {
             return Player1Pos == other.Player1Pos && Player1Score == other.Player1Score
-                && Player2Pos == other.Player2Pos && Player2Score == other.Player2Score;
+                && Player2Pos == other.Player2Pos && Player2Score == other.Player2Score
+                && IsPlayer1 == other.IsPlayer1;
         }
 
         public static bool operator ==(State point1, State point2)
@@ -113,18 +114,14 @@ namespace _2021
 
         byte calcNewPos(byte currPos, byte roll)
         {
-            return (byte)(currPos + roll == 10 ? 10 : (currPos + roll) % 10);
+            var n = currPos + roll;
+            return (byte)(n <= 10 ? n : n - 10);            
         }
 
         (ulong, ulong) Resolve(State curr)
         {
             if (_outcomes.ContainsKey(curr))
                 return _outcomes[curr];
-
-            if (curr.Player1Score >= 21)
-                return (1, 0);
-            else if (curr.Player2Score >= 21)
-                return (0, 1);
 
             ulong p1wins = 0;
             ulong p2wins = 0;
@@ -138,6 +135,8 @@ namespace _2021
                     (ulong, ulong) res;
                     if (_outcomes.ContainsKey(newState))
                         res = _outcomes[newState];
+                    else if (newScore >= 21)
+                        res = (1, 0);
                     else
                         res = Resolve(newState);
                     p1wins += res.Item1 * roll.Times;
@@ -151,6 +150,8 @@ namespace _2021
                     (ulong, ulong) res;
                     if (_outcomes.ContainsKey(newState))
                         res = _outcomes[newState];
+                    else if (newScore >= 21)
+                        res = (0, 1);
                     else
                         res = Resolve(newState);
                     p1wins += res.Item1 * roll.Times;
@@ -168,9 +169,10 @@ namespace _2021
         void PartTwo()
         {            
             _outcomes = new();
-            var initial = new State(4, 0, 8, 0, true);
+            var initial = new State(9, 0, 4, 0, true);
             var res = Resolve(initial);
-            Console.WriteLine(res);
+            var winner = res.Item1 > res.Item2 ? res.Item1 : res.Item2;
+            Console.WriteLine($"P2: {winner}");
         }
 
         public void Solve()
