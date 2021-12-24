@@ -15,6 +15,16 @@ namespace _2021
         public byte Player1Score { get; set; }
         public byte Player2Pos { get; set; }
         public byte Player2Score { get; set; }
+        public bool IsPlayer1 { get; set; }
+
+        public State(byte p1p, byte p1s, byte p2p, byte p2s, bool p1)
+        {
+            Player1Pos = p1p;
+            Player1Score = p1s;
+            Player2Pos = p2p;
+            Player2Score = p2s;
+            IsPlayer1 = p1;
+        }
 
         public override int GetHashCode() => Player1Pos ^ Player1Score ^ Player2Pos ^ Player2Score;
 
@@ -45,7 +55,7 @@ namespace _2021
 
     public class Day21 : IDay
     {
-        static byte[] _qrolls = new byte[] { 3, 4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 8, 8, 8, 9 };                                             
+        static List<(byte, byte)> _qrolls = new List<(byte, byte)>() { (3, 1), (4, 3), (5, 6), (6, 7), (7, 6), (8, 3), (9, 1) };
         static int[] _rolls = new int[100];
         static int _rollPos = 0;
         Dictionary<State, (ulong, ulong)> _outcomes;
@@ -106,7 +116,7 @@ namespace _2021
             return (byte)(currPos + roll == 10 ? 10 : (currPos + roll) % 10);
         }
 
-        (ulong, ulong) Resolve(State curr, bool player1)
+        (ulong, ulong) Resolve(State curr)
         {
             if (_outcomes.ContainsKey(curr))
                 return _outcomes[curr];
@@ -118,33 +128,33 @@ namespace _2021
 
             ulong p1wins = 0;
             ulong p2wins = 0;
-            foreach (byte roll in _qrolls)
+            foreach ((byte Roll, byte Times) roll in _qrolls)
             {
-                if (player1)
+                if (curr.IsPlayer1)
                 {
-                    byte newPos = calcNewPos(curr.Player1Pos, roll);
+                    byte newPos = calcNewPos(curr.Player1Pos, roll.Roll);
                     byte newScore = (byte) (curr.Player1Score + newPos);
-                    var newState = new State() { Player1Pos = newPos, Player1Score = newScore, Player2Pos = curr.Player2Pos, Player2Score = curr.Player2Score };
+                    var newState = new State(newPos, newScore, curr.Player2Pos, curr.Player2Score, false);
                     (ulong, ulong) res;
                     if (_outcomes.ContainsKey(newState))
                         res = _outcomes[newState];
                     else
-                        res = Resolve(newState, !player1);
-                    p1wins += res.Item1;
-                    p2wins += res.Item2;
+                        res = Resolve(newState);
+                    p1wins += res.Item1 * roll.Times;
+                    p2wins += res.Item2 * roll.Times;
                 }
                 else
                 {
-                    byte newPos = calcNewPos(curr.Player2Pos, roll);
+                    byte newPos = calcNewPos(curr.Player2Pos, roll.Roll);
                     byte newScore = (byte)(curr.Player2Score + newPos);
-                    var newState = new State() { Player1Pos = curr.Player1Pos, Player1Score = curr.Player1Score, Player2Pos = newPos, Player2Score = newScore };
+                    var newState = new State(curr.Player1Pos, curr.Player1Score, newPos, newScore, true);
                     (ulong, ulong) res;
                     if (_outcomes.ContainsKey(newState))
                         res = _outcomes[newState];
                     else
-                        res = Resolve(newState, !player1);
-                    p1wins += res.Item1;
-                    p2wins += res.Item2;
+                        res = Resolve(newState);
+                    p1wins += res.Item1 * roll.Times;
+                    p2wins += res.Item2 * roll.Times;
                 }
             }
 
@@ -156,21 +166,10 @@ namespace _2021
         // It turns out Part Two was a fairly different problem than part one so
         // Part One code wouldn't really have been transferable anyhow!
         void PartTwo()
-        {
-            // We need to calculate all possible outcomes. That is, all possible
-            // combos of starting positions and scores (I think?).
-            // Remember each turn is 3 die rolls
-            // Maybe something like:
-            // Dictionary<(int, int, int, int), (ulong, ulong)>
-            // key is player 1 pos, player 2 pos, score, score and
-            // value is # of player 1 wins, # of player 2 wins
-            // So gist of logic is:
-            // start with (1, 1) board pos, either look up result at this config
-            // or call Simulate() (which will populate our table as it runs)
-
+        {            
             _outcomes = new();
-            var initial = new State() { Player1Pos = 4, Player1Score = 0, Player2Pos = 8, Player2Score = 0 };
-            var res = Resolve(initial, true);
+            var initial = new State(4, 0, 8, 0, true);
+            var res = Resolve(initial);
             Console.WriteLine(res);
         }
 
