@@ -9,9 +9,7 @@ let input = File.ReadAllText("input_day01.txt")
 
 let partOne =
     let result = input.ToCharArray()
-                 |> Array.map convert
-                 |> Array.sum
-
+                 |> Array.sumBy(convert)
     Console.WriteLine($"Part 1: %d{result}")
 
 let partTwo =
@@ -21,7 +19,6 @@ let partTwo =
         let newFloor = floor + arr[pos]
         if newFloor < 0 then pos + 1
         else elevate arr newFloor (pos + 1)
-
     
     let result = elevate arr 0 0
     Console.WriteLine($"Part 2: %d{result}")
