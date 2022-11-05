@@ -14,5 +14,14 @@ let part1 =
     File.ReadAllLines("input_day02.txt")
     |> Array.map parseLine
     |> Array.sumBy wrappingNeeded
+
+let part2 =
+    let ribbon (l, w, h) =
+        let perim = [| (l + w) * 2; (l + h) * 2; (h + w) *2  |] |> Array.min
+        perim + (l * w * h)
+    File.ReadAllLines("input_day02.txt")
+    |> Array.map parseLine
+    |> Array.sumBy ribbon
     
 Console.WriteLine($"Part 1: %d{part1}")
+Console.WriteLine($"Part 2: %d{part2}")
