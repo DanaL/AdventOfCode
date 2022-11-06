@@ -30,7 +30,4 @@ let roboSanta = moves |> Array.mapi(fun i e -> if i % 2 <> 0 then Some(e) else N
                       |> visit
 let houses = (santa @ roboSanta) |> List.distinct      
 Console.WriteLine($"Part 2: %d{houses.Length}")                      
-
-                  
-
-              
+          
