@@ -43,6 +43,12 @@ let baConvert (current:BitArray) =
     // at least on Windows...
     arr |> Seq.toArray |> Array.rev
 
+// For purposes of md5 I can hard code for 32-bit ints
+let rotateLeft x shift =
+    let left = x <<< shift
+    let right = x >>> (32 - shift)
+    left ||| right
+    
 let padArray (arr: bool array) =
     let arrLength = (uint64 (arr.Length % 512))
     let padding = if arrLength <= 448UL then 448UL - arrLength
@@ -88,6 +94,11 @@ let md5Hash (message:string) =
 let message = "The quick brown fox jumped over the lazy yellow dog and then fell in a puddle lorem ipsum"
 //let message = "a"
 md5Hash message
+
+let x = 7
+let y = rotateLeft x 5
+Console.WriteLine()
+Console.WriteLine($"%u{y}")
 
 
 
