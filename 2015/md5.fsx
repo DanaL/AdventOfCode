@@ -2,8 +2,6 @@ open System
 open System.Collections
 open System.Text
 
-// straight outta the wikipedia page for md5. I hope on ARM silicon I
-// don't actually need to worry about Big Endian vs Little Endian...
 let s = [| 7; 12; 17; 22;  7; 12; 17; 22;  7; 12; 17; 22;  7; 12; 17; 22;
            5;  9; 14; 20;  5;  9; 14; 20;  5;  9; 14; 20;  5;  9; 14; 20;
            4; 11; 16; 23;  4; 11; 16; 23;  4; 11; 16; 23;  4; 11; 16; 23;
@@ -40,7 +38,10 @@ let baConvert (current:BitArray) =
         for bit in current do
         yield bit
     } 
-    arr |> Seq.toArray
+
+    // I think I need to reserve it to switch from big to little endian,
+    // at least on Windows...
+    arr |> Seq.toArray |> Array.rev
 
 let padArray (arr: bool array) =
     let arrLength = (uint64 (arr.Length % 512))
@@ -55,7 +56,7 @@ let padArray (arr: bool array) =
     let lengthPadding = BitConverter.GetBytes x
                         |> BitArray
                         |> baConvert
-
+                        
     let padded = lengthPadding
                  |> Array.append zeroes
                  |> Array.append [| true |]
@@ -63,6 +64,7 @@ let padArray (arr: bool array) =
              
     padded
 
+    // Takes a bool array of length 32 and converts it to a unsigned int32
 let toWord bits =
     let foldToWord = Array.fold(fun (num, s) b ->
                            let next = if b then num ||| (1u <<< s)
@@ -72,22 +74,21 @@ let toWord bits =
     word
     
 let md5Hash (message:string) =
-    let bytes = Encoding.ASCII.GetBytes(message)
+    let bytes = Encoding.ASCII.GetBytes(message) // I *think* this is returning the bytes in Big Endian, but baConvert switches 
+                                                 // the input to Little Endian. Or is this going to be a Windows vs ARM on macOS thing??
     let bits = BitArray bytes |> baConvert
     let padded = padArray bits
 
-    let m512 = padded.Length % 512
-    Console.WriteLine($"%d{bits.Length} %d{padded.Length} %d{m512}")
+    // splitting the 512 bit array into 16 chunks is nice and easy with splitInto
+    padded |> Array.splitInto 16 |> Array.map toWord |> Array.iter (fun w -> Console.WriteLine($"%u{w}"))
+                                                                                               
+    //let m512 = padded.Length % 512
+    //Console.WriteLine($"%d{bits.Length} %d{padded.Length} %d{m512}")
     
-//let message = "The quick brown fox jumped over the lazy yellow dog and then fell in a puddle lorem ipsum"
-let message = "Hello, world?"
+let message = "The quick brown fox jumped over the lazy yellow dog and then fell in a puddle lorem ipsum"
+//let message = "a"
 md5Hash message
 
-let bits = [| true;  false; false; false; false; false; false; false;
-              false; false; false; false; false; false; false; false; 
-              false; false; false; false; false; false; false; false; 
-              true;  false; false; false; false; true;  false; true |]
-let w = toWord bits
-Console.WriteLine(w)
+
 
 
