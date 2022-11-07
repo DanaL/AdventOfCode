@@ -62,6 +62,14 @@ let padArray (arr: bool array) =
                  |> Array.append arr
              
     padded
+
+let toWord bits =
+    let foldToWord = Array.fold(fun (num, s) b ->
+                           let next = if b then num ||| (1u <<< s)
+                                      else num
+                           (next, s - 1))
+    let word, _ = foldToWord (0u, 31) bits
+    word
     
 let md5Hash (message:string) =
     let bytes = Encoding.ASCII.GetBytes(message)
@@ -75,5 +83,11 @@ let md5Hash (message:string) =
 let message = "Hello, world?"
 md5Hash message
 
+let bits = [| true;  false; false; false; false; false; false; false;
+              false; false; false; false; false; false; false; false; 
+              false; false; false; false; false; false; false; false; 
+              true;  false; false; false; false; true;  false; true |]
+let w = toWord bits
+Console.WriteLine(w)
 
 
