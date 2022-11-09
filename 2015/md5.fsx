@@ -26,26 +26,7 @@ let k =[| 0xd76aa478u; 0xe8c7b756u; 0x242070dbu; 0xc1bdceeeu;
           0x655b59c3u; 0x8f0ccc92u; 0xffeff47du; 0x85845dd1u;
           0x6fa87e4fu; 0xfe2ce6e0u; 0xa3014314u; 0x4e0811a1u;
           0xf7537e82u; 0xbd3af235u; 0x2ad7d2bbu; 0xeb86d391u; |]
-
-
-let baPrint arr =
-    arr |> Array.map(fun v -> if v then '1'
-                              else '0')
-        |> Array.iter Console.Write
-    Console.WriteLine()
     
-// helper function to turn BitArray into a standard
-// array of bools
-let baConvert (current:BitArray) =
-    let arr = seq {
-        for bit in current do
-        yield bit
-    } 
-
-    // I think I need to reserve it to switch from big to little endian,
-    // at least on Windows...
-    arr |> Seq.toArray // |> Array.rev
-
 // For purposes of md5 I can hard code for 32-bit ints
 let rotateLeft x shift =
     let left = x <<< shift
@@ -53,10 +34,9 @@ let rotateLeft x shift =
     left ||| right
     
 let padArray (arr: byte array) =
-    let arrLengthBits = (uint64 arr.Length) * 8UL
     let arrLength = arr.Length % 64 + 1
     let padding = if arrLength <= 56 then 56 - arrLength
-                  else 64 - arrLength + 8
+                  else 64 - (arrLength - 56)
     
     // - 1 because of single pad bit
     let zeroes = [| for j in 1 .. padding -> 0x00uy |]
@@ -71,18 +51,27 @@ let padArray (arr: byte array) =
     
     padded
 
-// Takes a bool array of length 32 and converts it to a unsigned int32
-let toWord bits =
-    let foldToWord = Array.fold(fun (num, s) b ->
-                           let next = if b then num ||| (1u <<< s)
-                                      else num
-                           (next, s - 1))
-    let word, _ = foldToWord (0u, 31) bits
-    word
+// Imperative version of md main loop    
+let impMainLoop (words: uint array) md5 =
+    let mutable A = md5.a
+    let mutable B = md5.b
+    let mutable C = md5.c
+    let mutable D = md5.d
 
-let hexString md5 =
-    md5.a.ToString("X2") + md5.b.ToString("X2") + md5.c.ToString("X2") + md5.d.ToString("X2")
-    
+    for i = 0 to 63 do
+        let F, g = if i <= 15 then (B &&& C) ||| ((~~~B) &&& D), i
+                   elif i <= 31 then (D &&& B) ||| ((~~~D) &&& C), (5*i + 1) % 16
+                   elif i <= 47 then B ^^^ C ^^^ D, (3*i + 5) % 16
+                   else C ^^^ (B ||| (~~~D)), (7*i) % 16
+        let F' = F + A + k[i] + words[g]
+        A <- D
+        D <- C
+        C <- B
+        B <- B + (rotateLeft F' s[i])
+
+    let result = { a = md5.a + A; b = md5.b + B; c = md5.c + C; d = md5.d + D }
+    result
+
 // One iteration of the main loop, as defined in Wikipedia page for MD5
 // (Using Wiki's variable naming convention here even though it violates
 // standard convention)
@@ -99,37 +88,32 @@ let rec mainLoop (words: uint array) i md5 =
     else mainLoop words (i + 1) md5'
 
 let md5Hash (message:string) =
-    // I *think* this is returning the bytes in Big Endian, but baConvert switches 
-    // the input to Little Endian. Or is this going to be a Windows vs ARM on macOS thing??
     let bytes = Encoding.ASCII.GetBytes(message) |> padArray
     
-    //let b2 = bytes |> Array.map(fun x -> [| x |]) |> Array.map BitArray // |> baConvert
+    let initial = { a = 0x67452301u; b = 0xefcdab89u; c = 0x98badcfeu; d = 0x10325476u }
+    let chunksBy512 = bytes |> Array.chunkBySize 64
 
-    //let bits = BitArray bytes |> baConvert
-    //let padded = padArray bits
+    let r = chunksBy512 
+            |> Array.fold(fun md5 arr ->
+                let words = 
+                    arr |> Array.chunkBySize 4
+                        |> Array.take 16
+                        |> Array.map(fun word -> System.BitConverter.ToUInt32(word, 0))
+                let result = impMainLoop words md5
+                result
+            ) initial
 
-    // splitting the 512 bit array into 16 chunks is nice and easy with splitInto
-    //let words = padded |> Array.splitInto 16 |> Array.map toWord 
+    let wordA = BitConverter.GetBytes r.a
+    let wordB = BitConverter.GetBytes r.b
+    let wordC = BitConverter.GetBytes r.c
+    let wordD = BitConverter.GetBytes r.d
 
-    //words |> Array.iter Console.WriteLine
+    let result = [| wordA; wordB; wordC; wordD |] |> Array.reduce Array.append
+                 |> Array.map(fun w -> $"%02X{w}") |> Array.reduce(+)
     
-    //let result = mainLoop words 0 { a = 0x67452301u; b = 0xefcdab89u; c = 0x98badcfeu; d = 0x10325476u }
+    result
 
-    let result = { a = 0x67452301u; b = 0xefcdab89u; c = 0x98badcfeu; d = 0x10325476u }
-    Console.WriteLine(hexString result)
-                                                                                               
-    //let m512 = padded.Length % 512
-    //Console.WriteLine($"%d{bits.Length} %d{padded.Length} %d{m512}")
-    
-//let message = "The quick brown fox jumped over the lazy yellow dog and then fell in a puddle lorem ipsum"
-let message = "abcdef"
-md5Hash message
+let hashed = md5Hash "hello, world?"
 
-//let x = 7
-//let y = rotateLeft x 5
-//Console.WriteLine()
-//Console.WriteLine($"%u{y}")
-
-
-
-
+// Correct hash of 'hello, world?' is: 6A365775A54AF2A729D16D9C7570EFAC
+Console.WriteLine(hashed)
