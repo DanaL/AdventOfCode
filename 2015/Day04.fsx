@@ -1,6 +1,15 @@
 open System
 open System.Text
 
+// This puzzle was essentially brute forcing your way through a search
+// to find a hash value that has a particular prefix. Since I'm doing
+// this long after 2015 to practice F# and thus had no particular time
+// I thought I'd implement the md5 hash function. This ended up taking
+// me a few days to debug :/ I got the gist of a functional, recursive
+// solution down but bumped into a bunch of byte order problems.
+// Anyhow, had I used the built-in md5 function this solution would be
+// like 10 lines long and run much, much faster...
+     
 // A type to hold the 4 32-bit words the MD5 algorithm manipulates
 type md5 = { a:uint32; b:uint32; c:uint32; d:uint32 }
 
@@ -88,18 +97,26 @@ let md5Hash (message:string) =
     let wordC = BitConverter.GetBytes r.c
     let wordD = BitConverter.GetBytes r.d
 
-    let result = [| wordA; wordB; wordC; wordD |] |> Array.reduce Array.append
-                 |> Array.map(fun w -> $"%02X{w}") |> String.concat ""
+    let result = [| wordA; wordB; wordC; wordD |]
+                 |> Array.reduce Array.append
+                 |> Array.map(fun w -> $"%02X{w}")
+                 |> String.concat ""
 
     result
 
 let key = "yzbqklnj"
-let found x =
+let found (prefix:string) x =
     let hashed = md5Hash $"%s{key}%d{x}"
-    hashed.StartsWith("00000")
-    
-let result = Seq.initInfinite(fun x -> x)
-             |> Seq.find(fun v -> found v)
-                               
-Console.WriteLine($"P1: %d{result}")
+    hashed.StartsWith(prefix)
+let foundP1 = found "00000"
+let foundP2 = found "000000"
 
+let search f =
+    Seq.initInfinite(fun x -> x)
+    |> Seq.find(fun v -> f v)
+
+let p1 = search foundP1
+Console.WriteLine($"P1: %d{p1}")
+
+let p2 = search foundP2
+Console.WriteLine($"P2: %d{p2}")
