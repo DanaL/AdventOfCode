@@ -1,5 +1,4 @@
 open System
-open System.Collections
 open System.Text
 
 // A type to hold the 4 32-bit words the MD5 algorithm manipulates
@@ -51,30 +50,11 @@ let padArray (arr: byte array) =
     
     padded
 
-// Imperative version of md main loop    
-let impMainLoop (words: uint array) md5 =
-    let mutable A = md5.a
-    let mutable B = md5.b
-    let mutable C = md5.c
-    let mutable D = md5.d
-
-    for i = 0 to 63 do
-        let F, g = if i <= 15 then (B &&& C) ||| ((~~~B) &&& D), i
-                   elif i <= 31 then (D &&& B) ||| ((~~~D) &&& C), (5*i + 1) % 16
-                   elif i <= 47 then B ^^^ C ^^^ D, (3*i + 5) % 16
-                   else C ^^^ (B ||| (~~~D)), (7*i) % 16
-        let F' = F + A + k[i] + words[g]
-        A <- D
-        D <- C
-        C <- B
-        B <- B + (rotateLeft F' s[i])
-
-    let result = { a = md5.a + A; b = md5.b + B; c = md5.c + C; d = md5.d + D }
-    result
-
 // One iteration of the main loop, as defined in Wikipedia page for MD5
 // (Using Wiki's variable naming convention here even though it violates
 // standard convention)
+// I'm sure this recursive version could be replaced by an Array.fold but 
+// I'm still new enough at F# that folding sometimes still makes my head swim...
 let rec mainLoop (words: uint array) i md5 =
     let F, g = if i <= 15 then (md5.b &&& md5.c) ||| ((~~~md5.b) &&& md5.d), i
                elif i <= 31 then (md5.d &&& md5.b) ||| ((~~~md5.d) &&& md5.c), (5*i + 1) % 16
@@ -99,8 +79,8 @@ let md5Hash (message:string) =
                     arr |> Array.chunkBySize 4
                         |> Array.take 16
                         |> Array.map(fun word -> System.BitConverter.ToUInt32(word, 0))
-                let result = impMainLoop words md5
-                result
+                let result = mainLoop words 0 md5
+                { a = md5.a + result.a; b = md5.b + result.b; c = md5.c + result.c; d = md5.d + result.d }
             ) initial
 
     let wordA = BitConverter.GetBytes r.a
@@ -109,11 +89,11 @@ let md5Hash (message:string) =
     let wordD = BitConverter.GetBytes r.d
 
     let result = [| wordA; wordB; wordC; wordD |] |> Array.reduce Array.append
-                 |> Array.map(fun w -> $"%02X{w}") |> Array.reduce(+)
-    
+                 |> Array.map(fun w -> $"%02X{w}") |> String.concat ""
+
     result
 
-let hashed = md5Hash "hello, world?"
+let hashed = md5Hash "the quick brown fox jumped over the lazy, yellow dog!!!!!!!!!!!!!!!"
 
 // Correct hash of 'hello, world?' is: 6A365775A54AF2A729D16D9C7570EFAC
 Console.WriteLine(hashed)
