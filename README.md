@@ -12,4 +12,4 @@ For 2021, I am using C# once more. I am expecting to be pressed for time this ye
 
 As of Fall 2022 I still need to go back and try to finish 2021. Day 21 onward was beginning to hurt my brain...
 
-I've always begun working through 2015 in F#, which has been a fun language so far.
+I've also begun working through 2015 in F#, which has been a fun language so far.
