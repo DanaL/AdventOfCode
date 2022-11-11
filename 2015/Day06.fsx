@@ -1,4 +1,5 @@
 open System
+open System.Collections.Generic
 open System.IO
 open System.Text.RegularExpressions
 
@@ -34,9 +35,36 @@ let doMove lights move =
               toggleOff |> Set.difference lights
                         |> Set.union toggleOn
 
-let initial = Set.empty<uint * uint>                        
-let moves = File.ReadAllLines("input_day06.txt")
-           |> Array.map parse
-let result = moves
-             |> Array.fold(fun lights move -> doMove lights move) initial
-Console.WriteLine($"P1: %d{result.Count}")
+let partOne() =
+    let initial = Set.empty<uint * uint>                        
+    let moves = File.ReadAllLines("input_day06.txt")
+                |> Array.map parse
+    let result = moves
+                 |> Array.fold(fun lights move -> doMove lights move) initial
+    Console.WriteLine($"P1: %d{result.Count}")
+
+// For efficiency's sake, I'm going to use a mutable dictionary for
+// partt two... Although this ends up being pretty slow too
+    
+let adjust (lights: Dictionary<uint * uint, int>) pt d =
+    let k = lights.ContainsKey pt
+    if not k then lights.Add(pt, 0)
+    lights[pt] <- lights[pt] + d
+    if lights[pt] < 0 then lights[pt] <- 0
+    
+let adjustLights lights move =
+    let pts = points move    
+    let delta = match move with
+                | { Switch = On } -> 1
+                | { Switch = Off } -> -1
+                | { Switch = Toggle } -> 2
+    pts |> Seq.iter(fun pt -> adjust lights pt delta)
+
+let partTwo =
+    let lights = new Dictionary<(uint * uint), int>()
+    let moves = File.ReadAllLines("input_day06.txt")
+                |> Array.map parse
+                |> Array.iter(fun m -> adjustLights lights m)
+    let result = lights.Values |> Seq.sum
+    Console.WriteLine($"P2: %d{result}")
+        
