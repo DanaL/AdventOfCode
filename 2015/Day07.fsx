@@ -1,38 +1,72 @@
 open System
+open System.Collections.Generic
 open System.IO
 
-type Op = And | Or | Not | LShift | RShift | Set
-type Val = Var of uint16 | Identifier of string
-type UnaryExpr = { op: Op; v: Val }
-type BinaryExpr = { op: Op; left: Val; right: Val }
-type Expr = Unary of UnaryExpr | Binary of BinaryExpr
-type Stmt = { out: string; expr: Expr }
-
-let getVal (s:string) =
-    match UInt16.TryParse s with
-    |true, v -> Var v
-    |false, _ -> Identifier s
-    
+type Expr =
+    | Value of uint16
+    | Var of string
+    | Not of string
+    | LShift of string * uint16
+    | RShift of string * uint16
+    | And of string * string
+    | Or of string * string
+        
 let parse (line:string) =
-    let pieces = line.Split(' ')
+    let j = line.LastIndexOf(' ')
+    let out = line[j+1 ..]
+    let stmt = line[..j-4]
+    let pieces = stmt.Split(' ')
+
     match pieces.Length with
-        | 3 -> let v = getVal pieces[0]
-               { out = pieces[2]; expr = Unary { op = Set; v = v } }          
-        | 4 -> { out = pieces[3];
-                 expr = Unary { op = Not; v = Identifier pieces[1] } }
-        | 5 -> let left = getVal pieces[0]
-               let right = getVal pieces[2]
-               let op = match pieces[1] with
-                        | "AND" -> And
-                        | "OR" -> Or
-                        | "LSHIFT" -> LShift
-                        | "RSHIFT" -> RShift
-                        | _ -> failwith "Hmm shouldn't have got here..."
-               { out = pieces[4]; expr = Binary { op = op; left = left; right = right } }
-              
-        | _ -> failwith "Hmm this is an unknown statement..."
+        | 1 -> match UInt16.TryParse stmt with
+                   | true, v -> (out, Value(v))
+                   | false, _ -> (out, Var(stmt))
+        | 2 -> (out, Not(pieces[1]))
+        | _ -> match pieces[1] with
+                   | "AND" -> (out, And(pieces[0], pieces[2]))
+                   | "OR" -> (out, Or(pieces[0], pieces[2]))
+                   | "LSHIFT" -> (out, LShift(pieces[0], UInt16.Parse(pieces[2])))
+                   | "RSHIFT" -> (out, RShift(pieces[0], UInt16.Parse(pieces[2])))
+                   | _ -> failwith "We should not ever get here :o"
 
-File.ReadAllLines("input_day07.txt")
-|> Array.map parse
-|> Array.iter (fun f -> Console.WriteLine($"%A{f}"))
+(*
+let evalRule rule out signals =
+    let pieces = rule.Split(' ')
+    match pieces.Length with
+        | 1 -> Console.WriteLine("simple assignment")
+        | 2 -> Console.WriteLine("not operation")
+        
+    Console.WriteLine($"eval %s{rule} -- %s{out}")
+                      
+let eval stmt (signals:Dictionary<string, uint16>) =
+    match parse stmt with
+        | out, Value(n) -> signals.Add(out, n)
+        | out, Rule(s) -> evalRule s out signals
+        
+let signals = new Dictionary<string, uint16>()
 
+eval "NOT d -> c" signals
+eval "14 -> a" signals
+eval "5 -> b" signals
+
+Console.WriteLine($"%A{signals}")
+*)
+
+let s0 = parse "14 -> a"
+Console.WriteLine(s0)
+let s1 = parse "5 -> b"
+Console.WriteLine(s1)
+let s2 = parse "NOT d -> c"
+Console.WriteLine(s2)
+let s3 = parse "a RSHIFT 2 -> d"
+Console.WriteLine(s3)
+let s4 = parse "jj -> wd"
+Console.WriteLine(s4)
+
+// So, now:
+// 1) parse all the lines, build a queue of statements
+// 2) eval statements one by one, eval returns Some statement
+//    or None (if None, we assigned a val to Signals?). If there is
+//    a Stmt returned then add it back to the queue
+// 3) Loop until the value we want is set or there are no more
+//    statements in the queue
