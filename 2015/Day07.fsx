@@ -2,6 +2,8 @@ open System
 open System.Collections.Generic
 open System.IO
 
+type Mem = Dictionary<string, uint16>
+
 type Expr =
     | Value of uint16
     | Var of string
@@ -29,40 +31,53 @@ let parse (line:string) =
                    | "RSHIFT" -> (out, RShift(pieces[0], UInt16.Parse(pieces[2])))
                    | _ -> failwith "We should not ever get here :o"
 
-(*
-let evalRule rule out signals =
-    let pieces = rule.Split(' ')
-    match pieces.Length with
-        | 1 -> Console.WriteLine("simple assignment")
-        | 2 -> Console.WriteLine("not operation")
-        
-    Console.WriteLine($"eval %s{rule} -- %s{out}")
-                      
-let eval stmt (signals:Dictionary<string, uint16>) =
-    match parse stmt with
-        | out, Value(n) -> signals.Add(out, n)
-        | out, Rule(s) -> evalRule s out signals
-        
-let signals = new Dictionary<string, uint16>()
+let evalSetVar out key (signals:Mem) =
+    if signals.ContainsKey(key) then
+        signals[out] <- signals[key]
+        true
+    else
+        false
 
-eval "NOT d -> c" signals
-eval "14 -> a" signals
-eval "5 -> b" signals
+let evalNot out key (signals:Mem) =
+    if signals.ContainsKey(key) then
+        signals[out] <- ~~~signals[key]
+        true
+    else
+        false
+        
+let eval expr (signals:Mem) =
+    match expr with
+        | out, Value(v) ->
+            signals[out] <- v
+            None
+        | out, Var(v) -> 
+            if evalSetVar out v signals then None else Some expr
 
-Console.WriteLine($"%A{signals}")
-*)
+        | out, Not(v) ->
+            if evalNot out v signals then None else Some expr
+        | _ -> failwith "not implemented yet"
+
+let signals = new Mem()
 
 let s0 = parse "14 -> a"
 Console.WriteLine(s0)
+eval s0 signals
 let s1 = parse "5 -> b"
-Console.WriteLine(s1)
-let s2 = parse "NOT d -> c"
-Console.WriteLine(s2)
-let s3 = parse "a RSHIFT 2 -> d"
-Console.WriteLine(s3)
-let s4 = parse "jj -> wd"
-Console.WriteLine(s4)
+eval s1 signals
 
+let s2 = parse "b -> c"
+eval s2 signals
+
+let s3 = parse "NOT a -> d"
+eval s3 signals
+
+//Console.WriteLine(s2)
+//let s3 = parse "a RSHIFT 2 -> d"
+//Console.WriteLine(s3)
+//let s4 = parse "jj -> wd"
+//Console.WriteLine(s4)
+
+Console.WriteLine($"%A{signals}")
 // So, now:
 // 1) parse all the lines, build a queue of statements
 // 2) eval statements one by one, eval returns Some statement
