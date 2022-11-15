@@ -45,20 +45,30 @@ let evalNot out key (signals:Mem) =
     else
         false
 
+let getVal (value:string) (signals:Mem) =
+    match UInt16.TryParse value with
+        | true, v -> Some v
+        | false, _ -> if signals.ContainsKey(value) then Some signals[value]
+                      else None
+                      
 let evalAnd out a b (signals:Mem) =
-    if not <| (signals.ContainsKey(a) || signals.ContainsKey(b))  then
+    let valA = getVal a signals
+    let valB = getVal b signals
+    if valA.IsNone || valB.IsNone then
         false
     else
-        signals[out] <- signals[a] &&& signals[b]
+        signals[out] <- valA.Value &&& valB.Value
         true
-
+        
 let evalOr out a b (signals:Mem) =
-    if not <| (signals.ContainsKey(a) || signals.ContainsKey(b))  then
+    let valA = getVal a signals
+    let valB = getVal b signals
+    if valA.IsNone || valB.IsNone then
         false
     else
-        signals[out] <- signals[a] ||| signals[b]
+        signals[out] <- valA.Value ||| valB.Value
         true
-
+        
 let evalLShift out a b (signals:Mem) =
     if not <| signals.ContainsKey(a) then
         false
@@ -91,43 +101,36 @@ let eval expr (signals:Mem) =
         | out, RShift(a, b) ->
             if evalRShift out a b signals then None else Some expr
 
-let signals = new Mem()
+// Probably a rather non-idiomatic solution using a mutable queue
+// and dictionary, but any way I could think to use non-mutable
+// data structures and avoiding looping over the list of instructions
+// felt like it would have just been obfuscation
+let instrs = File.ReadAllLines("input_day07.txt")
+             |> Array.map(fun line -> parse line)
 
-let s0 = parse "14 -> a"
-eval s0 signals
-let s1 = parse "5 -> b"
-eval s1 signals
+let exec instrs =
+    let signals = new Mem()
+    let queue = new Queue<string * Expr>()
 
-let s2 = parse "1 -> c"
-eval s2 signals
+    instrs
+    |> Array.iter(fun e -> queue.Enqueue e)
 
-let s3 = parse "NOT a -> d"
-eval s3 signals
+    while queue.Count > 0 do
+        let expr = queue.Dequeue()    
+        let result = eval expr signals
+        match result with
+            | Some expr -> queue.Enqueue(expr)
+            | None -> ()
+    signals["a"]
+    
+let p1 = exec instrs
+Console.WriteLine($"P1: %u{p1}")
 
-let s4 = parse "a OR c -> xx"
-eval s4 signals
+// Part 2 is just overriding the rule defined for -> b to instead
+// use the result of p1 as the input for b
+let instr2 = instrs |> Array.map(fun (out, e) ->
+                                 if out = "b" then ("b", Value(p1))
+                                 else (out, e))
+let p2 = exec instr2
+Console.WriteLine($"P2: %d{p2}")
 
-let s5 = parse "a LSHIFT 2 -> xy"
-eval s5 signals
-
-let s6 = parse "20 -> rt"
-eval s6 signals
-let s7 = parse "rt RSHIFT 1 -> tr"
-eval s7 signals
-Console.WriteLine(signals["tr"])
-eval (parse "tr -> gb") signals
-Console.WriteLine(signals["gb"])
-//Console.WriteLine(s2)
-//let s3 = parse "a RSHIFT 2 -> d"
-//Console.WriteLine(s3)
-//let s4 = parse "jj -> wd"
-//Console.WriteLine(s4)
-
-//Console.WriteLine($"%A{signals}")
-// So, now:
-// 1) parse all the lines, build a queue of statements
-// 2) eval statements one by one, eval returns Some statement
-//    or None (if None, we assigned a val to Signals?). If there is
-//    a Stmt returned then add it back to the queue
-// 3) Loop until the value we want is set or there are no more
-//    statements in the queue
