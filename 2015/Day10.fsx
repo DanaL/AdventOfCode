@@ -1,5 +1,6 @@
 open System
 open System.Text
+open System.Text.RegularExpressions
 
 // Whoops this works but it takes a couple of hours to calculate the
 // 40th iteration so uhh I'll probably take a different approach
@@ -20,11 +21,21 @@ let lookAndSay s =
       |> ignore
       
     sb.ToString()
-            
-let mutable s = "1321131112"
-for j in 1 .. 40 do
-    s <- lookAndSay s
-    Console.WriteLine($"%2d{j} %d{s.Length}")
-    
-Console.WriteLine($"P1: %d{s.Length}")
+
+let lookAndSayRE s = 
+    Regex.Matches(s, @"([\d])\1*")
+    |> Seq.map(fun g -> $"%d{g.Value.Length}%c{g.Value[0]}")
+    |> String.concat ""
+
+let cycle s n =
+    let mutable a = s
+    for _ in 1 .. n do
+        a <- lookAndSayRE a
+    a.Length
+
+let p1 = cycle "1321131112" 40      
+Console.WriteLine($"P1: %d{p1}")
+
+let p2 = cycle "1321131112" 50
+Console.WriteLine($"P2: %d{p2}")
 
