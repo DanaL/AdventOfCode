@@ -67,28 +67,63 @@ let tokenize (chars: char array) =
            |> List.ofSeq
 
 // Luckily I can assume a well-formed JSON doc in these functions
-let sumObject tokens j =
-    0, j
-    
-let rec sumArray (tokens: Token list) i =
+// I tried converting my recursive/with a loop function to either
+// fully recursive or to use higher order functions, but looping with
+// mutables just more cleanly expressed my idea for solving the problem
+let rec sumObject (tokens: Token list) i =
+    let mutable j = i
+    let mutable sum = 0
+    let mutable c = true
+    let mutable red = false
+    while c do
+        j <- j + 1
+        let s = match tokens[j] with
+                | Number(n) -> n
+                | Red -> red <- true
+                         0
+                | ObjectEnd -> c <- false
+                               0
+                | ObjectStart -> let s, j' = sumObject tokens j
+                                 j <- j'
+                                 s
+                | ArrayStart -> let s, j' = sumArray tokens j
+                                j <- j'
+                                s
+                | ArrayEnd -> failwith "We shouldn't get here :o"
+                | _ -> 0        
+        sum <- sum + s
+        
+    if red then
+        0, j
+    else
+        sum, j 
+and sumArray (tokens: Token list) i =
     let mutable j = i
     let mutable sum = 0
     let mutable c = true
     while c do
+        j <- j + 1
         let s = match tokens[j] with
                 | Number(n) -> n
                 | Red -> 0
                 | ArrayEnd -> c <- false
                               0
-                | ArrayStart -> let s, j' = sumArray tokens (j+1)
+                | ArrayStart -> let s, j' = sumArray tokens j
                                 j <- j'
                                 s
-                | _ -> 0
-        j <- j + 1
+                | ObjectStart -> let s, j' = sumObject tokens j
+                                 j <- j'
+                                 s
+                | ObjectEnd -> failwith "We shouldn't get here :o"
+                | _ -> 0        
         sum <- sum + s
     sum, j
      
 let tokens = txt.ToCharArray() |> tokenize
+let p2, _ = sumObject tokens 0
+printfn $"P2: {p2}"
+//let t2 = [ ArrayStart; Number(1); Number(3); ArrayStart; Number(2); Number(2); ArrayEnd; Red; Number(-7); ArrayEnd ]
+//Console.WriteLine($"{sumArray t2 0}")
 
-let t2 = [ ArrayStart; Number(1); Number(3); ArrayStart; Number(2); Number(2); ArrayEnd; Red; Number(-7); ArrayEnd ]
-Console.WriteLine($"{sumArray t2 1}")
+//let t3 = [ ObjectStart; Number(4); Number(100); ArrayStart; Number(-5); ObjectStart; Number(-50); Red; ObjectEnd; Red; ArrayEnd; Number(1); ObjectEnd]
+//Console.WriteLine($"{sumObject t3 0}")
