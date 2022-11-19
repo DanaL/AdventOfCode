@@ -122,8 +122,4 @@ and sumArray (tokens: Token list) i =
 let tokens = txt.ToCharArray() |> tokenize
 let p2, _ = sumObject tokens 0
 printfn $"P2: {p2}"
-//let t2 = [ ArrayStart; Number(1); Number(3); ArrayStart; Number(2); Number(2); ArrayEnd; Red; Number(-7); ArrayEnd ]
-//Console.WriteLine($"{sumArray t2 0}")
 
-//let t3 = [ ObjectStart; Number(4); Number(100); ArrayStart; Number(-5); ObjectStart; Number(-50); Red; ObjectEnd; Red; ArrayEnd; Number(1); ObjectEnd]
-//Console.WriteLine($"{sumObject t3 0}")
