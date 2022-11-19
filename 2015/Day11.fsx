@@ -24,14 +24,33 @@ let toDec (w:string) =
                   ((c |> uint64) - 97UL) * ((pown 26UL (w.Length - i - 1)) |> uint64))
     |> Array.sum
 
+let rec rule1 i (s:string) =    
+    if i < s.Length - 2 then
+        let c = s[i] |> int
+        if c + 1 = (s[i+1] |> int) && c + 2 = (s[i+2] |> int) then        
+            true
+        else
+            rule1 (i+1) s
+    else        
+        false
+        
 let rule2 (s:string) =
     not <| (s.IndexOf('i') > -1 || s.IndexOf('l') > -1 || s.IndexOf('o') > -1)
 
-let s = "ghijklmn"
-Console.WriteLine(rule2 s)
+// I don't want to look up the regex pattern to find pairs of same
+// chars so I'm going to do it in a dorky way, but it'll be prue F#
+// and I guess that's better practice
+let rule3 (s:string) =
+    s.ToCharArray()
+    |> Array.pairwise
+    |> Array.filter(fun (a, b) -> a = b)
+    |> Array.distinct
+    |> Array.length >= 2
+    
+let nextPwd start =
+    Seq.initInfinite(fun i -> base26Str (start + (i |> uint64)))
+    |> Seq.find(fun pwd -> rule1 0 pwd && rule2 pwd && rule3 pwd)             
 
-//let n = toDec s
-//for j in 0 .. 50 do
-//    let x = n + (j |> uint64)
-//    let s = base26Str x
-//    Console.WriteLine(s.PadLeft(8, 'a'))
+let n = toDec "cqjxjnds"
+Console.WriteLine($"P1: {nextPwd n}")
+
