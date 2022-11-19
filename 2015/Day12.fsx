@@ -65,7 +65,30 @@ let tokenize (chars: char array) =
                                   | Junk -> false
                                   | _ -> true)
            |> List.ofSeq
+
+// Luckily I can assume a well-formed JSON doc in these functions
+let sumObject tokens j =
+    0, j
     
+let rec sumArray (tokens: Token list) i =
+    let mutable j = i
+    let mutable sum = 0
+    let mutable c = true
+    while c do
+        let s = match tokens[j] with
+                | Number(n) -> n
+                | Red -> 0
+                | ArrayEnd -> c <- false
+                              0
+                | ArrayStart -> let s, j' = sumArray tokens (j+1)
+                                j <- j'
+                                s
+                | _ -> 0
+        j <- j + 1
+        sum <- sum + s
+    sum, j
+     
 let tokens = txt.ToCharArray() |> tokenize
 
-tokens[0..9]                  |> List.iter(fun t -> printfn $"{t}")
+let t2 = [ ArrayStart; Number(1); Number(3); ArrayStart; Number(2); Number(2); ArrayEnd; Red; Number(-7); ArrayEnd ]
+Console.WriteLine($"{sumArray t2 1}")
