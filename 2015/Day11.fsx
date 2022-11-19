@@ -52,5 +52,12 @@ let nextPwd start =
     |> Seq.find(fun pwd -> rule1 0 pwd && rule2 pwd && rule3 pwd)             
 
 let n = toDec "cqjxjnds"
-Console.WriteLine($"P1: {nextPwd n}")
+let pwd = nextPwd n
+Console.WriteLine($"P1: {pwd}")
+
+// I assume part 2 is going to be trickier...
+// ...apparently not :o
+let n' = (toDec pwd) + 1UL
+let pwd' = nextPwd n'
+Console.WriteLine($"P2: {pwd'}")
 
