@@ -1,0 +1,22 @@
+open System.IO
+
+// Returns a Map of traits and the Sue #
+let parse (line:string) =
+    let j = line.IndexOf(':')
+    let n = (line.Substring(4, j - 4)) |> int    
+    let traits = line[j+1..line.Length-1].Trim().Split(',')
+                 |> Array.map(fun s -> s.Trim().Split(':'))
+                 |> Array.map(fun p -> p[0], (p[1].Trim()) |> int)
+                 |> Map.ofArray                 
+    n, traits
+
+let sue = [ ("children", 3); ("cats", 7); ("samoyeds", 2); ("pomeranians", 3)
+            ("akitas", 0); ("vizslas", 0); ("goldfish", 5); ("trees", 3)
+            ("cars", 2); ("perfumes", 1) ]
+          |> Map.ofList
+
+let p1, _ = File.ReadAllLines("input_day16.txt")
+            |> Array.map(parse)
+            |> Array.find(fun (n, s) -> s |> Map.forall(fun k v -> sue[k] = v))
+printfn $"P1: {p1}"
+
