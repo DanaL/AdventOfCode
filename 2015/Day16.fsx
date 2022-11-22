@@ -15,8 +15,17 @@ let sue = [ ("children", 3); ("cats", 7); ("samoyeds", 2); ("pomeranians", 3)
             ("cars", 2); ("perfumes", 1) ]
           |> Map.ofList
 
-let p1, _ = File.ReadAllLines("input_day16.txt")
+let aunts = File.ReadAllLines("input_day16.txt")
             |> Array.map(parse)
+            
+let p1, _ = aunts
             |> Array.find(fun (n, s) -> s |> Map.forall(fun k v -> sue[k] = v))
 printfn $"P1: {p1}"
 
+let p2, _ = aunts
+            |> Array.find(fun (n, s) -> s |> Map.forall(
+                   fun k v -> match k with
+                              | "trees" | "cats" -> v > sue[k]
+                              | "pomeranians" | "goldfish" -> v < sue[k]
+                              | _ -> sue[k] = v))
+printfn $"P2: {p2}"
