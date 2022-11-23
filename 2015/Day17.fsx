@@ -1,49 +1,25 @@
 open System.IO
 
 let jugs = File.ReadAllLines("input_day17.txt")
-           |> Array.map(int)
-           |> Array.sortDescending
+           |> Array.map(int)           
            |> List.ofArray
            
-let rec combos goal (jugs: int list) (curr: int list) found =
-    let found' =
-        seq { 0..(jugs.Length - 1) }
-        |> Seq.map(fun j ->
-                   let combo = jugs[j]::curr                   
-                   let total = combo |> List.sum
-                   if total = goal then
-                       [combo]
-                   else if total < goal then
-                       let jugs' = jugs |> List.removeAt j
-                       (combos goal jugs' combo found)
-                   else
-                       []
-                   )
-        |> Seq.concat
-        |> List.ofSeq
+let rec powerSet =
+    function
+    | [] -> [[]]
+    | (h::tail) ->
+        let ps = powerSet tail
+        List.map(fun ps' -> h::ps') ps @ ps
 
-    found'
+let jugs' = powerSet jugs
+            |> List.filter(fun p -> p |> List.sum = 150)
 
-let printArr arr =
-    arr |> List.iter(fun a -> System.Console.Write($"{a} "))
-    printfn ""
+printfn $"P1: {jugs'.Length}"
 
-let p1 = 
-    seq { 0..jugs.Length - 1}
-    |> Seq.map(fun j ->
-               let curr = [jugs[j]]
-               let jugs' = jugs |> List.removeAt j
-               combos 150 jugs' curr [])
-    |> Seq.concat
-    |> Seq.map(fun c -> c |> List.sort)
-    |> Seq.distinct
-    |> List.ofSeq
-
-printfn $"P1: {p1.Length}"
-//let found = combos 25 jugs[1..] [jugs[0]] []
-//found |> List.iter(fun c -> printfn $"{c}")
-
-
-
-
+// For part 2 we want to find the minimum # of jugs to hold 150
+// litres of eggnog and count how many combos use that minimum
+let min = jugs' |> List.map(fun p -> p.Length)
+                |> List.min
+let p2 = jugs' |> List.filter(fun p -> p.Length = min)
+printfn $"P2 {p2.Length}"                
 
