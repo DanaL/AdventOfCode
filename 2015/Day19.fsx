@@ -4,7 +4,7 @@ open System.IO
 open System.Text.RegularExpressions
 
 let lines = File.ReadAllLines("input_day19.txt")
-let mutable molecule = lines[lines.Length - 1]
+let molecule = lines[lines.Length - 1]
 
 let dict = lines[0..lines.Length - 3]
            |> Array.map(fun line -> line.Split(" => "))
@@ -30,61 +30,29 @@ let r = dict.Keys |> Seq.map(fun k -> p1 molecule k 0)
                   |> List.ofSeq
 printfn $"P1 {r.Length}"
 
+// For my data, some paths through the molecule converge on a dead end
+// molecule that isn't the solution but can't be further modified.
+// Terrible but it works: I randomize which transformation I'm using
+// at each step, which gets me the correct answer after a few tries
 let rnd = System.Random()
-let shuffle (nums: int array) =
-    let mutable nums' = nums
-    for j in 0..nums'.Length-1 do
-        let a = rnd.Next(0, nums'.Length-1)
-        let b = rnd.Next(0, nums'.Length-1)
-        let tmp = nums'[a]
-        nums'[a] <- nums'[b]
-        nums'[b] <- tmp
-    nums'
+let rec find m (dict:(string*string) array) steps =    
+    let i = rnd.Next(0, dict.Length)
+    let k, v = dict[i]
+    let re = Regex(k)
+    let m' = re.Replace(m, v, 1)
 
-let find molecule (keys:string array) (values:string array) =
-    let mutable m = molecule
-    let mutable steps = 0
-    while m <> "e" && m <> "NRnBSiRnCaRnFArYFArFArF" do        
-        let i = rnd.Next(0, keys.Length)
-        let re = Regex(keys[i])
-        let m' = re.Replace(m, values[i], 1)
-        if m' <> m then            
-            steps <- steps + 1
-            m <- m'
-    if m = "e" then
-        printfn $"P2: {steps}"
+    if m' = "e" then
+        printfn $"P2: {steps+1}"
+    elif m' = "NRnBSiRnCaRnFArYFArFArF" then
+        printfn $"Deadend {m'}"
+    elif m' <> m then
+        find m' dict (steps+1)
     else
-        printfn $"Deadend: {m}"
+        find m dict steps
         
-// For part 2, we are going in the reverse order to build a new dictionary
 let dict' = lines[0..lines.Length - 3]
             |> Array.map(fun line -> line.Split(" => "))
-            |> Array.map(fun arr -> arr[1], arr[0])
-            |> Array.sortBy(fun (a, _) -> a.Length)
-            |> Array.rev
-let keys, values = Array.unzip dict'
+            |> Array.map(fun arr -> arr[1], arr[0])            
 
-find molecule keys values            
-// let seen = HashSet<string>()
-// let molecules = PriorityQueue<string * int, int>()
-// molecules.Enqueue((molecule, 0), 0)
-
-// let mutable count = 0
-// while molecules.Count > 0 do
-//     let curr, step = molecules.Dequeue()    
-//     if curr = "e" then
-//         printfn $"P2: {step}"
-//         molecules.Clear()    
-//     elif seen.Contains(curr) |> not then        
-//         printfn $"{step} {curr} {curr.Length}"
-//         dict'.Keys
-//         |> Seq.iter(fun k -> let re = Regex(k)
-//                              let m' = re.Replace(curr, dict'[k], 1)
-//                              if seen.Contains(curr) |> not then
-//                                  molecules.Enqueue((m', step+1), m'.Length))
-
-//         ignore(seen.Add(curr))
-        
-//     count <- count + 1
-    
+find molecule dict' 0           
 
