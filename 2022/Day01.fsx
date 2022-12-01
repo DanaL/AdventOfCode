@@ -3,8 +3,7 @@ open System.IO
 
 let delim = $"{Environment.NewLine}{Environment.NewLine}"
 let elves = File.ReadAllText("input_day01.txt").Split(delim)
-            |> Array.map(fun elf -> elf.Split("\n") |> Array.map(int)
-                                                    |> Array.sum)
+            |> Array.map(fun elf -> elf.Split("\n") |> Array.sumBy(int))
             |> Array.sortDescending
             
 printfn $"P1: {elves[0]}"
