@@ -14,5 +14,6 @@ let elves = File.ReadAllLines("input_day01.txt")
 let p1 = elves |> List.max
 printfn $"P1: {p1}"
 
+// Part Two
 let p2 = elves |> List.sort |> List.rev |> List.take(3) |> List.sum
 printfn $"P2: {p2}"
