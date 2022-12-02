@@ -34,12 +34,13 @@ let scorePt2 mv res =
     | _ -> failwith "Hmm this shouldn't happen"
 
 let lines = File.ReadAllLines("input_day02.txt")
+            |> Array.map(fun line -> line[0], line[2])
 
-let p1 = lines |> Array.map(fun t -> scorePt1 (move t[2]) (move t[0]))
+let p1 = lines |> Array.map(fun (j,k) -> scorePt1 (move k) (move j))
                |> Array.sum
 printfn $"P1: {p1}"
 
-let p2 = lines |> Array.map(fun t -> scorePt2 (move t[0]) t[2])
+let p2 = lines |> Array.map(fun (j,k) -> scorePt2 (move j) k)
                |> Array.sum
 printfn $"P2: {p2}"
 
