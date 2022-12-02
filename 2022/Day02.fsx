@@ -9,6 +9,12 @@ let toMove = function
     | 'C' | 'Z' -> Scissors
     | _ -> failwith "Hmm this shouldn't happen"
 
+let toRes = function
+    | 'X' -> Loss
+    | 'Y' -> Draw
+    | 'Z' -> Win
+    | _ -> failwith "Hmm this shouldn't happen"
+    
 let round m1 m2 =
     if m1 = m2 then Draw
     elif m1 = Rock && m2 = Scissors then Win
@@ -16,6 +22,18 @@ let round m1 m2 =
     elif m1 = Scissors && m2 = Paper then Win
     else Loss
 
+let findMove mv res =
+    match res with
+    | Draw -> mv
+    | Win -> match mv with
+             | Rock -> Paper
+             | Paper -> Scissors
+             | Scissors -> Rock
+    | Loss -> match mv with
+              | Rock -> Scissors
+              | Paper -> Rock
+              | Scissors -> Paper
+    
 let score move result =
     match move with
     | Rock -> 1
@@ -29,8 +47,15 @@ let score move result =
 
 let part1 (line:string) =
     score (toMove line[2]) (round (toMove line[2]) (toMove line[0]))
-    
-let p1 = File.ReadAllLines("input_day02.txt")
-         |> Array.map(part1)                      
-         |> Array.sum
+
+let part2 (line:string) =    
+    score (findMove (toMove line[0]) (toRes line[2])) (toRes line[2])
+
+let lines = File.ReadAllLines("input_day02.txt")
+
+let p1 = lines |> Array.map(part1) |> Array.sum
 printfn $"P1: {p1}"
+
+let p2 = lines |> Array.map(part2) |> Array.sum
+printfn $"P2: {p2}"
+
