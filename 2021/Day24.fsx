@@ -1,4 +1,7 @@
 open System
+open System.Collections.Generic
+
+let input = new Queue<int>()
 
 let eval (mem:Map<string, int>) (c:string) = 
     match Int32.TryParse c with
@@ -30,11 +33,42 @@ let eql (mem:Map<string, int>) a b =
      if eval mem a = eval mem b then inp mem a 1
                                 else inp mem a 0
 
-let m = Map.empty.Add("w", 0).Add("x", 4).Add("y", 0).Add("z", 0)
-let m2 = add m "w" "7"
-let m3 = add m2 "w" "x"
-let m4 = div m3 "w" "2"
-let m5 = add m4 "w" "-1"
-let m6 = eql m5 "w" "y"
-printfn $"%A{m6}"
+let exec mem (stmt:string) =
+    let pieces = stmt.Split(' ')
+    match pieces[0] with
+    | "add" -> add mem pieces[1] pieces[2]
+    | "mul" -> mul mem pieces[1] pieces[2]
+    | "div" -> div mem pieces[1] pieces[2]
+    | "mod" -> rem mem pieces[1] pieces[2]
+    | "eql" -> eql mem pieces[1] pieces[2]
+    | _ -> failwith "Hmm this shouldn't happen."
+
+let modelNum (num:uint64) =
+    let s = num.ToString()
+    if s.IndexOf('0') <> -1 then
+        None
+    else
+        let digits = s.ToCharArray()
+                     |> Array.map(fun c -> c.ToString())
+                     |> Array.map(Int32.Parse)                     
+        Some (new Queue<int>(digits))
+    
+let printQ (q:Queue<int>) =
+    while q.Count > 0 do
+        printf $"{q.Dequeue()}"
+    printfn ""
+    
+let m = Map.empty.Add("w", 0).Add("x", 0).Add("y", 0).Add("z", 0)
+let mutable model = 11111111111119UL
+let mutable go = true
+while go do
+    match modelNum model with
+    | Some digits ->
+        printQ digits
+        go <- true
+    | None ->
+        printfn "invalid"
+        go <- true
+    model <- model + 1UL
+    if model > 11111111111129UL then go <- false
 
