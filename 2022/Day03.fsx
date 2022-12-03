@@ -6,8 +6,7 @@ let score = function
     
 let shared (line:string) =
     let a,b = line |> List.ofSeq |> List.splitAt (line.Length/2)
-    score (Set.intersect (Set.ofSeq a) (Set.ofSeq b)
-           |> Set.minElement)
+    Set.intersect (Set.ofSeq a) (Set.ofSeq b) |> Set.minElement |> score
 
 let lines = File.ReadAllLines("input_day03.txt")   
 let p1 = lines |> Array.map shared |> Array.sum
