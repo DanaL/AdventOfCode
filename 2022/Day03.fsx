@@ -3,12 +3,11 @@ open System.IO
 let score c =
     if c <= 'Z' then int c - int 'A' + 27 else int c - int 'a' + 1
     
-let chSet (s:string) =
-    s.ToCharArray() |> Set.ofArray
+let chSet (s:string) = s.ToCharArray() |> Set.ofArray
     
 let shared (line:string) =
     let mid = line.Length/2 - 1
-    score (Set.intersect (chSet line[0..mid])  (chSet line[mid+1..])
+    score (Set.intersect (chSet line[0..mid]) (chSet line[mid+1..])
            |> Set.minElement)
 
 let lines = File.ReadAllLines("input_day03.txt")   
