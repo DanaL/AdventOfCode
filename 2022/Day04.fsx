@@ -16,9 +16,7 @@ let overlap line =
     (btw a c d) || (btw b c d) || (btw c a b) || (btw d a b)
         
 let test f =
-    File.ReadAllLines("input_day04.txt")
-    |> Array.map f |> Array.filter(fun c -> c) |> Array.length
+    File.ReadAllLines("input_day04.txt") |> Array.filter f |> Array.length
     
 printfn $"P1: {test contained}"
 printfn $"P2: {test overlap}"
-
