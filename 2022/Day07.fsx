@@ -4,59 +4,63 @@ open System.IO
 type File = { Name:string; Size: int }
 type Folder = {
     Name:string
-    Parent:Folder option
-    Files:File list option
-    Children:Folder list option
+    mutable Parent:Folder option
+    mutable Files:File list
+    mutable Children:Folder list
 }
 
-
-// I think our input files have no 'bad commands' ie., changing to a folder
-// that doesn't exist
 let rec changeDir curr name =
-    if curr.Name = name then
-        curr
-    elif name = "/" then
+    if name = ".." then
         match curr.Parent with
         | Some p -> p
         | None -> failwith "Hmm this shouldn't happen"
     else
-        match curr.Children with
-        | Some children -> children |> List.find(fun n -> n.Name = name)
-        | None -> failwith "Hmm this shouldn't happen"
-        
-let newFolder name parent =
-    { Name=name; Parent=Some parent; Files=None; Children=None }
-    
-let addFile folder file =
-    match folder.Files with
-    | Some files -> { folder with Files = Some(file::files) }
-    | None -> { folder with Files = Some( [file] ) }
+        curr.Children |> List.find(fun n -> n.Name = name)
 
+let newFolder name = { Name=name; Parent=None; Files=list.Empty; Children=list.Empty }
+let addFile (folder:Folder) file = folder.Files <- file::folder.Files
 let addFolder folder child =
-    match folder.Children with
-    | Some children -> { folder with Children = Some(child::children) }
-    | None -> { folder with Children = Some([child])}
-    
-let f1 = { Name = "aaa"; Size = 123 }
-let f2 = { Name = "zfg"; Size = 44 }
-let root = { Name="/"; Parent=None; Files= None; Children=None }
-let r1 = addFile root f1
-let r2 = addFile r1 f2
+    child.Parent <- Some folder
+    folder.Children <- child::folder.Children
 
-let r3 = addFolder r2 (newFolder "a" r2)
-//let f = changeDir sub "/"
-let a = changeDir r3 "a"
-//printfn $"%A{a}"
-let p = changeDir a "/"
-printfn $"%A{p}"
+let mutable root = newFolder "/"
+let lines = new Queue<string>(File.ReadAllLines("input_day07.txt")[1..])
 
-// let lines = new Queue<string>(File.ReadAllLines("input_day07.txt")[1..])
-// while lines.Count > 0 do
-//     let line = lines.Dequeue()
-//     match line[0..3] with
-//     | "$ cd" -> printfn "Change dir"
-//     | "$ ls" -> printfn "List"
-//     | "dir " -> printfn "Folder def"
-//     | _ -> printfn $"File info {line[0..3]}"
-    //printfn $"{lines.Dequeue()}"
-//lines |> Array.iter(fun l -> printfn $"{l}")
+let rec printTree node depth =    
+    printf $"{node.Name.PadLeft(depth * 4, ' ')}: "
+    for file in node.Files do
+        printf $"{file.Name} "
+    printfn ""
+    for dir in node.Children do
+        printTree dir (depth+1)
+
+let rec buildTree (root:Folder) (lines:Queue<string>) =
+    while lines.Count > 0 do
+        let line = lines.Dequeue()
+        let pieces = line.Split(' ')
+        if pieces[0] = "dir" then addFolder root (newFolder pieces[1])
+        elif pieces[0] = "$" then
+            if pieces[1] = "cd" then
+                let c = changeDir root pieces[2]
+                buildTree c lines
+            // $ ls doesn't really do anything in part 1
+        else
+            let f = { Name=pieces[1]; Size= (int <| pieces[0]) }
+            addFile root f
+        
+let rec calcFolderSizes node =
+    let size = node.Files |> List.sumBy(fun f -> f.Size)
+    if node.Children.Length = 0 then
+        [ size ]
+    else
+        let childSizes = node.Children |>  List.map(fun c -> calcFolderSizes c) |> List.concat
+        //(size + childSizes |> List.sum)::childSizes
+        let total = childSizes |> List.sum
+        (size + total)::childSizes
+        
+buildTree root lines
+printTree root 0
+let sizes = calcFolderSizes root
+let p1 = sizes |> List.filter(fun s -> s <= 100_000) |> List.sum
+printfn $"P1: {p1}"
+
