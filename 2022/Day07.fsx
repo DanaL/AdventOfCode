@@ -57,10 +57,18 @@ let rec calcFolderSizes node =
         //(size + childSizes |> List.sum)::childSizes
         let total = childSizes |> List.sum
         (size + total)::childSizes
+
+let rec calc2 node =
+    let size = node.Files |> List.sumBy(fun f -> f.Size)    
+    let sizes = if node.Children.Length = 0 then
+                    [ size ]
+                else
+                    size::(node.Children |> List.map(fun c -> calc2 c) |> List.concat)
+    sizes |> List.filter(fun s -> s <= 100_000)
         
 buildTree root lines
 printTree root 0
-let sizes = calcFolderSizes root
-let p1 = sizes |> List.filter(fun s -> s <= 100_000) |> List.sum
+let sizes = calc2 root
+let p1 = sizes |> List.sum
 printfn $"P1: {p1}"
 
