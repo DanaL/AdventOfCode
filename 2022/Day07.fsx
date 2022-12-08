@@ -6,9 +6,9 @@ let lines = new Queue<string>(File.ReadAllLines("input_day07.txt")
                               |> Array.skip(1)
                               |> Array.filter(fun l -> l[0..3] <> "$ ls"))
 
-let mutable folders = new Stack<Folder>()
+let folders = new Stack<Folder>()
 let mutable visited = List.empty
-let mutable root = { Size=0; Folders=List.empty }
+let root = { Size=0; Folders=List.empty }
 folders.Push(root)
 
 while lines.Count > 0 do
@@ -23,7 +23,19 @@ while lines.Count > 0 do
              | _ -> folders.Push({ Size=0; Folders=List.empty})
     | _ -> folders.Peek().Size <- folders.Peek().Size + (int <| pieces[0])
 
+let mutable total = 0
+while folders.Count > 1 do
+    let n = folders.Pop()
+    total <- total + n.Size
+    visited <- n::visited
+folders.Peek().Size <- folders.Peek().Size + total
+   
 let p1 = visited |> List.filter(fun f -> f.Size <= 100_000)
                  |> List.sumBy(fun f -> f.Size)
 printfn $"P1: {p1}"
 
+let goal = 30_000_000
+let unused = 70_000_000 - folders.Peek().Size
+let sizes = visited |> List.map(fun f -> f.Size) |> List.sort
+let p2 = sizes |> List.find(fun s -> s + unused >= goal)
+printfn $"P2: {p2}"
