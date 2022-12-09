@@ -13,7 +13,7 @@ let parseLine (line:string) =
     let mvs = seq { 1..amt } |> Seq.map(fun _ -> mv) |> Array.ofSeq
     mvs
     
-let fetchInput() =    
+let fetchInput =    
     System.IO.File.ReadAllLines("input_day09.txt")
     |> Array.map(fun l -> parseLine l)
     |> Array.concat
@@ -41,7 +41,7 @@ let move state mv =
     let nhr, nhc = hr+dr, hc+dc
     let ntr, ntc =
         if dist nhr nhc tr tc > 1 then
-            // we need to move the tail
+            // if d > 1 we need to move the tail
 
             // if they are on the same row or col just follow, otherwise
             // it's a diaganol move
@@ -51,8 +51,7 @@ let move state mv =
             tr, tc
     { Head=nhr,nhc; Tail=ntr,ntc; Visited = state.Visited.Add(ntr,ntc) }
 
-let q = fetchInput()
 let s0 = { Head= 0,0; Tail= 0,0; Visited= Set.empty.Add(0,0) }
 
-let res = q |> Array.fold(fun s mv -> move s mv) s0
+let res = fetchInput |> Array.fold(fun s mv -> move s mv) s0
 printfn $"P1: {res.Visited.Count}"
