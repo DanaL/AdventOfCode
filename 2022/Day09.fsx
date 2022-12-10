@@ -1,14 +1,8 @@
-type Mv = Up | Down | Left | Right
 type State = { Knots: (int*int) list; Visited: Set<int*int> }
 
 let parseLine (line:string) =
     let pieces = line.Split(' ')
-    let mv = match pieces[0] with
-             | "R" -> Right
-             | "L" -> Left
-             | "U" -> Up
-             | "D" -> Down
-             | _ -> failwith "Hmm this shouldn't happen"
+    let mv = pieces[0] 
     let amt = pieces[1] |> int
     let mvs = seq { 1..amt } |> Seq.map(fun _ -> mv) |> Array.ofSeq
     mvs
@@ -40,24 +34,21 @@ let rec moveTails toR toC (tail:(int*int) list) =
         if dist toR toC kr kc > 1 then
             // Okay, we need to move this tail segment
             // if they are on the same row or col, just follow,
-            // other it's a diaganol move
+            // otherwise it's a diaganol move
             if kr = toR || kc = toC then overlapMove toR toC kr kc
             else overlapMoveDiag toR toC kr kc
         else
             kr, kc
-    if tail |> List.length = 1 then
-        // we're at the end
-        [ ntr, ntc]
-    else
-        let tail' = moveTails ntr ntc tail[1..]
-        (ntr,ntc)::tail'
+    if tail |> List.length = 1 then [ ntr, ntc]
+    else (ntr,ntc)::(moveTails ntr ntc tail[1..])
         
 let move state mv =
     let dr, dc = match mv with
-                 | Up -> -1, 0
-                 | Down -> 1, 0
-                 | Left -> 0, -1
-                 | Right -> 0, 1
+                 | "U" -> -1, 0
+                 | "D" -> 1, 0
+                 | "L" -> 0, -1
+                 | "R" -> 0, 1
+                 | _ -> failwith "Hmm this shouldn't happen"
     let hr, hc = state.Knots[0]
     let nhr, nhc = hr+dr, hc+dc
     let knots' = (nhr,nhc)::(moveTails nhr nhc state.Knots[1..])
