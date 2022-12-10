@@ -19,6 +19,6 @@ cycles |> Seq.mapi(fun c x -> let p = c % 40
                               if p >= x - 1 && p <= x + 1 then '#'
                               else ' ')
        |> Seq.chunkBySize 40
-       |> Seq.map(fun row -> row |> String.Concat)
-       |> Seq.iter(Console.WriteLine)
+       |> Seq.map String.Concat
+       |> Seq.iter Console.WriteLine
 
