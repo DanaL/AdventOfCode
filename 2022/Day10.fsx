@@ -1,26 +1,25 @@
 open System
 open System.IO
 
-let eval (line:string) (cycle,x) =
+let eval (line:string) x =
     if line <> "noop" then
         let v = line.Split(' ')[1] |> int
-        [ cycle+2,x+v; cycle+1,x ]
+        [ x+v; x ]
     else
-        [ cycle+1,x ]
+        [ x ]
 
 let cycles = File.ReadAllLines("input_day10.txt")
              |> Array.fold(fun arr line -> let n = eval line (arr |> List.head)
-                                           n @ arr) [1,1]
-             |> List.rev |> Map.ofList
+                                           n @ arr) [ 1 ]
+             |> List.rev
 
-let p1 = cycles[20] * 20 + cycles[60] * 60 + cycles[100] * 100 +
-                cycles[140] * 140 + cycles[180] * 180 + cycles[220] * 220
+let p1 = cycles[19] * 20 + cycles[59] * 60 + cycles[99] * 100 +
+                cycles[139] * 140 + cycles[179] * 180 + cycles[219] * 220
 printfn $"P1: {p1}"             
 
-cycles |> Seq.map(fun kvp -> kvp.Key - 1,kvp.Value)
-       |> Seq.map(fun (c, x) -> let p = c % 40
-                                if p >= x - 1 && p <= x + 1 then '#'
-                                else ' ')
+cycles |> Seq.mapi(fun c x -> let p = c % 40
+                              if p >= x - 1 && p <= x + 1 then '#'
+                              else ' ')
        |> Seq.chunkBySize 40
        |> Seq.map(fun row -> row |> System.String.Concat)
        |> Seq.iter(System.Console.WriteLine)
