@@ -2,11 +2,9 @@ open System
 open System.IO
 
 let eval (line:string) x =
-    if line <> "noop" then
-        let v = line.Split(' ')[1] |> int
-        [ x+v; x ]
-    else
-        [ x ]
+    match line with
+    | "noop" -> [ x ]
+    | _ -> [ x + (line[5..] |> int); x ]
 
 let cycles = File.ReadAllLines("input_day10.txt")
              |> Array.fold(fun arr line -> let n = eval line (arr |> List.head)
