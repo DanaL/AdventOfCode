@@ -1,48 +1,59 @@
+open System.Collections.Generic
 open System.IO
 open System.Text.RegularExpressions
 
-type Op = Add | Mul | Pow
-type Monkey = { Items:int list; M1: int; M2: int
-                Denom: int; Op: Op; X: int }
+let inspections = new Queue<int>()
 
-let eval m i =
-    let r = match m.Op with
-            | Add -> i + m.X
-            | Mul -> i * m.X
-            | Pow -> i * i
-    match r % m.Denom = 0 with
-    | true -> m.M1
-    | false -> m.M2
+let monkey0 (items: int list) =
+    seq { 1..items.Length } |> Seq.iter(fun _ -> inspections.Enqueue(0))
+    items |> List.map(fun x -> (x * 13) / 3)
+          |> List.map(fun x -> if x % 19 = 0 then x, 6 else x, 7)
+let monkey1 (items: int list) =
+    seq { 1..items.Length } |> Seq.iter(fun _ -> inspections.Enqueue(1))
+    items |> List.map(fun x -> (x + 3) / 3)
+          |> List.map(fun x -> if x % 2 = 0 then x, 5 else x, 4)
+let monkey2 (items: int list) =
+    seq { 1..items.Length } |> Seq.iter(fun _ -> inspections.Enqueue(2))
+    items |> List.map(fun x -> (x + 6) / 3)
+          |> List.map(fun x -> if x % 13 = 0 then x, 4 else x, 1)
+let monkey3 (items: int list) =
+    seq { 1..items.Length } |> Seq.iter(fun _ -> inspections.Enqueue(3))
+    items |> List.map(fun x -> (x + 2) / 3)
+          |> List.map(fun x -> if x % 5 = 0 then x, 6 else x, 0)
+let monkey4 (items: int list) =
+    seq { 1..items.Length } |> Seq.iter(fun _ -> inspections.Enqueue(4))
+    items |> List.map(fun x -> (x * x) / 3)
+          |> List.map(fun x -> if x % 7 = 0 then x, 5 else x, 3)
+let monkey5 (items: int list) =
+    seq { 1..items.Length } |> Seq.iter(fun _ -> inspections.Enqueue(5))
+    items |> List.map(fun x -> (x + 4) / 3)
+          |> List.map(fun x -> if x % 11 = 0 then x, 3 else x, 0)
+let monkey6 (items: int list) =
+    seq { 1..items.Length } |> Seq.iter(fun _ -> inspections.Enqueue(6))
+    items |> List.map(fun x -> (x * 7) / 3)
+          |> List.map(fun x -> if x % 17 = 0 then x, 2 else x, 7)
+let monkey7 (items: int list) =
+    seq { 1..items.Length } |> Seq.iter(fun _ -> inspections.Enqueue(7))
+    items |> List.map(fun x -> (x + 7) / 3)
+          |> List.map(fun x -> if x % 3 = 0 then x, 2 else x, 1)
 
-let l = "Starting items: 71, 86, 54"
-let m = Regex.Match(l, "(\d+)")
-
-let parse (txt:string) =
-    let pieces = txt.Split('\n') |> Array.skip(1)
-
-    printfn $"%A{pieces}"
-    let items = Regex.Split(pieces[0], "\D+") |> Seq.skip(1) |> Seq.map int
-    printfn $"%A{items}"
-    let m = Regex.Match(pieces[1], "([+|\*]) (\d+)")
-    let op, x = if m.Success then
-                    let v = m.Groups[2].Value |> int
-                    let op = if m.Groups[1].Value = "+" then Add else Mul
-                    op, v
-                else
-                    Pow, 0
-    let extract line = Regex.Split(line, "\D+")[1] |> int 
-    let denom = extract pieces[2]
-    let m1 = extract pieces[3]
-    let m2 = extract pieces[4]
+let mutable inventories =
+    File.ReadAllText("input_day11.txt").Split("\n\n")
+    |> Array.map(fun txt -> txt.Split("\n")[1])
+    |> Array.map(fun line -> Regex.Split(line, "\D+")[1..] |> Array.map int |> List.ofArray)
     
-    printfn $"{denom}"
-    
-    // Denom is # in Test line
-    // M1 is # in penult line
-    // M2 is # in last line
-    //monkey
-    
-let input = File.ReadAllText("input_day11.txt").Split("\n\n")
-parse(input[4])
-//let m0 = { Items=[71;86]; M1=6; M2=7; Denom=19; Op=Mul; X=13 }
+let monkeys = [| monkey0; monkey1; monkey2; monkey3; monkey4;
+                 monkey5; monkey6; monkey7 |]
 
+for _ in 1..20 do
+    for m in 0..7 do
+        let res = monkeys[m] inventories[m]        
+        res |> List.iter(fun (v, nm) -> inventories[nm] <- v::inventories[nm])
+        inventories[m] <- []
+
+let monkeyBusiness = inspections |> Seq.groupBy id
+                                 |> Seq.map(fun (i, items) -> items |> List.ofSeq |> List.length)
+                                 |> List.ofSeq |> List.sortDescending
+printfn $"P1: {monkeyBusiness[0] * monkeyBusiness[1]}"
+                       
+                       
