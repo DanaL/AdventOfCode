@@ -2,6 +2,8 @@ open System
 open System.Collections.Generic
 open System.IO
 
+type Correct = Yes | No | Cont
+
 type Bit =
     | I of int
     | L of Bit list
@@ -44,34 +46,49 @@ let decon = function
     | L a -> a
     | _ -> failwith "Hmm this shouldn't happen"
     
-let rec cmpLists line0 line1 =
-    let a = decon line0
-    let b = decon line1
-    printfn $"Left: %A{a}    Right: %A{b}"
-
-    let count = if a.Length > b.Length then b.Length else a.Length 
-    if a.Length = 0 then
-        true
-    else
-        a |> List.take count
-          |> List.mapi(fun i e -> cmpBits e b[i])
-          |> List.reduce (&&)
-and cmpBits left right =
-    match left with
-    | I x -> match right with
-             | I y -> x <= y
-             | L _ -> cmpLists (L [ left ]) right
-             | End _ -> failwith "This shouldn't happen!"
-    | L ll -> match right with
-              | I _ -> cmpLists left (L [ right ])
-              | L _ -> cmpLists left right
-              | End _ -> failwith "This shouldn't happen!"
-    | End _ -> failwith "This shouldn't happen!"
+let rec cmp left right i =
+    let a = decon left
+    let b = decon right
     
+    if i >= a.Length && i < b.Length then
+        Yes
+    elif i < a.Length && i >= b.Length then
+        No
+    elif i >= a.Length && i >= b.Length then
+        // This is the case where we're comparing say:
+        // [[1,2,3],4]
+        // [[1,2,3],5]
+        // and after comparing the nested sublist, we aren't done yet
+        Cont
+    else
+        match a[i] with
+        | I x -> match b[i] with
+                 | I y -> if x < y then Yes
+                          elif x > y then No
+                          else cmp left right (i+1)
+                 | L _ -> let res = cmp (L [I x]) b[i] 0
+                          match res with
+                          | Cont -> cmp left right (i+1)
+                          | _ -> res
+                 | End _ -> failwith "Hmm this shouldn't happen"
+        | L _ -> let res = match b[i] with
+                           | I y -> cmp a[i] (L [I y]) 0
+                           | L _ -> cmp a[i] b[i] 0
+                           | End _ -> failwith "Hmm this shouldn't happen..."
+                 match res with
+                 | Cont -> cmp left right (i+1)
+                 | _ -> res
+        | End _ -> failwith "Hmm this shouldn't happen"
+        
 let pairs = File.ReadAllText("input_day13.txt").Split("\n")
 
-let r = cmpLists (fetchLine "[4,4,4,4]") (fetchLine "[4,4,4]")
-printfn $"{r}"
+let r = cmp (fetchLine "[1,1,3,1,1]") (fetchLine "[1,1,5,1,1]") 0
+printfn $"R {r}"
 
-let r1 = cmpLists (fetchLine "[1,[2,[3,[4,[5,6,7]]]],8,9]") (fetchLine "[1,[2,[3,[4,[5,6,0]]]],8,9]")
-printfn $"{r1}"
+let r1 = cmp (fetchLine "[[1],[2,3,4]]") (fetchLine "[[1],4]") 0
+printfn $"R1 {r1}"
+
+let r2 = cmp (fetchLine "[1,[2,[3,[4,[5,6,7]]]],8,9]") (fetchLine "[1,[2,[3,[4,[5,6,0]]]],8,9]") 0
+printfn $"R2 {r2}"
+//let r1 = cmpLists (fetchLine "[1,[2,[3,[4,[5,6,7]]]],8,9]") (fetchLine "[1,[2,[3,[4,[5,6,0]]]],8,9]")
+//printfn $"{r1}"
