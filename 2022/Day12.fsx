@@ -20,9 +20,9 @@ let graph = File.ReadAllLines("input_day12.txt")
 // to its neighbour in part 1. (Because the graph edges aren't
 // necessarily bidirectional)
 
-let isVertex (graph:Graph) v p =
-    match graph.ContainsKey(p) with
-    | true -> if v+1 >= graph[p] then Some(p)
+let isVertex (graph:Graph) curr neighbour =
+    match graph.ContainsKey(neighbour) with
+    | true -> if graph[neighbour] + 1 >= curr then Some(neighbour)
               else None
     | false -> None
     
@@ -60,7 +60,8 @@ let shortestPath (graph:Graph) start goalElevation =
 let start = graph.Keys |> Seq.find(fun k -> graph[k] = -1)
 let peak = graph.Keys |> Seq.find(fun k -> graph[k] = 26)
 
-//printfn $"{peak}"
-//printfn $"%A{adj graph (20,60)}"
 let p1 = shortestPath graph peak -1
 printfn $"P1: {p1}"
+
+let p2 = shortestPath graph peak 0
+printfn $"P2: {p2}"
