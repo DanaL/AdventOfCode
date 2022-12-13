@@ -3,7 +3,6 @@ open System.Collections.Generic
 open System.IO
 
 type Correct = Yes | No | Cont
-
 type Bit =
     | I of int
     | L of Bit list
@@ -33,13 +32,6 @@ let rec parseList (txt:string) c =
 
 let fetchLine txt =
     L (parseList txt 1 |> trimEnd)
-
-let enqueueList list =
-    let q = new Queue<Bit>()    
-    match list with
-    | L items -> items |> List.iter(fun i -> q.Enqueue(i))
-    | _ -> failwith "Hmm this shouldn't happen"
-    q
 
 let decon = function
     | L [] -> []
@@ -80,15 +72,10 @@ let rec cmp left right i =
                  | _ -> res
         | End _ -> failwith "Hmm this shouldn't happen"
         
-let pairs = File.ReadAllText("input_day13.txt").Split("\n")
-
-let r = cmp (fetchLine "[1,1,3,1,1]") (fetchLine "[1,1,5,1,1]") 0
-printfn $"R {r}"
-
-let r1 = cmp (fetchLine "[[1],[2,3,4]]") (fetchLine "[[1],4]") 0
-printfn $"R1 {r1}"
-
-let r2 = cmp (fetchLine "[1,[2,[3,[4,[5,6,7]]]],8,9]") (fetchLine "[1,[2,[3,[4,[5,6,0]]]],8,9]") 0
-printfn $"R2 {r2}"
-//let r1 = cmpLists (fetchLine "[1,[2,[3,[4,[5,6,7]]]],8,9]") (fetchLine "[1,[2,[3,[4,[5,6,0]]]],8,9]")
-//printfn $"{r1}"
+let p1 = File.ReadAllLines("input_day13.txt")
+         |> Array.chunkBySize 3
+         |> Array.mapi(fun i a -> match cmp (fetchLine a[0]) (fetchLine a[1]) 0 with
+                                  | Yes -> i + 1
+                                  | _ -> 0)
+         |> Array.sum
+printfn $"P1: {p1}"         
