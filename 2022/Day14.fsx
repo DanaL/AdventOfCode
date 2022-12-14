@@ -38,14 +38,15 @@ let coords =
     |> List.ofArray
     |> List.map(fun line -> line |> List.map calcRock |> List.concat |> List.distinct)
     |> List.concat |> List.distinct
-    
 let maxY = (coords |> List.map (fun (_,y) -> y) |> List.max) + 2
+let tiles = coords |> List.map(fun p -> p, Stone) |> Map.ofList
+let startY = (seq { 0.. maxY } |> Seq.find(fun y -> tiles |> Map.containsKey(500, y))) - 1
 
 let caveFull (tiles:Tiles) =
     (tiles |> Map.containsKey (500, 1))
     && (tiles |> Map.containsKey (499, 1))
     && (tiles |> Map.containsKey (501, 1))
-    
+
 let rec drop (tiles:Tiles) x y part1 =
     if (part1 && y = maxY) || caveFull tiles then
         raise Finished
@@ -60,19 +61,21 @@ let rec drop (tiles:Tiles) x y part1 =
     else
         x,y
 
-let find tiles part1 =
+let find tiles y part1 =
     try
-        let r = drop tiles 500 0 part1
-        let tiles' = tiles |> Map.add r Sand
-        Some(tiles', tiles')
+        let x',y' = drop tiles 500 0 part1
+        let ny = if x' = 500 && y' <= y then y' - 1
+                 else y        
+        let tiles' = tiles |> Map.add (x',y') Sand
+        Some(tiles', (tiles', ny))
     with
     | :? Finished -> None
     
 let run part1 =
-    coords |> List.map(fun p -> p, Stone) |> Map.ofList                       
-           |> List.unfold(fun tiles -> find tiles part1)                                                
-           |> List.last |> Map.values
-           |> Seq.filter(fun t -> t = Sand) |> Seq.length
+    (tiles, startY)  |> List.unfold(fun (tiles, y) -> find tiles y part1)                                                
+                     |> List.last |> Map.values
+                     |> Seq.filter(fun t -> t = Sand) |> Seq.length
     
 printfn $"P1: {run true}"
 printfn $"P2: {(run false) + 1}"
+
