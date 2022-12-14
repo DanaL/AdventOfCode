@@ -40,7 +40,6 @@ let coords =
     |> List.concat |> List.distinct
     
 let maxY = (coords |> List.map (fun (_,y) -> y) |> List.max) + 2
-let mutable part1 = true
 
 let dump (tiles:Tiles) =    
     for r in 0..maxY do
@@ -57,43 +56,31 @@ let caveFull (tiles:Tiles) =
     && (tiles |> Map.containsKey (499, 1))
     && (tiles |> Map.containsKey (501, 1))
     
-let rec drop (tiles:Tiles) x y =
+let rec drop (tiles:Tiles) x y part1 =
     if (part1 && y = maxY) || caveFull tiles then
         raise Finished
     elif (not part1) && y+1 = maxY then
         x,y
     elif not (tiles |> Map.containsKey (x, y+1)) then
-        drop tiles x (y+1)
+        drop tiles x (y+1) part1
     elif not (tiles |> Map.containsKey (x-1, y+1)) then
-        drop tiles (x-1) (y+1)
+        drop tiles (x-1) (y+1) part1
     elif not (tiles |> Map.containsKey (x+1, y+1)) then
-        drop tiles (x+1) (y+1)
+        drop tiles (x+1) (y+1) part1
     else
         x,y
 
-let p1 =
+let run part1 =
     let mutable tiles = coords |> List.map(fun p -> p, Stone)
                                |> Map.ofList
     let mutable go = true
     while go do
         try
-            let r = drop tiles 500 0
+            let r = drop tiles 500 0 part1
             tiles <- tiles |> Map.add r Sand
         with
         | :? Finished -> go <- false
     tiles |> Map.values |> Seq.filter(fun t -> t = Sand) |> Seq.length
-printfn $"P1: {p1}"    
 
-let p2 =
-    part1 <- false
-    let mutable tiles = coords |> List.map(fun p -> p, Stone)
-                               |> Map.ofList
-    let mutable go = true
-    while go do
-        try
-            let r = drop tiles 500 0
-            tiles <- tiles |> Map.add r Sand
-        with
-        | :? Finished -> go <- false
-    (tiles |> Map.values |> Seq.filter(fun t -> t = Sand) |> Seq.length) + 1
-printfn $"P2: {p2}"    
+printfn $"P1: {run true}"
+printfn $"P2: {(run false) + 1}"
