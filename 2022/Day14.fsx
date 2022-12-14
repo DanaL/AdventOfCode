@@ -1,7 +1,8 @@
 open System.IO
 open System.Text.RegularExpressions
 
-exception IntoTheAbyss
+exception Finished
+
 type Tile = Stone | Sand
 type Tiles = Map<int*int,Tile>
     
@@ -50,10 +51,17 @@ let dump (tiles:Tiles) =
                      else "o"
         printfn $"{s}"
     printfn ""
+
+let caveFull (tiles:Tiles) =
+    (tiles |> Map.containsKey (500, 1))
+    && (tiles |> Map.containsKey (499, 1))
+    && (tiles |> Map.containsKey (501, 1))
     
 let rec drop (tiles:Tiles) x y =
-    if part1 && y = maxY then
-        raise IntoTheAbyss
+    if (part1 && y = maxY) || caveFull tiles then
+        raise Finished
+    elif (not part1) && y+1 = maxY then
+        x,y
     elif not (tiles |> Map.containsKey (x, y+1)) then
         drop tiles x (y+1)
     elif not (tiles |> Map.containsKey (x-1, y+1)) then
@@ -63,20 +71,29 @@ let rec drop (tiles:Tiles) x y =
     else
         x,y
 
-printfn $"{maxY}"
 let p1 =
     let mutable tiles = coords |> List.map(fun p -> p, Stone)
                                |> Map.ofList
-
-    let mutable c = 0
     let mutable go = true
     while go do
         try
             let r = drop tiles 500 0
             tiles <- tiles |> Map.add r Sand
-            //dump tiles
         with
-        | :? IntoTheAbyss -> go <- false
+        | :? Finished -> go <- false
     tiles |> Map.values |> Seq.filter(fun t -> t = Sand) |> Seq.length
 printfn $"P1: {p1}"    
 
+let p2 =
+    part1 <- false
+    let mutable tiles = coords |> List.map(fun p -> p, Stone)
+                               |> Map.ofList
+    let mutable go = true
+    while go do
+        try
+            let r = drop tiles 500 0
+            tiles <- tiles |> Map.add r Sand
+        with
+        | :? Finished -> go <- false
+    (tiles |> Map.values |> Seq.filter(fun t -> t = Sand) |> Seq.length) + 1
+printfn $"P2: {p2}"    
