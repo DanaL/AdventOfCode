@@ -41,16 +41,6 @@ let coords =
     
 let maxY = (coords |> List.map (fun (_,y) -> y) |> List.max) + 2
 
-let dump (tiles:Tiles) =    
-    for r in 0..maxY do
-        let mutable s = ""
-        for c in 490..510 do            
-            s <- s + if not(tiles |> Map.containsKey (c,r)) then "."
-                     else if tiles[c,r] = Stone then "#"
-                     else "o"
-        printfn $"{s}"
-    printfn ""
-
 let caveFull (tiles:Tiles) =
     (tiles |> Map.containsKey (500, 1))
     && (tiles |> Map.containsKey (499, 1))
