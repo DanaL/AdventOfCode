@@ -78,4 +78,31 @@ let p1 = File.ReadAllLines("input_day13.txt")
                                   | Yes -> i + 1
                                   | _ -> 0)
          |> Array.sum
-printfn $"P1: {p1}"         
+printfn $"P1: {p1}"
+
+// Okay, for Part 2 I'm just going to implement a quick, dumb insertion
+// sort by finding the first index where the packet is in the correct order.
+// If we get to the end, insertion point is, duh, the end
+let findInsertion arr packet =
+    try
+        arr |> List.findIndex(fun a -> match cmp packet a 0 with
+                                       | Yes -> true
+                                       | _ -> false)
+    with
+    | :? KeyNotFoundException -> arr.Length
+
+let packets = File.ReadAllLines("input_day13.txt")
+              |> Array.filter(fun line -> line.Trim() <> "")
+              |> Array.map(fun line -> fetchLine line)
+
+let divider2 = fetchLine "[[2]]"
+let divider6 = fetchLine "[[6]]"
+let initial = [ divider2; divider6]
+
+let sorted = packets
+             |> Array.fold(fun arr p -> let i = findInsertion arr p
+                                        arr |> List.insertAt i p) initial
+
+let d2i = 1 + (sorted |> List.findIndex(fun p -> p = divider2))
+let d6i = 1 + (sorted |> List.findIndex(fun p -> p = divider6))
+printfn $"P2 {d2i * d6i}"
