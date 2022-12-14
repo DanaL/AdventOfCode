@@ -70,17 +70,19 @@ let rec drop (tiles:Tiles) x y part1 =
     else
         x,y
 
+let find tiles part1 =
+    try
+        let r = drop tiles 500 0 part1
+        let tiles' = tiles |> Map.add r Sand
+        Some(tiles', tiles')
+    with
+    | :? Finished -> None
+    
 let run part1 =
-    let mutable tiles = coords |> List.map(fun p -> p, Stone)
-                               |> Map.ofList
-    let mutable go = true
-    while go do
-        try
-            let r = drop tiles 500 0 part1
-            tiles <- tiles |> Map.add r Sand
-        with
-        | :? Finished -> go <- false
-    tiles |> Map.values |> Seq.filter(fun t -> t = Sand) |> Seq.length
-
+    coords |> List.map(fun p -> p, Stone) |> Map.ofList                       
+           |> List.unfold(fun tiles -> find tiles part1)                                                
+           |> List.last |> Map.values
+           |> Seq.filter(fun t -> t = Sand) |> Seq.length
+    
 printfn $"P1: {run true}"
 printfn $"P2: {(run false) + 1}"
