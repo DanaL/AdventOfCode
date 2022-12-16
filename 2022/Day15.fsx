@@ -37,7 +37,7 @@ let beacons = sensors |> Array.map(fun s -> s.BeaconX, s.BeaconY)
 let maxDim = 20L // 4_000_000L
 let targetRow = 10L // 2000000L
 
-let part1 =
+let part1() =
     let scanned = sensors |> Array.map(fun s -> scan s targetRow)
                           |> List.concat 
                           |> Set.ofList
@@ -50,6 +50,13 @@ let skipTo sensor row =
 let inRange sensor x y =
     taxi sensor.X sensor.Y x y <= sensor.D
 
+let scanned sensors x y =
+    let res = sensors |> Array.map(fun s -> inRange s x y)
+                      |> Array.tryFind(fun r -> r)
+    match res with
+    | Some _ -> true
+    | _ -> false
+    
 // let checkRow sensors row =
 //     let mutable x = 0L
 //     let mutable scanned = true
@@ -126,11 +133,20 @@ let test() =
                      else '.'
             ignore(sb.Append(ch))
         printfn $"{sb.ToString()}"
-    
+
 let part2 =
     let sensors' = sensors |> Array.sortBy(fun s-> s.Y, s.X)
-    
-    test()
+
+    printfn $"%A{sensors[6]}"
+    printfn $"{scanned sensors 5 0 }"
+    printfn $"{taxi 8 7 5 0 }"
+    // let mutable sum = 0UL
+    // for s in sensors' do
+    //     let p = edges s
+    //     printfn $"{p.Count}"
+    //     sum <- sum + (p |> Set.count |> uint64)
+    // printfn $"{sum} squares to check"
+    //test()
     //checkRow sensors' 11
     
     // Okay, we want start at 0,0 and then scan forward.
