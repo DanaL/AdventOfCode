@@ -1,6 +1,11 @@
 open System.IO
 open System.Text.RegularExpressions
 
+// My part 1 is very, very slow because it is pure brute force., ie scan and
+// check every possible x. I feel like I should be able to adapt my (nice and
+// fast) solution to part 2, which skips the scanned area. I tried to rewrite
+// part 1 in a similar way but I couldn't figure it out and I want to move on
+// to other puzzles so maybe in the future...
 type Sensor = { X:int64; Y:int64; BeaconX: int64; BeaconY:int64; D:int64 }
 
 let taxi x0 y0 x1 y1 = ((x0 - x1) |> abs) + ((y0 - y1) |> abs)
