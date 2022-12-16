@@ -37,7 +37,7 @@ let beacons = sensors |> Array.map(fun s -> s.BeaconX, s.BeaconY)
 let maxDim = 4_000_000L
 let targetRow = 2000000L
 
-let part1() =
+let part1 =
     let scanned = sensors |> Array.map(fun s -> scan s targetRow)
                           |> List.concat 
                           |> Set.ofList
