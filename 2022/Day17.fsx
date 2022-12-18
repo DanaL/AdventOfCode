@@ -63,19 +63,17 @@ let place field row col sh =
                |> Set.union field
 
 let rec fall field row col shape (gas:Dir list) g =   
-    let mutable c = col
-  
     // Can we move as per the gas?
     let dc = if gas[g] = Left then -1 else 1    
     let g' = ((g+1) % gas.Length)
 
-    if canMove field row (col+dc) shape then
-        c <- col+dc
-        
-    if canMove field (row-1) c shape then
-        fall field (row-1) c shape gas g'
+    let col' = if canMove field row (col+dc) shape then col+dc
+               else col
+            
+    if canMove field (row-1) col' shape then
+        fall field (row-1) col' shape gas g'
     else
-        place field row c shape, g'
+        place field row col' shape, g'
 
 //let input = ">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>"
 let input = File.ReadAllText("input_day17.txt").Trim()
