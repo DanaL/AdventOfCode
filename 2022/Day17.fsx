@@ -54,10 +54,8 @@ let canMove (field:Set<int*int>) row col sh =
     
     if minC < 0 || maxC > 6 then
         false
-    else        
-        (m |> Set.ofList
-           |> Set.intersect field
-           |> Set.count) = 0
+    else
+        m |> List.exists(fun loc -> field |> Set.contains(loc)) |> not
 
 let place field row col sh =
     shapes[sh] |> List.map(fun (r,c) -> r+row, c+col)
@@ -91,13 +89,11 @@ let mutable field' = field
 for _ in 1 .. 2022 do
     // starting co-ords for new rock
     let row = highestPt field'
-    let col = 2   
-    let nf, ng = fall field' (row+4) col shape gas g
+    let nf, ng = fall field' (row+4) 2 shape gas g
     field' <- nf
     g <- ng    
     shape <- (shape+1) % shapes.Length
 
-//dump field'
 let p1 = field' |> Seq.map(fun (r, _) -> r) |> Seq.max
 printfn $"P1: {p1}"
 
