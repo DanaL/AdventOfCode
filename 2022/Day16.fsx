@@ -55,5 +55,17 @@ let kwf = valves.Keys |> Seq.filter(fun k -> let _,f,_ = valves[k]
                       |> List.ofSeq
 // Since I am skipping AA (it has flow 0) we have options for which
 // node to start on.                       
-let _,_,starts = valves["AA"]                      
+let _,_,starts = valves["AA"]
+
+let start = "DD"
+
+let si, _, _ = valves[start]
+let others = kwf |> List.map(fun ok -> let oi,_,_ = valves[ok]
+                                       oi)
+                 |> List.filter(fun oi -> oi <> si)
+let time = others |> List.map(fun oi -> dist[si, oi] + 1)
+                  |> List.sum
+printfn $"{time}"
+
+printfn $"%A{dist}"
 
