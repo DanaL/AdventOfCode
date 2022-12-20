@@ -54,35 +54,62 @@ let kwf = valves.Keys |> Seq.filter(fun k -> let _,f,_ = valves[k]
                                              f > 0)
                       |> Set.ofSeq
 
-let mutable mostFlow = 0
-let calcScore (valves:Map<string, Valve>) (path: List<string*int>) =
+let pathScores = new System.Collections.Generic.Dictionary<int,int>()
+
+// Get a unique # for a path taken via bit shifting based on its id
+let pathNum (valves:Map<string, Valve>) (path:List<string*int>) =  
+    let mutable n = 0
+    for p,_ in path |> List.skip(1) do
+        let i,_,_ = valves[p]
+        n <- n ||| (1 <<< i)
+    n
+
+let calcScore (valves:Map<string, Valve>) (path: List<string*int>) timeOut =
     let score =
         path |> List.map(fun (v,t) -> let _,flow,_ = valves[v]
-                                      (30 - t) * flow)
-             |> List.sum                                   
-    if score > mostFlow then        
-        mostFlow <- score
+                                      (timeOut - t) * flow)
+             |> List.sum
+    let pn = pathNum valves path
+    if not <| pathScores.ContainsKey(pn) then
+        pathScores.Add(pn, score)
+    elif score > pathScores[pn] then
+        pathScores[pn] <- score
         
 let pathLen (dist:int[,]) (valves:Map<string, Valve>) a b =
     let ai,_,_ = valves[a]
     let bi,_,_ = valves[b]
     dist[ai,bi]
 
-let rec pickPath (path: List<string*int>) (dist:int[,]) (valves:Map<string, Valve>) turn =    
+let rec pickPath (path: List<string*int>) (dist:int[,]) (valves:Map<string, Valve>) turn timeOut =    
     let curr,_ = path |> List.last    
     let visited = path |> List.map(fun (v,_) -> v) |> Set.ofList    
     let avail = Set.difference kwf visited
-
-    if avail.Count = 0 then
-        calcScore valves path
-    else
+    
+    calcScore valves path timeOut
+        
+    if avail.Count > 0 then
         for n in avail do                        
             let cost = (pathLen dist valves curr n) + 1
-            if turn + cost > 30 then
-                calcScore valves path
-            else
-                pickPath (path @ [n, turn + cost]) dist valves (turn + cost)
+            if turn + cost < timeOut then
+                pickPath (path @ [n, turn + cost]) dist valves (turn + cost) timeOut
 
-pickPath ["AA", 0] dist valves 0  
+pickPath ["AA", 0] dist valves 0 30
+let p1 = pathScores.Values |> Seq.max
+printfn $"P1: {p1}"
 
-printfn $"P1: {mostFlow}"
+// For part 2, we've been tracking the best score for each path (including
+// intermediary paths). So, we just need to find the two pairs of scores
+// which produce the best result. (The key for pathScores is a bit-set
+// of the node ids in the path so a bitwise AND selects items that
+// have mutually exclusive nodes. Ie, 1001 and 0110)
+pathScores.Clear()
+pickPath ["AA", 0] dist valves 0 26
+
+let p2 = seq {
+             for a in pathScores.Keys do
+                 for b in pathScores.Keys do
+                     if a &&& b = 0 then
+                         pathScores[a] + pathScores[b] }
+         |> Seq.max                
+printfn $"P2: {p2}"                
+
