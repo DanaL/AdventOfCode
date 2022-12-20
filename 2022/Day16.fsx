@@ -52,20 +52,37 @@ let dist = shortestPaths valves
 // keys of valves with flow > 0
 let kwf = valves.Keys |> Seq.filter(fun k -> let _,f,_ = valves[k]
                                              f > 0)
-                      |> List.ofSeq
-// Since I am skipping AA (it has flow 0) we have options for which
-// node to start on.                       
-let _,_,starts = valves["AA"]
+                      |> Set.ofSeq
 
-let start = "DD"
+let mutable mostFlow = 0
+let calcScore (valves:Map<string, Valve>) (path: List<string*int>) =
+    let score =
+        path |> List.map(fun (v,t) -> let _,flow,_ = valves[v]
+                                      (30 - t) * flow)
+             |> List.sum                                   
+    if score > mostFlow then        
+        mostFlow <- score
+        
+let pathLen (dist:int[,]) (valves:Map<string, Valve>) a b =
+    let ai,_,_ = valves[a]
+    let bi,_,_ = valves[b]
+    dist[ai,bi]
 
-let si, _, _ = valves[start]
-let others = kwf |> List.map(fun ok -> let oi,_,_ = valves[ok]
-                                       oi)
-                 |> List.filter(fun oi -> oi <> si)
-let time = others |> List.map(fun oi -> dist[si, oi] + 1)
-                  |> List.sum
-printfn $"{time}"
+let rec pickPath (path: List<string*int>) (dist:int[,]) (valves:Map<string, Valve>) turn =    
+    let curr,_ = path |> List.last    
+    let visited = path |> List.map(fun (v,_) -> v) |> Set.ofList    
+    let avail = Set.difference kwf visited
 
-printfn $"%A{dist}"
+    if avail.Count = 0 then
+        calcScore valves path
+    else
+        for n in avail do                        
+            let cost = (pathLen dist valves curr n) + 1
+            if turn + cost > 30 then
+                calcScore valves path
+            else
+                pickPath (path @ [n, turn + cost]) dist valves (turn + cost)
 
+pickPath ["AA", 0] dist valves 0  
+
+printfn $"P1: {mostFlow}"
