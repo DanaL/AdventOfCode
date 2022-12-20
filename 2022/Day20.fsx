@@ -1,5 +1,11 @@
 open System.IO
 
+let score (arr:int list) =
+    let l = arr.Length
+    let zi = arr |> List.findIndex(fun x -> x = 0)
+    //printfn $"{zi}"   
+    arr[(zi + 1000) % l] + arr[(zi + 2000) % l] + arr[(zi + 3000) % l]
+    
 let shuffle (arr:List<int*bool>) i =
     let v,_ = arr[i]
     let iv = i + v
@@ -27,4 +33,6 @@ printfn $"%A{a'''''}"
 let a6 = shuffle a''''' 3
 printfn $"%A{a6}"
 let a7 = shuffle a6 5
-printfn $"%A{a7 |> List.map(fun (x,_) -> x)}"
+let a = a7 |> List.map(fun (x,_) -> x)
+printfn $"%A{a}"
+printfn $"{score a}"
