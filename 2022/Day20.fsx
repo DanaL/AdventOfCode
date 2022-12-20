@@ -14,25 +14,14 @@ let shuffle (arr:List<int*bool>) i =
              else (arr.Length + iv - 1) % arr.Length
     arr |> List.removeAt i |> List.insertAt ni (v,true)
 
-let arr = [ 1; 2; -3; 3; -2; 0; 4 ]
-          |> List.map(fun x -> x,false)
+let mutable arr = File.ReadAllLines("input_day20.txt")
+                  |> Array.map(fun l -> (l |> int), false)
+                  |> List.ofArray
 
-// - turn arr into pairs of (x, visited)
-// - always seek the first unvisited number
-// - when you re-insert, mark it as visited
-let a' = shuffle arr 0          
-printfn $"%A{a'}"
-let a'' = shuffle a' 0
-printfn $"%A{a''}"
-let a''' = shuffle a'' 1
-printfn $"%A{a'''}"
-let a'''' = shuffle a''' 2
-printfn $"%A{a''''}"
-let a''''' = shuffle a'''' 2
-printfn $"%A{a'''''}"
-let a6 = shuffle a''''' 3
-printfn $"%A{a6}"
-let a7 = shuffle a6 5
-let a = a7 |> List.map(fun (x,_) -> x)
-printfn $"%A{a}"
-printfn $"{score a}"
+let mutable go = true
+while go do
+    match arr |> List.tryFindIndex(fun (_,b) -> b = false) with
+    | Some i -> arr <- shuffle arr i
+    | None -> go <- false
+
+printfn $"{score (arr |> List.map(fun (x,_) -> x))}"
