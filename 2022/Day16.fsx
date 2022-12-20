@@ -1,4 +1,3 @@
-open System
 open System.IO
 open System.Text.RegularExpressions
 
@@ -54,23 +53,20 @@ let kwf = valves.Keys |> Seq.filter(fun k -> let _,f,_ = valves[k]
                                              f > 0)
                       |> Set.ofSeq
 
-let pathScores = new System.Collections.Generic.Dictionary<int,int>()
-
 // Get a unique # for a path taken via bit shifting based on its id
-let pathNum (valves:Map<string, Valve>) (path:List<string*int>) =  
-    let mutable n = 0
-    for p,_ in path |> List.skip(1) do
-        let i,_,_ = valves[p]
-        n <- n ||| (1 <<< i)
-    n
-
+let pathNum (valves:Map<string, Valve>) (path:List<string*int>) =
+    path |> List.skip(1)
+         |> List.fold(fun a (p,_) -> let i,_,_ = valves[p]
+                                     a ||| (1 <<< i)) 0
+                                     
+let pathScores = new System.Collections.Generic.Dictionary<int,int>()
 let calcScore (valves:Map<string, Valve>) (path: List<string*int>) timeOut =
     let score =
         path |> List.map(fun (v,t) -> let _,flow,_ = valves[v]
                                       (timeOut - t) * flow)
              |> List.sum
     let pn = pathNum valves path
-    if not <| pathScores.ContainsKey(pn) then
+    if not(pathScores.ContainsKey(pn)) then
         pathScores.Add(pn, score)
     elif score > pathScores[pn] then
         pathScores[pn] <- score
