@@ -48,7 +48,6 @@ let part1 =
     printfn $"P1 {res}"
 
 let part2 =
-    // What are our two sides?            
     let _,root = monkeys |> Array.find(fun (m,_) -> m = "root")
     let left,right = match root.Val with
                      | Math (m1,_,m2) -> m1,m2
@@ -57,10 +56,16 @@ let part2 =
                        |> Array.filter(fun (m,_) -> m <> "root" && m <> "humn")
                        |> Map.ofArray
     let rightVal = resolve monkeysTable right
-    let leftVal = resolve (monkeysTable |> Map.add "humn" { Name="humn";Val=Num(3000000000000M) }) left
-    printfn $"{right} {rightVal} {left} {leftVal}"
 
-//qdpj 54426117311903
-//2000000000000M -- qmfl 78391485590791.72727272727273
-//4000000000000M -- qmfl 42706637105943.24242424242424
-//3000000000000M -- qmfl 60549061348367.484848484848485
+    let mutable v = 3000000000000M
+    let mutable delta = 100000000000M
+    let mutable go = true
+    while go do        
+        let leftVal = resolve (monkeysTable |> Map.add "humn" { Name="humn";Val=Num(v) }) left        
+        if leftVal = rightVal then go <- false
+        elif leftVal > rightVal then v <- v + delta
+        else 
+            v <- v - delta
+            delta <- delta / 10M
+    printfn $"P2: {v}"
+
