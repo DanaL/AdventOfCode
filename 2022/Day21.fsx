@@ -3,7 +3,7 @@ open System.IO
 
 type Op = Add | Sub | Mul | Div
 type Val =
-    | Num of int64
+    | Num of Decimal
     | Math of m1:string * op:Op * m2:string
 type Monkey = { Name:string; Val:Val }
 
@@ -19,7 +19,7 @@ let splitOp (text:string) =
      
 let parse (line:string) =
     let pieces = line.Split(": ")
-    let v = match Int64.TryParse pieces[1] with
+    let v = match Decimal.TryParse pieces[1] with
             | true, x -> Num(x)
             | _ -> splitOp pieces[1]
     { Name=pieces[0]; Val=v }
@@ -32,6 +32,7 @@ let mathOp op a b =
     | Div -> a / b
     
 let rec resolve (monkeys:Map<string,Monkey>) name =
+    if name = "humn" then printfn "Me!"
     let monkey = monkeys[name]
     match monkey.Val with
     | Num x -> x
