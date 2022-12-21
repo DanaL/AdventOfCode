@@ -32,16 +32,35 @@ let mathOp op a b =
     | Div -> a / b
     
 let rec resolve (monkeys:Map<string,Monkey>) name =
-    if name = "humn" then printfn "Me!"
     let monkey = monkeys[name]
     match monkey.Val with
     | Num x -> x
     | Math (m1,op,m2) -> mathOp op (resolve monkeys m1) (resolve monkeys m2)
-    
+
+
 let monkeys = File.ReadAllLines("input_day21.txt")
               |> Array.map(fun l -> let m = parse l
                                     m.Name, m)
-              |> Map.ofArray
 
-let res = resolve monkeys "root"
-printfn $"P1 {res}"
+let part1 =                                    
+    let monkeysTable = monkeys |> Map.ofArray
+    let res = resolve monkeysTable "root"
+    printfn $"P1 {res}"
+
+let part2 =
+    // What are our two sides?            
+    let _,root = monkeys |> Array.find(fun (m,_) -> m = "root")
+    let left,right = match root.Val with
+                     | Math (m1,_,m2) -> m1,m2
+                     | _ -> failwith "Hmm this shouldn't happen"
+    let monkeysTable = monkeys
+                       |> Array.filter(fun (m,_) -> m <> "root" && m <> "humn")
+                       |> Map.ofArray
+    let rightVal = resolve monkeysTable right
+    let leftVal = resolve (monkeysTable |> Map.add "humn" { Name="humn";Val=Num(3000000000000M) }) left
+    printfn $"{right} {rightVal} {left} {leftVal}"
+
+//qdpj 54426117311903
+//2000000000000M -- qmfl 78391485590791.72727272727273
+//4000000000000M -- qmfl 42706637105943.24242424242424
+//3000000000000M -- qmfl 60549061348367.484848484848485
