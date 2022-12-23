@@ -92,10 +92,19 @@ let propose state option =
     next |> Seq.map(fun (s,d) -> if dest[d] > 1 then s else d)
          |> Set.ofSeq
 
-let rounds = seq { 0..9 }
-             |> Seq.fold(fun state opt -> propose state (opt % options.Length)) elves
+let part1 =
+    let rounds = seq { 0..9 }
+                 |> Seq.fold(fun state opt -> propose state (opt % options.Length)) elves
+    printfn $"P1: {score rounds}"
 
-printfn $"P1: {score rounds}"
-
-
+let rec part2 state round =
+    let next = propose state (round % options.Length)
+    let same = Set.difference state next
+    if same.Count <> 0 then
+        part2 next (round+1)
+    else
+        round + 1
+        
+let p2 = part2 elves 0
+printfn $"P2: {p2}"    
 
