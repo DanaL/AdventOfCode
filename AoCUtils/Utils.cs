@@ -28,6 +28,14 @@ namespace AoC
         }
     }
 
+    public static class StringExtentions
+    {
+        public static string ToReverse(this string src) 
+        {
+            return string.Join("", src.ToCharArray().Reverse());
+        }
+    }
+
     public static class CollectionExtentions
     {
         public static IEnumerable<int> AdjTo<T>(this IList<T> src, int x, int width)
