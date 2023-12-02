@@ -59,10 +59,32 @@ class Program
         Console.WriteLine($"P1: {sum}");
     }
 
+    static int PowerSet(Game game) 
+    {
+        int red = 0; int green = 0; int blue = 0;
+
+        foreach (var round in game.Rounds)
+        {
+            if (round.Item1 > red) red = round.Item1;
+            if (round.Item2 > green) green = round.Item2;
+            if (round.Item3 > blue) blue = round.Item3;
+        }
+
+        return red * green * blue;
+    }
+
+    static void Part2(string[] lines)
+    {
+        var sum = lines.Select(l => PowerSet(ParseLine(l)))
+                       .Sum();
+        Console.WriteLine($"P2: {sum}");
+    }
+
     static void Main(string[] args)
     {
         var lines = File.ReadAllLines("input.txt");
 
         Part1(lines);
+        Part2(lines);
     }
 }
