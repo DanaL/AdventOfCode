@@ -30,7 +30,7 @@ namespace AoC
 
     public static class StringExtentions
     {
-        public static string ToReverse(this string src) 
+        public static string Reversed(this string src) 
         {
             return string.Join("", src.ToCharArray().Reverse());
         }

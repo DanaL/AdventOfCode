@@ -1,15 +1,13 @@
 using AoC;
 
 public class Day01 : IDay 
-{
+{    
     bool SubstringMatch(string s, int startPos, string target) 
     {        
         if (s.Length < startPos + target.Length)
             return false;
 
-        string sub = s.Substring(startPos, target.Length);
-
-        return target == sub;
+        return target == s.Substring(startPos, target.Length);
     }
 
     string FindNumber(string s, List<string> words) 
@@ -26,26 +24,43 @@ public class Day01 : IDay
         return ""; // this shouldn't happen :o
     }
 
+    string ToDigits(string num) 
+    {
+        return num switch
+        {
+            "zero" => "0",
+            "one" => "1",
+            "two" => "2",
+            "three" => "3",
+            "four" => "4",
+            "five" => "5",
+            "six" => "6",
+            "seven" => "7",
+            "eight" => "8",
+            "nine" => "9",
+            _ => num,
+        };
+    }
+
+    int CalcLine(string line, List<string> words) 
+    {
+        var reversed = words.Select(w => w.Reversed()).ToList();
+        var x = ToDigits(FindNumber(line, words));
+        var y = ToDigits(FindNumber(line.Reversed(), reversed).Reversed());
+
+        return int.Parse($"{x}{y}");
+    }
+
     public void Solve()
     {
-    //    var p1 = File.ReadAllLines(@"input.txt")
-    //                      .Select(l => l.ToCharArray().Where(ch => char.IsNumber(ch)))
-    //                      .Select(chs => int.Parse($"{chs.First()}{chs.Last()}"))
-    //                      .Sum();
+        List<string> words = new List<string>() { "1", "2", "3", "4", "5", "6", "7", "8", "9", "0" };                                                    
+        var lines = File.ReadAllLines("input.txt");
 
-    //     Console.WriteLine($"P1: {p1}");
-        var words = new List<string>() { "four", "5", "six", "7" };
-        //List<string> reversed = words.Select(w => w.ToReverse()).ToList();
+        var p1 = lines.Select(line => CalcLine(line, words)).Sum();
+        Console.WriteLine($"P1: {p1}");
 
-        var s = "jsmmgrjsix5zqsnbfmgjlmrptqzvzmjr7brm9";
-        var result = FindNumber(s, words);
-
-        Console.WriteLine(result);
-
-        //Console.WriteLine(FindNumber(s, reversed));
-        //Console.WriteLine(FindNumber(s.Reverse(), reversed));
-
-        string f = "fuck off";
-        Console.WriteLine(f.ToReverse());
+        words.AddRange(new List<string>() { "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "zero" });
+        var p2 = lines.Select(line => CalcLine(line, words)).Sum();
+        Console.WriteLine($"P2: {p2}");
     }
 }
