@@ -19,16 +19,15 @@ class Program
         foreach (var piece in line.Substring(sc + 1).Trim().Split(';').Select(p => p.Trim())) 
         {
             var round = (0, 0, 0);
-            foreach (var color in piece.Split(',').Select(c => c.Trim())) 
+            foreach (var color in piece.Split(", ")) 
             {
-                int sp = color.IndexOf(' ');
-                int v = int.Parse(color.Substring(0, sp));
-                string c = color.Substring(sp + 1);
-                if (c == "red" && v > round.Item1)
+                var p = color.Split(' ');
+                int v = int.Parse(p[0]);
+                if (p[1] == "red" && v > round.Item1)
                     round.Item1 = v;
-                else if (c == "green" && v > round.Item2)
+                else if (p[1] == "green" && v > round.Item2)
                     round.Item2 = v;
-                else if (c == "blue" && v > round.Item3)
+                else if (p[1] == "blue" && v > round.Item3)
                     round.Item3 = v;                
             }
 
