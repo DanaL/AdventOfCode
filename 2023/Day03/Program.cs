@@ -10,6 +10,10 @@ class Part
 
 class Program
 {
+    public static List<(int, int)> _neighbours = new() { (-1, -1), (-1, 0), (-1, 1), 
+                                                         ( 0, -1),          ( 0, 1), 
+                                                         ( 1, -1), ( 1, 0), ( 1, 1)};
+                                                             
     static List<Part> ParseLine(int row, string line) 
     {
         int c = 0;
@@ -39,7 +43,27 @@ class Program
         return parts;
     }
 
-    //static bool 
+    static bool IsPartNumber(Part part, string[] lines) 
+    {
+        int length = lines.Length - 1;
+        int width = lines[0].Length - 1;
+
+        foreach (var coord in part.Coords)
+        {
+            foreach (var n in _neighbours) 
+            {
+                int row = coord.Item1 + n.Item1;
+                int col = coord.Item2 + n.Item2;
+                if (row < 0 || col < 0 || row > length || col > width || part.Coords.Contains((row, col)))
+                    continue;
+                if (lines[row][col] != '.')
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
     static void Main(string[] args)
     {
         var lines = File.ReadAllLines("input.txt");
@@ -51,6 +75,10 @@ class Program
             parts.AddRange(p);
         }
 
-        Console.WriteLine(parts.Count);
+        var p1 = parts.Where(p => IsPartNumber(p, lines))
+                      .Select(p => p.Num)
+                      .Sum();
+
+        Console.WriteLine($"P1: {p1}");
     }
 }
