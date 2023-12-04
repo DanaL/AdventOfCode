@@ -21,6 +21,10 @@ class Program
         var p1 = winningNums.Select(w => w == 0 ? 0 : (long) Math.Pow(2, w - 1)).Sum();
         Console.WriteLine($"P1: {p1}");
 
+        var counts = new Dictionary<int, int>();
+        for (int x = 1; x <= lines.Length; x++)
+            counts.Add(x, 1);
+
         foreach (var x in winningNums) Console.WriteLine(x);
     }
 }
