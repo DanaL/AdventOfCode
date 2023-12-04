@@ -10,16 +10,17 @@ class Program
                                    .Select(n => long.Parse(n)).ToHashSet<long>();
         var playerNums = pieces[1].Trim().Split(' ')
                                   .Select(n => n != "" ? long.Parse(n) : -1).ToList();
-        var winners = playerNums.Where(n => winningNums.Contains(n)).Count();
-        
-        return winners == 0 ? 0 : (long) Math.Pow(2, winners - 1);
+        return playerNums.Where(n => winningNums.Contains(n)).Count();        
     }
 
     static void Main(string[] args)
     {
         var lines = File.ReadAllLines("input.txt");
 
-        var p1 = lines.Select(line => ScoreCard(line)).Sum();
+        var winningNums = lines.Select(line => ScoreCard(line)).ToList();
+        var p1 = winningNums.Select(w => w == 0 ? 0 : (long) Math.Pow(2, w - 1)).Sum();
         Console.WriteLine($"P1: {p1}");
+
+        foreach (var x in winningNums) Console.WriteLine(x);
     }
 }
