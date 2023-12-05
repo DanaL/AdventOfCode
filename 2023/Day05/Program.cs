@@ -12,7 +12,7 @@ static List<Span> FindRanges(string section, string[] lines)
     while (j < lines.Length && lines[j] != "")
     {
         var vals = lines[j].Split(' ').Select(n => long.Parse(n)).ToList();
-        ranges.Add(new Span() { Dest = vals[0], Src = vals[1], Len = vals[2] });
+        ranges.Add(new Span() { DestRange = (vals[0], vals[0] + vals[2]), SrcRange = (vals[1], vals[1] + vals[2]) });
         ++j;
     }
 
@@ -23,10 +23,10 @@ static long FindInMap(long val, List<Span> map)
 {
     foreach (var span in map)
     {
-        if (val >= span.Src && val < span.Src + span.Len) 
+        if (val >= span.SrcRange.Item1 && val < span.SrcRange.Item2) 
         {
-            long diff = val - span.Src;
-            return span.Dest + diff;
+            long diff = val - span.SrcRange.Item1;
+            return span.DestRange.Item1 + diff;
         }
     }
 
@@ -57,10 +57,9 @@ namespace Day05
 {
     class Span
     {
-        public long Src { get; set; }
-        public long Dest { get; set; }
-        public long Len { get; set; }
-
+        public (long, long) SrcRange { get; set; }
+        public (long, long) DestRange { get; set; }
+        
         public Span() { }
     }
 }
