@@ -56,7 +56,31 @@ static void Part1()
     Console.WriteLine($"P1: {p1}");
 }
 
+// I think I'll eventually be able to merge part 1 and 2 if my part 2 method isn't garbage and actually works
+static void Part2() 
+{
+    var lines = File.ReadAllLines("input.txt");
+
+    var seeds = lines[0].Substring(lines[0].IndexOf(":") + 1).Trim().Split(' ')
+                        .Select(n => long.Parse(n)).ToList();
+    var seedRanges = new List<(long, long)>();
+    for (int j = 0; j < seeds.Count; j += 2)
+        seedRanges.Add((seeds[j], seeds[j] + seeds[j + 1] - 1));
+
+    Console.WriteLine(seedRanges[0]);
+    Console.WriteLine(seedRanges[1]);
+
+    var seedToSoil = FindRanges("seed-to-soil map:", lines);
+    var soilToFertilizer = FindRanges("soil-to-fertilizer map:", lines);
+    var fertilizerToWater = FindRanges("fertilizer-to-water map:", lines);
+    var waterToLight = FindRanges("water-to-light map:", lines);
+    var lightToTemp = FindRanges("light-to-temperature map:", lines);
+    var tempToHumidity = FindRanges("temperature-to-humidity map:", lines);
+    var humidityToLocation = FindRanges("humidity-to-location map:", lines);
+}
+
 Part1();
+Part2();
 
 namespace Day05
 {
