@@ -33,25 +33,30 @@ static long FindInMap(long val, List<Span> map)
     return val;
 }
 
-static long LocForSeed(long seed, List<Span> seedToSoil, List<Span> soilToFertilizer, List<Span> fertilizerToWater, List<Span> waterToLight, List<Span> lightToTemp, List<Span> tempToHumidity, List<Span> humidityToLocation)
+static long LocForSeedPt1(long seed, List<Span> seedToSoil, List<Span> soilToFertilizer, List<Span> fertilizerToWater, List<Span> waterToLight, List<Span> lightToTemp, List<Span> tempToHumidity, List<Span> humidityToLocation)
 {
     // Incredibly beautiful and elegant...
     return FindInMap(FindInMap(FindInMap(FindInMap(FindInMap(FindInMap(FindInMap(seed, seedToSoil), soilToFertilizer), fertilizerToWater), waterToLight), lightToTemp), tempToHumidity), humidityToLocation);
 }
 
-var lines = File.ReadAllLines("input.txt");
-var seeds = lines[0].Substring(lines[0].IndexOf(":") + 1).Trim().Split(' ').Select(n => long.Parse(n)).ToList();
+static void Part1() 
+{
+    var lines = File.ReadAllLines("input.txt");
+    var seeds = lines[0].Substring(lines[0].IndexOf(":") + 1).Trim().Split(' ').Select(n => long.Parse(n)).ToList();
 
-var seedToSoil = FindRanges("seed-to-soil map:", lines);
-var soilToFertilizer = FindRanges("soil-to-fertilizer map:", lines);
-var fertilizerToWater = FindRanges("fertilizer-to-water map:", lines);
-var waterToLight = FindRanges("water-to-light map:", lines);
-var lightToTemp = FindRanges("light-to-temperature map:", lines);
-var tempToHumidity = FindRanges("temperature-to-humidity map:", lines);
-var humidityToLocation = FindRanges("humidity-to-location map:", lines);
+    var seedToSoil = FindRanges("seed-to-soil map:", lines);
+    var soilToFertilizer = FindRanges("soil-to-fertilizer map:", lines);
+    var fertilizerToWater = FindRanges("fertilizer-to-water map:", lines);
+    var waterToLight = FindRanges("water-to-light map:", lines);
+    var lightToTemp = FindRanges("light-to-temperature map:", lines);
+    var tempToHumidity = FindRanges("temperature-to-humidity map:", lines);
+    var humidityToLocation = FindRanges("humidity-to-location map:", lines);
 
-var p1 = seeds.Select(s => LocForSeed(s, seedToSoil, soilToFertilizer, fertilizerToWater, waterToLight, lightToTemp, tempToHumidity, humidityToLocation)).Min();
-Console.WriteLine($"P1: {p1}");
+    var p1 = seeds.Select(s => LocForSeedPt1(s, seedToSoil, soilToFertilizer, fertilizerToWater, waterToLight, lightToTemp, tempToHumidity, humidityToLocation)).Min();
+    Console.WriteLine($"P1: {p1}");
+}
+
+Part1();
 
 namespace Day05
 {
