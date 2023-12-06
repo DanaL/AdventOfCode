@@ -77,6 +77,8 @@ static void Part2()
     var lightToTemp = FindRanges("light-to-temperature map:", lines);
     var tempToHumidity = FindRanges("temperature-to-humidity map:", lines);
     var humidityToLocation = FindRanges("humidity-to-location map:", lines);
+
+    Console.WriteLine(LocForSeedPt1(82, seedToSoil, soilToFertilizer, fertilizerToWater, waterToLight, lightToTemp, tempToHumidity, humidityToLocation));
 }
 
 Part1();
