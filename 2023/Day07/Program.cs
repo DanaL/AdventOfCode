@@ -4,26 +4,57 @@
 // I think this ends up being O(n^2) but that should suffice
 // for part 1
 
-var lines = File.ReadAllLines("input.txt");
-var pieces = lines[0].Split(' ');
-var head = new Hand { Cards = pieces[0], Winnings = int.Parse(pieces[1]) };
+static void Part1() {
+    Hand.JokerValue = 11;
+    var lines = File.ReadAllLines("input.txt");
+    var pieces = lines[0].Split(' ');
+    var head = new Hand { Cards = pieces[0], Winnings = int.Parse(pieces[1]) };
 
-foreach (var line in lines[1..]) 
-{
-    pieces = line.Split(' ');
-    head = Insert(head, new Hand { Cards = pieces[0], Winnings = int.Parse(pieces[1]) });
+    foreach (var line in lines[1..]) 
+    {
+        pieces = line.Split(' ');
+        head = Insert(head, new Hand { Cards = pieces[0], Winnings = int.Parse(pieces[1]) });
+    }
+
+    var total = 0;
+    var rank = 1;
+    var p = head;
+    while (p is not null) 
+        {
+            total += p.Winnings * rank++;
+            p = p.Next;
+    }
+
+    Console.WriteLine($"P1: {total}");
 }
 
-var total = 0;
-var rank = 1;
-var p = head;
-while (p is not null) 
+static void Part2() 
 {
-    total += p.Winnings * rank++;
-    p = p.Next;
+    Hand.JokerValue = 1;
+    var lines = File.ReadAllLines("input.txt");
+    var pieces = lines[0].Split(' ');
+    Hand head = new WildCardHand { Cards = pieces[0], Winnings = int.Parse(pieces[1]) };
+
+    foreach (var line in lines[1..])
+    {
+        pieces = line.Split(' ');
+        head = Insert(head, new WildCardHand { Cards = pieces[0], Winnings = int.Parse(pieces[1]) });
+    }
+
+    var total = 0;
+    var rank = 1;
+    var p = head;
+    while (p is not null)
+    {
+        total += p.Winnings * rank++;
+        p = p.Next;
+    }
+
+    Console.WriteLine($"P2: {total}");
 }
 
-Console.WriteLine($"P1: {total}");
+Part1();
+Part2();
 
 static Hand Insert(Hand head, Hand hand)
 {
@@ -62,6 +93,7 @@ namespace Day07 {
 
     class Hand : IComparable, IComparable<Hand>
     {
+        public static int JokerValue;
         public Hand? Next { get; set; }
         public string? Cards { get; set; }
         public int Winnings { get; set; }
@@ -83,41 +115,43 @@ namespace Day07 {
             Next = null;
         }
 
-        public override int GetHashCode() => Cards!.GetHashCode();
-
-        private HandType Categorize() 
+        protected Dictionary<char, int> IndividualCards()
         {
             var counts = new Dictionary<char, int>();
-            foreach (char ch in Cards!.ToCharArray()) 
+            foreach (char ch in Cards!.ToCharArray())
             {
-                if (counts.ContainsKey(ch)) 
+                if (counts.ContainsKey(ch))
                     counts[ch]++;
-                else 
+                else
                     counts.Add(ch, 1);
             }
 
-            var vals = counts.Values.OrderByDescending(v => v).ToArray();
-            
-            if (vals[0] == 5)
-                return HandType.FiveOfAKind;
-            else if (vals[0] == 4)
-                return HandType.FourOfAKind;
-            else if (vals[0] == 3 && vals[1] == 2)
-                return HandType.FullHouse;
-            else if (vals[0] == 3)
-                return HandType.ThreeOfAKind;
-            else if (vals[0] == 2 && vals[1] == 2)
-                return HandType.TwoPair;
-            else if (vals[0] == 2)
-                return HandType.Pair;
-            else 
-                return HandType.HighCard;
+            return counts;
         }
 
-        public int CompareTo(object? obj)
+        protected HandType CalcType(int[] vals)
         {
-            return obj is null ? 1 : CompareTo(obj as Hand);
+            return vals[0] switch
+            {
+                5 => HandType.FiveOfAKind,
+                4 => HandType.FourOfAKind,
+                3 when vals[1] == 2 => HandType.FullHouse,
+                3 => HandType.ThreeOfAKind,
+                2 when vals[1] == 2 => HandType.TwoPair,
+                2 => HandType.Pair,
+                _ => HandType.HighCard
+            };
         }
+
+        virtual protected HandType Categorize()
+        {
+            var counts = IndividualCards();
+            var vals = counts.Values.OrderByDescending(v => v).ToArray();
+            
+            return CalcType(vals);
+        }
+
+        public int CompareTo(object? obj) => obj is null ? 1 : CompareTo(obj as Hand);
 
         static private int CardValue(char c)
         {
@@ -126,7 +160,7 @@ namespace Day07 {
                 'A' => 14,
                 'K' => 13,
                 'Q' => 12,
-                'J' => 11,
+                'J' => JokerValue,
                 'T' => 10,
                 '9' => 9,
                 '8' => 8,
@@ -157,41 +191,22 @@ namespace Day07 {
             return 0;
         }
 
-        public static int Compare(Hand? left, Hand? right)
+        public static int Compare(Hand? left, Hand? right) => left!.CompareTo(right);
+        public static bool operator <(Hand left, Hand right) => Compare(left, right) < 0;
+        public static bool operator >(Hand left, Hand right) => Compare(left, right) > 0;
+    }
+
+    class WildCardHand : Hand
+    {
+        protected override HandType Categorize()
         {
-            return left!.CompareTo(right);
-        }
+            if (!Cards!.Contains('J'))
+                return base.Categorize();
 
-        public override bool Equals(object? obj)
-        {
-            if (obj is Hand other)
-            {
-                return this.CompareTo(other) == 0;
-            }
-
-            return false;
-        }
-
-        public static bool operator <(Hand left, Hand right)
-        {
-            return Compare(left, right) < 0;
-        }
-
-        public static bool operator >(Hand left, Hand right)
-        {
-            return Compare(left, right) > 0;
-        }
-
-        public static bool operator ==(Hand left, Hand right)
-        {
-            if (left is null)        
-                return right is null;        
-            return left.Equals(right);
-        }
-
-        public static bool operator !=(Hand left, Hand right)
-        {            
-            return !(left == right);
+            // Okay, how about this: if there are jokers, still use the dictionary of letters
+            // if there are 5 Js, return FiveOfAKind, otherwise remove Js from dic, add J count
+            // to largest remaining category
+            return HandType.Unknown;
         }
     }
 }
