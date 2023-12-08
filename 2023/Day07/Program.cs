@@ -1,60 +1,33 @@
 ﻿using Day07;
 
-// Should I just do a linked list and insertion sort the hands??
-// I think this ends up being O(n^2) but that should suffice
-// for part 1
+// Just did a linked list/insertion sort of the hands
+// Then just had to iterate over the sorted hands to calculate the total winnings
 
-static void Part1() {
-    Hand.JokerValue = 11;
+static int Solve(HandFactory factory, int jokerValue) {
+    Hand.JokerValue = jokerValue;
     var lines = File.ReadAllLines("input.txt");
     var pieces = lines[0].Split(' ');
-    var head = new Hand { Cards = pieces[0], Winnings = int.Parse(pieces[1]) };
+    var head = factory.Make(pieces[0], pieces[1]);
 
     foreach (var line in lines[1..]) 
     {
         pieces = line.Split(' ');
-        head = Insert(head, new Hand { Cards = pieces[0], Winnings = int.Parse(pieces[1]) });
+        head = Insert(head, factory.Make(pieces[0], pieces[1]));
     }
 
     var total = 0;
     var rank = 1;
-    var p = head;
-    while (p is not null) 
-        {
-            total += p.Winnings * rank++;
-            p = p.Next;
+    while (head is not null) 
+    {
+            total += head.Winnings * rank++;
+            head = head.Next;
     }
 
-    Console.WriteLine($"P1: {total}");
+    return total;
 }
 
-static void Part2() 
-{
-    Hand.JokerValue = 1;
-    var lines = File.ReadAllLines("input.txt");
-    var pieces = lines[0].Split(' ');
-    Hand head = new WildCardHand { Cards = pieces[0], Winnings = int.Parse(pieces[1]) };
-
-    foreach (var line in lines[1..])
-    {
-        pieces = line.Split(' ');
-        head = Insert(head, new WildCardHand { Cards = pieces[0], Winnings = int.Parse(pieces[1]) });
-    }
-
-    var total = 0;
-    var rank = 1;
-    var p = head;
-    while (p is not null)
-    {
-        total += p.Winnings * rank++;
-        p = p.Next;
-    }
-
-    Console.WriteLine($"P2: {total}");
-}
-
-Part1();
-Part2();
+Console.WriteLine($"P1: {Solve(new HandFactory(), 11)}");
+Console.WriteLine($"P2: {Solve(new WildCardHandFactory(), 1)}");
 
 static Hand Insert(Hand head, Hand hand)
 {
@@ -78,7 +51,8 @@ static Hand Insert(Hand head, Hand hand)
     return head;
 }
 
-namespace Day07 {
+namespace Day07 
+{
     enum HandType 
     {
         FiveOfAKind = 6,
@@ -89,6 +63,16 @@ namespace Day07 {
         Pair = 1,
         HighCard = 0,
         Unknown = -1
+    }
+
+    class HandFactory 
+    {
+        public virtual Hand Make(string cards, string val) => new Hand { Cards = cards, Winnings = int.Parse(val) };
+    }
+
+    class WildCardHandFactory : HandFactory
+    {
+        public override Hand Make(string cards, string val) => new WildCardHand { Cards = cards, Winnings = int.Parse(val) };
     }
 
     class Hand : IComparable, IComparable<Hand>
@@ -162,14 +146,7 @@ namespace Day07 {
                 'Q' => 12,
                 'J' => JokerValue,
                 'T' => 10,
-                '9' => 9,
-                '8' => 8,
-                '7' => 7,
-                '6' => 6,
-                '5' => 5,
-                '4' => 4,
-                '3' => 3,
-                _ => 2
+                _   => int.Parse(c.ToString())                
             };
         }
 
