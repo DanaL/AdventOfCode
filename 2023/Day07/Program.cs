@@ -146,7 +146,7 @@ namespace Day07
                 'Q' => 12,
                 'J' => JokerValue,
                 'T' => 10,
-                _   => int.Parse(c.ToString())                
+                _   => c - '0'
             };
         }
 
