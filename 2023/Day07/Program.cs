@@ -137,18 +137,15 @@ namespace Day07
 
         public int CompareTo(object? obj) => obj is null ? 1 : CompareTo(obj as Hand);
 
-        static private int CardValue(char c)
+        static private int CardValue(char c) => c switch
         {
-            return c switch
-            {
-                'A' => 14,
-                'K' => 13,
-                'Q' => 12,
-                'J' => JokerValue,
-                'T' => 10,
-                _   => c - '0'
-            };
-        }
+            'A' => 14,
+            'K' => 13,
+            'Q' => 12,
+            'J' => JokerValue,
+            'T' => 10,
+            _ => c - '0'
+        };
 
         public int CompareTo(Hand? other)
         {
