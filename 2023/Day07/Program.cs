@@ -199,14 +199,33 @@ namespace Day07 {
     class WildCardHand : Hand
     {
         protected override HandType Categorize()
-        {
-            if (!Cards!.Contains('J'))
-                return base.Categorize();
-
+        {            
             // Okay, how about this: if there are jokers, still use the dictionary of letters
             // if there are 5 Js, return FiveOfAKind, otherwise remove Js from dic, add J count
             // to largest remaining category
-            return HandType.Unknown;
+            int[] vals;
+            var counts = IndividualCards();
+            if (counts.ContainsKey('J')) 
+            {
+                var js = counts['J'];
+
+                if (js == 5) 
+                {
+                    return HandType.FiveOfAKind;
+                }
+                else
+                {
+                    counts.Remove('J');
+                    vals = counts.Values.OrderByDescending(v => v).ToArray();
+                    vals[0] += js;
+                }
+            }
+            else 
+            {
+                vals = counts.Values.OrderByDescending(v => v).ToArray();
+            }
+
+            return CalcType(vals);
         }
     }
 }
