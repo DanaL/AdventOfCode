@@ -12,7 +12,5 @@ static int NextTerm(IEnumerable<int> arr)
 var arrs = File.ReadAllLines("input.txt")
                .Select(l => l.Trim().Split(' ').Select(n => int.Parse(n)).ToArray()).ToList();
 
-var p1 = arrs.Select(arr => arr.Last() + NextTerm(arr)).Sum();
-Console.WriteLine($"P1: {p1}");
-
-//var pairs = nums.Zip(nums.Skip(1), (a, b) => b - a).ToArray();
+Console.WriteLine($"P1: {arrs.Select(arr => arr.Last() + NextTerm(arr)).Sum()}");
+Console.WriteLine($"P2: {arrs.Select(a => a.Reverse()).Select(arr => arr.Last() + NextTerm(arr)).Sum()}");
