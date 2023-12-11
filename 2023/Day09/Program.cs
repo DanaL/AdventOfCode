@@ -10,8 +10,7 @@ static int NextTerm(IEnumerable<int> arr)
 }
 
 var arrs = File.ReadAllLines("input.txt")
-               .Select(l => l.Trim().Split(' ')
-               .Select(int.Parse));
+               .Select(l => l.Trim().Split(' ').Select(int.Parse));
 
 Console.WriteLine($"P1: {arrs.Select(arr => arr.Last() + NextTerm(arr)).Sum()}");
 Console.WriteLine($"P2: {arrs.Select(a => a.Reverse()).Select(arr => arr.Last() + NextTerm(arr)).Sum()}");
