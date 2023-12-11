@@ -102,7 +102,7 @@ namespace Day10
                     var nc = loc.Item2 + n.Item2;
                     if (nr < 0 || nr >= length || nc < 0 || nc >= width || visited.Contains((nr, nc)))
                         continue;
-                    if (maze[nr, nc] == ' ' || maze[nr, nc] == '.')
+                    if (maze[nr, nc] == '.')
                         locs.Enqueue((nr, nc));
                 }
             } 
@@ -129,7 +129,7 @@ namespace Day10
                             break;
                         }
                     }
-                    count += isInner ? 1 : 0;
+                    if (isInner) ++count;
                 }                    
             }
 
@@ -140,8 +140,6 @@ namespace Day10
         {
             var maze = FetchMaze();
             FloodFill(maze);
-            //Dump(maze);
-
             Console.WriteLine($"P2: {CountInner(maze)}");
         }
     }
