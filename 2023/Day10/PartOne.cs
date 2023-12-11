@@ -65,7 +65,7 @@ namespace Day10
         public void Solve() 
         {
             var (start, sqs) = FetchMaze();
-            Console.WriteLine($"P1 {FollowTunnels(start, sqs)}");
+            Console.WriteLine($"P1: {FollowTunnels(start, sqs)}");
         }
     }
 }
