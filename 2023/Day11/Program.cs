@@ -1,4 +1,4 @@
-﻿static int Djikstra((int, int) start, (int, int) goal, int size, HashSet<int> emptyRows, HashSet<int> emptyCols)
+﻿static int Djikstra((int, int) start, (int, int) goal, int size, HashSet<int> emptyRows, HashSet<int> emptyCols, int expansion)
 {
     var neighbours = new (int, int)[] { (-1, 0), (1, 0), (0, -1), (0, 1) };
     var pq = new PriorityQueue<((int, int), int), int>();
@@ -21,7 +21,7 @@
             var nc = curr.Item2 + n.Item2;
             if (nr < 0 || nr >= size || nc < 0 || nc >= size || visited.Contains((nr, nc)))
                 continue;
-            int cost = emptyRows.Contains(nr) || emptyCols.Contains(nc) ? 2 : 1;
+            int cost = emptyRows.Contains(nr) || emptyCols.Contains(nc) ? expansion : 1;
             cost += d;
 
             if ((nr, nc) == goal && cost < shortest)
@@ -83,7 +83,7 @@ static void GetInput(int expansion)
     {
         if (!distances.ContainsKey(p)) 
         {
-            var d = Djikstra(p.Item1, p.Item2, size, emptyRows, emptyCols);
+            var d = Djikstra(p.Item1, p.Item2, size, emptyRows, emptyCols, expansion);
             distances.Add(p, d);
             distances.Add((p.Item2, p.Item1), d);
         }
@@ -92,4 +92,4 @@ static void GetInput(int expansion)
     Console.WriteLine($"P1: {distances.Values.Sum() / 2}");
 }
 
-GetInput(2);
+GetInput(100);
