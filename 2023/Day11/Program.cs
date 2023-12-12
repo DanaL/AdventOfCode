@@ -1,67 +1,22 @@
-﻿static ulong Shortest((int, int) start, (int, int) goal, int size, HashSet<int> emptyRows, HashSet<int> emptyCols, ulong expansion)
+﻿using Day11;
+
+static Info FetchInput()
 {
-    var neighbours = new (int, int)[] { (-1, 0), (1, 0), (0, -1), (0, 1) };
-    var q = new Queue<(int, int)>();
-    q.Enqueue(start);
-    var distances = new Dictionary<(int, int), ulong>() { {start, 0}};
-    ulong shortest = UInt64.MaxValue;
-
-    do
-    {
-        var curr = q.Dequeue();
-        ulong cost = distances[curr];
-        foreach (var n in neighbours)
-        {
-            var nr = curr.Item1 + n.Item1;
-            var nc = curr.Item2 + n.Item2;
-            if (nr < 0 || nr >= size || nc < 0 || nc >= size)
-                continue;
-                        
-            ulong delta = emptyCols.Contains(nc) || emptyRows.Contains(nr) ? expansion : 1;
-            ulong nextCost = cost + delta;
-
-            if (nextCost > shortest)
-                continue;
-            if ((nr, nc) == goal && nextCost < shortest) 
-            {
-                distances[goal] = nextCost;
-                shortest = nextCost;
-                continue;
-            }
-            if (!distances.ContainsKey((nr, nc))) 
-            {           
-                distances.Add((nr, nc), nextCost);
-                q.Enqueue((nr, nc));
-            }
-            else if (nextCost < distances[(nr, nc)]) 
-            {
-                distances[(nr, nc)] = nextCost;
-                q.Enqueue((nr, nc));
-            }            
-        }
-    }
-    while (q.Count > 0);
-
-    return distances[goal];
-}
-
-static void CalcDistances(ulong expansion)
-{
+    var info = new Info();
     var lines = File.ReadAllLines("input.txt");
-    var size = lines.Length;
-    
+    info.Size = lines.Length;
+
     // Find the rows & columns we need to 'expand'
-    var emptyRows = new HashSet<int>();
-    for (int r = 0; r < size; r++) 
+    for (int r = 0; r < info.Size; r++) 
     {
         if (!lines[r].ToCharArray().Any(ch => ch != '.'))
-            emptyRows.Add(r);
+            info.EmptyRows.Add(r);
     }
-    var emptyCols = new HashSet<int>();
-    for (int c = 0; c < size; c++) 
+    
+    for (int c = 0; c < info.Size; c++) 
     {
         bool empty = true;
-        for (int r = 0; r < size; r++) 
+        for (int r = 0; r < info.Size; r++) 
         {
             if (lines[r][c] != '.') 
             {
@@ -70,40 +25,111 @@ static void CalcDistances(ulong expansion)
             }            
         }
         if (empty) 
-            emptyCols.Add(c);
+            info.EmptyCols.Add(c);
     }
 
-    var galaxies = new List<(int, int)>();
-    for (int r = 0; r < size; r++) 
+    // Find the galaxies
+    for (int r = 0; r < info.Size; r++) 
     {
-        for (int c = 0; c < size; c++) 
+        for (int c = 0; c < info.Size; c++) 
         {
             if (lines[r][c] == '#')
-                galaxies.Add((r, c));
-        }
-    }
-        
-    var distances = new Dictionary<((int, int), (int, int)), ulong>();
-    var pairs = (from a in galaxies
-                 from b in galaxies
-                 where a != b
-                 select (a, b)).ToList();
-
-    foreach (var p in pairs) 
-    {
-        if (!distances.ContainsKey(p)) 
-        {
-            var d = Shortest(p.Item1, p.Item2, size, emptyRows, emptyCols, expansion);
-            distances.Add(p, d);
-            distances.Add((p.Item2, p.Item1), d);
+                info.Galaxies.Add((r, c));
         }
     }
 
-    ulong total = 0;
-    foreach (var d in distances.Values)
-        total += d;
-    Console.WriteLine($"P1: {total / 2}");
+    return info;
 }
 
-CalcDistances(2);
-CalcDistances(1_000_000);
+static Dictionary<((int, int), (int, int)), ulong> FloodSearch(Info info, (int, int) start)
+{    
+    ulong[,] distances = new ulong[info.Size, info.Size];
+    for (int r = 0; r < info.Size; r++) 
+    {
+        for (int c = 0; c < info.Size; c++)
+            distances[r, c] = UInt64.MaxValue;
+    }
+    distances[start.Item1, start.Item2] = 0;
+
+    var q = new Queue<(int R, int C)>();
+    q.Enqueue(start);
+
+    var neighbours = new (int R, int C)[] { (-1, 0), (1, 0), (0, -1), (0, 1) };
+    do
+    {
+        var curr = q.Dequeue();
+
+        foreach (var n in neighbours) 
+        {
+            var nr = curr.R + n.R;
+            var nc = curr.C + n.C;
+
+            // make sure neighbour is in bounds
+            if (nr < 0 || nr >= info.Size || nc < 0 || nc >= info.Size)
+                continue;
+            ulong move = info.EmptyRows.Contains(nr) || info.EmptyCols.Contains(nc) ? info.Expansion : 1;
+            ulong cost = move + distances[curr.R, curr.C];
+            if (cost < distances[nr, nc])
+            {
+                q.Enqueue((nr, nc));
+                distances[nr, nc] = cost;
+            }
+        }
+    }
+    while (q.Count > 0);
+
+    var allDistances = new Dictionary<((int, int), (int, int)), ulong>();        
+    foreach (var g in info.Galaxies.Where(g => g != start)) 
+    {
+        allDistances.Add((start, g), distances[g.Item1, g.Item2]);
+        allDistances.Add((g, start), distances[g.Item1, g.Item2]);
+    }
+
+    return allDistances;
+}
+
+static ulong CalcDistances(Info info)
+{
+    var allDistances = new Dictionary<((int, int), (int, int)), ulong>();
+
+    foreach (var g in info.Galaxies)
+    {
+        var distances = FloodSearch(info, g);
+        foreach (var k in distances.Keys) 
+        {
+            if (!allDistances.ContainsKey(k))
+                allDistances.Add(k, distances[k]);
+        }
+    }
+    
+    ulong total = 0;
+    foreach (var d in allDistances.Values)
+        total += d;
+    return total / 2;
+}
+
+var info = FetchInput();
+
+info.Expansion = 2;
+Console.WriteLine($"P1: {CalcDistances(info)}");
+info.Expansion = 1_000_000;
+Console.WriteLine($"P2: {CalcDistances(info)}");
+
+namespace Day11
+{
+    class Info
+    {
+        public int Size { get; set; }
+        public List<(int, int)> Galaxies { get; set; }
+        public HashSet<int> EmptyRows { get; set; }
+        public HashSet<int> EmptyCols { get; set; }
+        public ulong Expansion { get; set; }
+
+        public Info()
+        {
+            Galaxies = new List<(int, int)>();
+            EmptyCols = new HashSet<int>();
+            EmptyRows = new HashSet<int>();
+        }
+    }
+}
