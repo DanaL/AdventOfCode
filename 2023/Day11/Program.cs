@@ -1,41 +1,51 @@
-﻿static int Djikstra((int, int) start, (int, int) goal, int size, HashSet<int> emptyRows, HashSet<int> emptyCols, int expansion)
+﻿static ulong Shortest((int, int) start, (int, int) goal, int size, HashSet<int> emptyRows, HashSet<int> emptyCols, ulong expansion)
 {
     var neighbours = new (int, int)[] { (-1, 0), (1, 0), (0, -1), (0, 1) };
-    var pq = new PriorityQueue<((int, int), int), int>();
-    pq.Enqueue((start, 0), 0);
-    var visited = new HashSet<(int, int)>();
-    var shortest = Int32.MaxValue;
+    var q = new Queue<(int, int)>();
+    q.Enqueue(start);
+    var distances = new Dictionary<(int, int), ulong>() { {start, 0}};
+    ulong shortest = UInt64.MaxValue;
 
-    do 
+    do
     {
-        var (curr, d) = pq.Dequeue();
-        
-        if (visited.Contains(curr))
-            continue;
-
-        visited.Add(curr);
-        
-        foreach (var n in neighbours) 
+        var curr = q.Dequeue();
+        ulong cost = distances[curr];
+        foreach (var n in neighbours)
         {
             var nr = curr.Item1 + n.Item1;
             var nc = curr.Item2 + n.Item2;
-            if (nr < 0 || nr >= size || nc < 0 || nc >= size || visited.Contains((nr, nc)))
+            if (nr < 0 || nr >= size || nc < 0 || nc >= size)
                 continue;
-            int cost = emptyRows.Contains(nr) || emptyCols.Contains(nc) ? expansion : 1;
-            cost += d;
+                        
+            ulong delta = emptyCols.Contains(nc) || emptyRows.Contains(nr) ? expansion : 1;
+            ulong nextCost = cost + delta;
 
-            if ((nr, nc) == goal && cost < shortest)
-                shortest = cost;
-            
-            pq.Enqueue(((nr, nc), cost), cost);
+            if (nextCost > shortest)
+                continue;
+            if ((nr, nc) == goal && nextCost < shortest) 
+            {
+                distances[goal] = nextCost;
+                shortest = nextCost;
+                continue;
+            }
+            if (!distances.ContainsKey((nr, nc))) 
+            {           
+                distances.Add((nr, nc), nextCost);
+                q.Enqueue((nr, nc));
+            }
+            else if (nextCost < distances[(nr, nc)]) 
+            {
+                distances[(nr, nc)] = nextCost;
+                q.Enqueue((nr, nc));
+            }            
         }
     }
-    while (pq.Count > 0);
+    while (q.Count > 0);
 
-    return shortest;
+    return distances[goal];
 }
 
-static void GetInput(int expansion)
+static void CalcDistances(ulong expansion)
 {
     var lines = File.ReadAllLines("input.txt");
     var size = lines.Length;
@@ -73,7 +83,7 @@ static void GetInput(int expansion)
         }
     }
         
-    var distances = new Dictionary<((int, int), (int, int)), int>();
+    var distances = new Dictionary<((int, int), (int, int)), ulong>();
     var pairs = (from a in galaxies
                  from b in galaxies
                  where a != b
@@ -83,13 +93,17 @@ static void GetInput(int expansion)
     {
         if (!distances.ContainsKey(p)) 
         {
-            var d = Djikstra(p.Item1, p.Item2, size, emptyRows, emptyCols, expansion);
+            var d = Shortest(p.Item1, p.Item2, size, emptyRows, emptyCols, expansion);
             distances.Add(p, d);
             distances.Add((p.Item2, p.Item1), d);
         }
     }
 
-    Console.WriteLine($"P1: {distances.Values.Sum() / 2}");
+    ulong total = 0;
+    foreach (var d in distances.Values)
+        total += d;
+    Console.WriteLine($"P1: {total / 2}");
 }
 
-GetInput(100);
+CalcDistances(2);
+CalcDistances(1_000_000);
