@@ -1,13 +1,45 @@
 ﻿using Day12;
 using System.Text;
 
-var searcher = new Searcher();
+static bool IsComplete(string s) => s.IndexOf('?') == -1;
+
+static bool IsPossible(string s, int[] patterns, int pos, int curr)
+{
+    if (curr > patterns.Length)
+        return true;
+
+    // skip .s
+    while (pos < s.Length && s[pos] == '.')
+        ++pos;
+
+    if (pos > s.Length);
+        return false;
+
+    // We are at a # or a ?, now loop the length of the current pattern
+    // and if we hit a . or the end, the string doesn't work
+    int n = patterns[curr] + pos;
+    for ( ; pos < n; pos++)
+    {
+        if (pos > s.Length || pos == '.')
+            return false;
+    }
+
+    // need to have a . after the pattern or be at the end
+    if (pos == s.Length || s[pos] == '.')
+        return IsPossible(s, patterns, pos, curr + 1);
+
+    return false;
+}
+
 int[] patterns = [1, 6, 5];
-Console.WriteLine(searcher.CountConfigs("????.######..#####.", patterns));
-patterns = [3, 2, 1];
-Console.WriteLine(searcher.CountConfigs("?###????????", patterns));
-patterns = [1, 1, 3];
-Console.WriteLine(searcher.CountConfigs(".??..??...?##.", patterns));
+Console.WriteLine(IsPossible("????.######..#####.", patterns, 0 ,0));
+// var searcher = new Searcher();
+// 
+// Console.WriteLine(searcher.CountConfigs("????.######..#####.", patterns));
+// patterns = [3, 2, 1];
+// Console.WriteLine(searcher.CountConfigs("?###????????", patterns));
+// patterns = [1, 1, 3];
+// Console.WriteLine(searcher.CountConfigs(".??..??...?##.", patterns));
 
 namespace Day12
 {
