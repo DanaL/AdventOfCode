@@ -104,6 +104,20 @@ static void Cycle(char[,] map, int size)
     RollEast(map, size);
 }
 
+static int MapHash(char[,] map, int size)
+{
+    var sb = new StringBuilder();
+    for (int r = 0; r < size; r++) 
+    {
+        for (int c = 0; c < size; c++) 
+        {
+            sb.Append(map[r, c]);
+        }
+    }
+
+    return sb.ToString().GetHashCode();
+}
+
 static (char[,], int) FetchInput() 
 {
     var input = File.ReadAllLines("input.txt");
@@ -128,20 +142,58 @@ static void PartOne()
     Console.WriteLine($"P1: {CountLoad(map, size)}");
 }
 
+static bool IsCycle(List<int> hashes, int a, int b)
+{
+    int c = b - a;
+
+    for (int j = 0; j < c; j ++) 
+    {
+        if (hashes[a + j] != hashes[b + j])
+            return false;
+    }
+
+    return true;
+}
+
 static void PartTwo()
 {
     var (map, size) = FetchInput();
-    Cycle(map, size);
-    Cycle(map, size);
-    Cycle(map, size);
-
-    for (int r = 0; r < size; r++) 
+    
+    // okay, lets run through a bunch of cycles!
+    int round = 0;
+    var loads = new List<int>();
+    var hashes = new List<int>();    
+    do 
     {
-        var sb = new StringBuilder();
-        for (int c = 0; c < size; c++) 
-            sb.Append(map[r, c]);
-        Console.WriteLine(sb.ToString());
+        Cycle(map, size);
+        int hash = MapHash(map, size);
+        hashes.Add(hash);
+        int load = CountLoad(map, size);
+        loads.Add(load);
+        
+        ++round;
+    } 
+    while (round < 1100);
+
+    // alright, let's find a cycle in the hashes!
+    int tortoise = 0, rabbit;
+    do
+    {
+        for (rabbit = tortoise + 1; rabbit < hashes.Count; rabbit++)
+        {
+            if (hashes[tortoise] == hashes[rabbit] && IsCycle(hashes, tortoise, rabbit)) 
+            {
+                goto done;
+            }
+        }
+        ++tortoise;
     }
+    while (true);
+done:
+
+    int cycleLen = rabbit - tortoise;
+    int offset = (1_000_000_000 - rabbit) % cycleLen - 1;
+    Console.WriteLine($"P2: {loads[tortoise + offset]}");
 }
 
 PartOne();
