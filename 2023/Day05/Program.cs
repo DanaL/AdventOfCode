@@ -137,7 +137,7 @@ static void Part2()
                         .Select(ulong.Parse).ToList();
     var seedRanges = new List<(ulong, ulong)>();
     for (int j = 0; j < seeds.Count; j += 2)
-        seedRanges.Add((seeds[j], seeds[j] + seeds[j + 1]));
+        seedRanges.Add((seeds[j], seeds[j] + seeds[j + 1] - 1));
 
     var seedToSoil = FindRanges("seed-to-soil map:", lines);
     var soilToFertilizer = FindRanges("soil-to-fertilizer map:", lines);
