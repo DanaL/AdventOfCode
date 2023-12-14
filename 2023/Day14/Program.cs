@@ -104,28 +104,45 @@ static void Cycle(char[,] map, int size)
     RollEast(map, size);
 }
 
-var input = File.ReadAllLines("input.txt");
-int size = input.Length;
-
-char[,] map = new char[size, size];
-
-for (int r = 0; r < size; r++) 
+static (char[,], int) FetchInput() 
 {
-    for (int c = 0; c < size; c++) 
+    var input = File.ReadAllLines("input.txt");
+    int size = input.Length;
+    char[,] map = new char[size, size];
+
+    for (int r = 0; r < size; r++) 
     {
-        map[r, c] = input[r][c];
+        for (int c = 0; c < size; c++) 
+        {
+            map[r, c] = input[r][c];
+        }
+    }
+
+    return (map, size);
+}
+
+static void PartOne()
+{
+    var (map, size) = FetchInput();
+    RollNorth(map, size);
+    Console.WriteLine($"P1: {CountLoad(map, size)}");
+}
+
+static void PartTwo()
+{
+    var (map, size) = FetchInput();
+    Cycle(map, size);
+    Cycle(map, size);
+    Cycle(map, size);
+
+    for (int r = 0; r < size; r++) 
+    {
+        var sb = new StringBuilder();
+        for (int c = 0; c < size; c++) 
+            sb.Append(map[r, c]);
+        Console.WriteLine(sb.ToString());
     }
 }
 
-Cycle(map, size);
-Cycle(map, size);
-Cycle(map, size);
-Console.WriteLine($"P1: {CountLoad(map, size)}");
-
-for (int r = 0; r < size; r++) 
-{
-    var sb = new StringBuilder();
-    for (int c = 0; c < size; c++) 
-        sb.Append(map[r, c]);
-    Console.WriteLine(sb.ToString());
-}
+PartOne();
+PartTwo();
