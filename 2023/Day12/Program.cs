@@ -1,144 +1,107 @@
-﻿using System.Text;
+﻿
+using System.Text;
+
 using Day12;
 
-static bool IsComplete(string s) => s.IndexOf('?') == -1;
-
-static int PatternInString(string s, int pos, int length)
-{
-    while (pos < s.Length - length + 1)
-    {
-        if (s[pos] == '#' || s[pos] == '?')
-        {
-            for (int c = pos; c < pos + length; c++)
-            {
-                if (s[c] == '.')
-                    return -1;
-            }
-            return pos;
-        }
-        ++pos;
-    }
-
-    return -1;
-}
-
-static bool MaybeValid(string s, int[] patterns)
-{
-    int pos = 0;
-    foreach (int p in patterns)
-    {
-        pos = PatternInString(s, pos, p);
-        if (pos == -1)
-            return false;
-        pos += p + 1;
-    }
-
-    return true;
-}
-
-int[] patterns = [2, 1, 6, 5];
-Console.WriteLine(MaybeValid("??.#.######..#####.", patterns));
-//Console.WriteLine(IsPossible("????.######..#####.", patterns, 0 , 0));
-// var searcher = new Searcher();
-// 
-// Console.WriteLine(searcher.CountConfigs("????.######..#####.", patterns));
-// patterns = [3, 2, 1];
-// Console.WriteLine(searcher.CountConfigs("?###????????", patterns));
-// patterns = [1, 1, 3];
-// Console.WriteLine(searcher.CountConfigs(".??..??...?##.", patterns));
+var lines = File.ReadAllLines("input.txt");
+var checker = new Checker();
+int p1 = lines.Select(checker.Arrangements).Sum();
+Console.WriteLine($"P1: {p1}");
 
 namespace Day12
 {
-    class Searcher
+    class Checker
     {
-        private HashSet<string> ValidConfigs { get; set; }
+        private int Count { get; set; }
 
-        private bool PatternValid(string springs, int pattern, ref int pos)
+        public int Arrangements(string line)
         {
-            if (pos >= springs.Length)
-                return false;
+            Count = 0;
+            string s = line.Split(' ')[0];
+            int[] patterns = line.Split(' ')[1].Split(',').Select(n => Convert.ToInt32(n)).ToArray();
 
-            while (pos < springs.Length && springs[pos] == '.')
-                ++pos;
+            FindArragements(s, patterns);
 
-            for (int j = 0; j < pattern; j++)
-            {
-                if (pos >= springs.Length || springs[pos++] == '.')
-                    return false;
-            }
-
-            if (pos == springs.Length || springs[pos] == '.' || springs[pos] == '?')
-            {
-                ++pos;
-                return true;
-            }
-            
-            return false;
+            return Count;
         }
 
-        private bool IsValid(string springs, int[] patterns)
+        void FindArragements(string s, int[] patterns)
         {
-            // need to look for anything that violates the pattern
-            int ch = 0;
-
-            foreach (int p in patterns)
+            int q = s.IndexOf('?');
+            if (q == -1 && MaybeValid(s, patterns)) 
             {
-                if (!PatternValid(springs, p, ref ch))
-                    return false;
-            }
-
-            return true;
-        }
-
-        private bool Complete(string springs)
-        {
-            foreach (char ch in springs)
-            {
-                if (ch == '?')
-                    return false;
-            }
-
-            return true;
-        }
-
-        private void Check(string springs, int[] patterns) 
-        {            
-            //if (!IsValid(springs, patterns))
-            //    return;
-
-            if (Complete(springs))
-            {
-                ValidConfigs.Add(springs);
+                ++Count;
                 return;
             }
 
-            int wc = springs.IndexOf('?');
-            if (wc >  -1)
+            var sb = new StringBuilder(s);
+            sb[q] = '#';
+            string s1 = sb.ToString();
+            if (MaybeValid(s1, patterns))
+                FindArragements(s1, patterns);
+            sb[q] = '.';
+            string s2 = sb.ToString();
+            if (MaybeValid(s2, patterns))
+                FindArragements(s2, patterns);
+        }
+
+        static bool MaybeValid(string s, int[] patterns)
+        {
+            int pos = 0;
+            foreach (int p in patterns)
             {
-                var sb = new StringBuilder(springs);
+                int loc = PatternInString(s, pos, p);
+                if (loc == -1)
+                    return false;
 
-                sb[wc] = '#';
-                var next = sb.ToString();
-                if (IsValid(next, patterns))
-                    Check(next, patterns);
-                
-                sb[wc] = '.';
-                next = sb.ToString();
-                if (IsValid(next, patterns))
-                    Check(next, patterns);
+                // Need to check if everything between pos + 1 and loc - 1 is . or ?
+                // (this feels dumb but I can't think of a better way atm)
+                if (pos > 0)
+                {
+                    for (int j = pos; j < loc - 1; j++) 
+                    {
+                        if (s[j] == '#')
+                            return false;
+                    }
+                }
+
+                // Gotta have a . after the pattern
+                if (loc + p <= s.Length - 1 && s[loc + p] == '#')
+                    return false;
+
+                pos = loc + p + 1;
             }
+
+            // We've checked all the patterns, need to make sure all the rest of the 
+            // string is . or ?
+            while (pos < s.Length)
+            {
+                if (s[pos++] == '#')
+                    return false;
+            }
+
+            return true;
         }
 
-        public int CountConfigs(string springs, int[] patterns)
-        {
-            Check(springs, patterns);
+        static int PatternInString(string s, int pos, int length)
+        {            
+            while (pos < s.Length - length + 1)
+            {
+                if (s[pos] == '#' || s[pos] == '?')
+                {
+                    for (int c = pos; c < pos + length; c++)
+                    {
+                        if (s[c] == '.')
+                            goto keep_going;
+                    }
+                    return pos;
+                }
+keep_going:
+                ++pos;
+            }
 
-            return ValidConfigs.Count;
-        }
-
-        public Searcher()
-        {
-            ValidConfigs = new HashSet<string>();
+            return -1;
         }
     }
 }
+
