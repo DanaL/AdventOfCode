@@ -3,37 +3,59 @@ using System.Text;
 
 using Day12;
 
-var lines = File.ReadAllLines("input.txt");
+//var lines = File.ReadAllLines("input.txt");
 var checker = new Checker();
-int p1 = lines.Select(checker.Arrangements).Sum();
-Console.WriteLine($"P1: {p1}");
+//int p1 = lines.Select(checker.Arrangements).Sum();
+//Console.WriteLine($"P1: {p1}");
+
+//Console.WriteLine(checker.Arrangements(".?????.????.??? 3,1"));
+
+Console.WriteLine(checker.Arrangements("??????????#??? 4,4,1"));
+
 
 namespace Day12
 {
     class Checker
     {
-        private int Count { get; set; }
+        private HashSet<string> ValidStrings { get; set; }
+
+        public Checker() { ValidStrings = []; }
 
         public int Arrangements(string line)
-        {
-            Count = 0;
+        {            
             string s = line.Split(' ')[0];
             int[] patterns = line.Split(' ')[1].Split(',').Select(n => Convert.ToInt32(n)).ToArray();
 
+            // https://www.reddit.com/r/adventofcode/comments/18ihhhm/2023_day_12_part_1_c_im_at_my_wits_end/
+            Console.WriteLine(IsValid("####.####.#...", patterns));
+            Console.WriteLine(IsValid("####...####.#.", patterns));
+            Console.WriteLine(IsValid("####...####..#", patterns));
+            Console.WriteLine(IsValid("####....####.#", patterns));
+            Console.WriteLine(IsValid(".####..####.#.", patterns));
+            Console.WriteLine(IsValid(".####..####..#", patterns));
+            Console.WriteLine(IsValid(".####...####.#", patterns));
+            Console.WriteLine(IsValid("..####.####.#.", patterns));
+            Console.WriteLine(IsValid("..####.####..#", patterns));
+            Console.WriteLine(IsValid("...####.####.#", patterns));
+
             FindArragements(s, patterns);
 
-            return Count;
+            foreach (var v in ValidStrings)
+                Console.WriteLine(v);
+
+            return ValidStrings.Count;
         }
 
         void FindArragements(string s, int[] patterns)
         {
             int q = s.IndexOf('?');
-            if (q == -1 && MaybeValid(s, patterns)) 
+            if (q == -1)
             {
-                ++Count;
+                if (IsValid(s, patterns))
+                    ValidStrings.Add(s);
                 return;
             }
-
+ 
             var sb = new StringBuilder(s);
             sb[q] = '#';
             string s1 = sb.ToString();
@@ -45,62 +67,72 @@ namespace Day12
                 FindArragements(s2, patterns);
         }
 
-        static bool MaybeValid(string s, int[] patterns)
+        static bool IsValid(string s, int[] patterns)
         {
-            int pos = 0;
+            int ch = 0;
+
             foreach (int p in patterns)
             {
-                int loc = PatternInString(s, pos, p);
-                if (loc == -1)
+                while (ch < s.Length && s[ch] != '#')
+                    ++ch;
+
+                int start = ch;
+                while (ch < s.Length && s[ch] == '#')
+                    ++ch;
+                if (ch - start != p)
                     return false;
-
-                // Need to check if everything between pos + 1 and loc - 1 is . or ?
-                // (this feels dumb but I can't think of a better way atm)
-                if (pos > 0)
-                {
-                    for (int j = pos; j < loc - 1; j++) 
-                    {
-                        if (s[j] == '#')
-                            return false;
-                    }
-                }
-
-                // Gotta have a . after the pattern
-                if (loc + p <= s.Length - 1 && s[loc + p] == '#')
-                    return false;
-
-                pos = loc + p + 1;
             }
 
-            // We've checked all the patterns, need to make sure all the rest of the 
-            // string is . or ?
-            while (pos < s.Length)
+            // We've found all our patterns to make sure there are no extra #s
+            // at the end of string.
+            // ie: ####..##..#.# 4,2,1 is invalid
+            while (ch < s.Length)
             {
-                if (s[pos++] == '#')
+                if (s[ch++] == '#')
                     return false;
             }
 
             return true;
         }
 
-        static int PatternInString(string s, int pos, int length)
-        {            
-            while (pos < s.Length - length + 1)
+        // All we want to do is see if it's possible to fit the patterns into the string
+        static bool MaybeValid(string s, int[] patterns)
+        {
+            var blocks = new List<int>();
+            int count = 0;
+            for (int ch = 0; ch < s.Length; ch++)
             {
-                if (s[pos] == '#' || s[pos] == '?')
+                if (s[ch] == '.' && count > 0)
                 {
-                    for (int c = pos; c < pos + length; c++)
-                    {
-                        if (s[c] == '.')
-                            goto keep_going;
-                    }
-                    return pos;
+                    blocks.Add(count);
+                    count = 0;
                 }
-keep_going:
-                ++pos;
+                else
+                {
+                    ++count;
+                }
             }
 
-            return -1;
+            if (count > 0)
+                blocks.Add(count);
+
+            if (blocks.Count == 0)
+                return false;
+                        
+            int avail = blocks[0];
+            int b = 1;
+            foreach (int p in patterns)
+            {
+                if (avail < p && b < blocks.Count)
+                    avail = blocks[b++];
+                
+                if (avail < p)
+                    return false;
+
+                avail -= p + 1;
+            }
+
+            return true;
         }
     }
 }
