@@ -1,38 +1,44 @@
-﻿using Day12;
-using System.Text;
+﻿using System.Text;
+using Day12;
 
 static bool IsComplete(string s) => s.IndexOf('?') == -1;
 
-static bool IsPossible(string s, int[] patterns, int pos, int curr)
+static int PatternInString(string s, int pos, int length)
 {
-    if (curr > patterns.Length)
-        return true;
-
-    // skip .s
-    while (pos < s.Length && s[pos] == '.')
-        ++pos;
-
-    if (pos > s.Length);
-        return false;
-
-    // We are at a # or a ?, now loop the length of the current pattern
-    // and if we hit a . or the end, the string doesn't work
-    int n = patterns[curr] + pos;
-    for ( ; pos < n; pos++)
+    while (pos < s.Length - length + 1)
     {
-        if (pos > s.Length || pos == '.')
-            return false;
+        if (s[pos] == '#' || s[pos] == '?')
+        {
+            for (int c = pos; c < pos + length; c++)
+            {
+                if (s[c] == '.')
+                    return -1;
+            }
+            return pos;
+        }
+        ++pos;
     }
 
-    // need to have a . after the pattern or be at the end
-    if (pos == s.Length || s[pos] == '.')
-        return IsPossible(s, patterns, pos, curr + 1);
-
-    return false;
+    return -1;
 }
 
-int[] patterns = [1, 6, 5];
-Console.WriteLine(IsPossible("????.######..#####.", patterns, 0 ,0));
+static bool MaybeValid(string s, int[] patterns)
+{
+    int pos = 0;
+    foreach (int p in patterns)
+    {
+        pos = PatternInString(s, pos, p);
+        if (pos == -1)
+            return false;
+        pos += p + 1;
+    }
+
+    return true;
+}
+
+int[] patterns = [2, 1, 6, 5];
+Console.WriteLine(MaybeValid("??.#.######..#####.", patterns));
+//Console.WriteLine(IsPossible("????.######..#####.", patterns, 0 , 0));
 // var searcher = new Searcher();
 // 
 // Console.WriteLine(searcher.CountConfigs("????.######..#####.", patterns));
