@@ -19,7 +19,7 @@ namespace Day12
     {
         private HashSet<string> ValidStrings { get; set; }
 
-        public Checker() { ValidStrings = []; }
+        public Checker() { ValidStrings = new HashSet<string>(); }
 
         public int Arrangements(string line)
         {            
@@ -36,6 +36,7 @@ namespace Day12
             Console.WriteLine(IsValid(".####...####.#", patterns));
             Console.WriteLine(IsValid("..####.####.#.", patterns));
             Console.WriteLine(IsValid("..####.####..#", patterns));
+            Console.WriteLine(IsValid("..####..####.#", patterns));
             Console.WriteLine(IsValid("...####.####.#", patterns));
 
             FindArragements(s, patterns);
