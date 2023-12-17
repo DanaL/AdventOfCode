@@ -45,9 +45,6 @@ static void FollowBeam(Dictionary<(int, int), char> sqs, HashSet<Photon> paths, 
         if (!sqs.ContainsKey((photon.Row, photon.Col)) || paths.Contains(photon))
             break; // beam has moved out of bounds or beam is looping
 
-        // The very first square in my input is a \, which I am not correctly handling.
-        // So maybe I have to handle the effects of the current square, then move the 
-        // photons
         paths.Add(photon);
 
         char ch = sqs[(photon.Row, photon.Col)];
