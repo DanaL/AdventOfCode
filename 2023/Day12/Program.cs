@@ -19,7 +19,7 @@ namespace Day12
     {
         private HashSet<string> ValidStrings { get; set; }
 
-        public Checker() { ValidStrings = new HashSet<string>(); }
+        public Checker() => ValidStrings = new HashSet<string>();
 
         public int Arrangements(string line)
         {            
