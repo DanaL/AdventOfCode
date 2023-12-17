@@ -1,22 +1,5 @@
 ﻿using Day16;
 
-static void PrintEnergized(HashSet<Photon> paths, Dictionary<(int, int), char> sqs, int length, int width)
-{
-    var visited = paths.Select(p => (p.Row, p.Col)).ToHashSet();
-    for (int r = 0; r < length; r++)
-    {
-        string s = "";
-        for (int c = 0; c < width; c++) 
-        {
-            if (visited.Contains((r, c)))
-                s += '*';
-            else
-                s += sqs[(r, c)];
-        }
-        Console.WriteLine(s);
-    }
-}
-
 static Photon Move(Photon p)
 {
     return p.Dir switch
@@ -90,6 +73,15 @@ static void FollowBeam(Dictionary<(int, int), char> sqs, HashSet<Photon> paths, 
     while (true);
 }
 
+static int TestConfig(Dictionary<(int, int), char> sqs, Photon start)
+{
+    HashSet<Photon> paths = new();
+    FollowBeam(sqs, paths, start);
+    return paths.Select(ph => (ph.Row, ph.Col))
+                .Distinct()
+                .Count();
+}
+
 var lines = File.ReadAllLines("input.txt");
 var sqs = new Dictionary<(int, int), char>();
 
@@ -100,14 +92,20 @@ for (int r = 0; r < lines.Length; r++)
 }
 
 var start = new Photon(0, 0, Dir.East);
-HashSet<Photon> paths = new();
+Console.WriteLine($"P1: {TestConfig(sqs, start)}");
 
-FollowBeam(sqs, paths, start);
-int pt1 = paths.Select(ph => (ph.Row, ph.Col))
-               .Distinct()
-               .Count();
-Console.WriteLine($"P1: {pt1}");
-//PrintEnergized(paths, sqs, lines.Length, lines[0].Length);
+var results = new List<int>();
+for (int c = 1; c < lines[0].Length - 1; c++) 
+{
+    results.Add(TestConfig(sqs, new Photon(0, c, Dir.South)));
+    results.Add(TestConfig(sqs, new Photon(lines.Length - 1, c, Dir.North)));
+}
+for (int r = 1; r < lines.Length - 1; r++) 
+{
+    results.Add(TestConfig(sqs, new Photon(r, 0, Dir.East)));
+    results.Add(TestConfig(sqs, new Photon(r, lines[0].Length - 1, Dir.West)));
+}
+Console.WriteLine($"P2: {results.Max()}");
 
 namespace Day16
 {
