@@ -1,4 +1,6 @@
-﻿using Day19;
+﻿using System.Text.RegularExpressions;
+
+using Day19;
 
 static Field ToField(char ch)
 {
@@ -12,7 +14,16 @@ static Field ToField(char ch)
     };
 }
 
-// xb{m<2340:gjx,m<2911:shg,s<293:qz,bqc}
+static Dictionary<Field, int> ParsePart(string line)
+{    
+    var m = Regex.Match(line, @"{x=(\d+),m=(\d+),a=(\d+),s=(\d+)}");
+    return new Dictionary<Field, int>
+    {
+        { Field.X, int.Parse(m.Groups[1].Value) }, { Field.M, int.Parse(m.Groups[2].Value) },
+        { Field.A, int.Parse(m.Groups[3].Value) }, { Field.S, int.Parse(m.Groups[4].Value) }
+    };    
+}
+
 static (string, Step[]) ParseRule(string line)
 {
     int n = line.IndexOf('{');
@@ -43,17 +54,39 @@ static (string, Step[]) ParseRule(string line)
     return (name, steps.ToArray());
 }
 
-var step = new Step(Field.M, "gjx", Op.LT, 2340);
+static string Classify(Dictionary<Field, int> part, Step[] steps, int s)
+{
+    return steps[s].Op switch
+    {
+        Op.LT => part[steps[s].In] < steps[s].Val ? steps[s].Out : Classify(part, steps, s + 1),
+        Op.GT => part[steps[s].In] > steps[s].Val ? steps[s].Out : Classify(part, steps, s + 1),        
+        Op.Pipe => steps[s].Out//,
+       // _ => throw new Exception("Hmm this shouldn't happen")
+    };
+}
 
-var part = new Dictionary<Field, int>();
-part.Add(Field.M, 1000);
-part.Add(Field.X, 1700);
-part.Add(Field.A, 3400);
-part.Add(Field.S, 37);
+static bool TestPart(Dictionary<Field, int> part, Dictionary<string, Step[]> rules)
+{
+    string stage = "in";
 
-var (n, steps) = ParseRule("px{a<2006:qkq,m>2090:A,rfg}");
-foreach (var s in steps)
-    Console.WriteLine(s);
+    do
+    {
+        stage = Classify(part, rules[stage], 0);
+    }
+    while (!(stage == "A" || stage == "R"));
+    
+    return stage == "A";
+}
+
+var txt = File.ReadAllText("input.txt").Split(Environment.NewLine + Environment.NewLine);
+var rules = txt[0].Split(Environment.NewLine).Select(ParseRule).ToDictionary();
+var parts = txt[1].Split(Environment.NewLine).Select(ParsePart).ToList();
+
+var p1 = parts.Where(p => TestPart(p, rules))
+               .Select(p => p.Values.Sum())
+               .Sum();
+
+Console.WriteLine($"P1: {p1}");
 
 namespace Day19
 {
