@@ -13,7 +13,12 @@ void clear_str(char* s, int length);
 int taxi_d(int x, int y);
 int turn(int dir, char turn);
 
-void p1(void) 
+struct move {
+  int distance;
+  char turn;
+};
+
+void load_moves(struct move *moves, int *count) 
 {
   FILE *fp;
   char s[BUFF_SIZE];
@@ -24,7 +29,7 @@ void p1(void)
   fclose(fp);
 
   int c = 0, j, val;
-  int x = 0, y = 0, dir = NORTH;
+  int m = 0;
   do {
     // skip to next move
     while (s[c] != '\0' && s[c] != 'R' && s[c] != 'L') 
@@ -41,19 +46,36 @@ void p1(void)
     strncpy(num, s + c + 1, j - c - 1);
     sscanf(num, "%d", &val);
 
-    dir = turn(dir, s[c]);
-    if (dir == NORTH)
-      y -= val;
-    else if (dir == SOUTH)
-      y += val;
-    else if (dir == EAST)
-      x += val;
-    else if (dir == WEST)
-      x -= val;
+    moves[m].distance = val;
+    moves[m].turn = s[c];
+    ++m;
 
     c = j + 1;
   }
   while (c < BUFF_SIZE && s[c] != '\0');
+
+  *count = m;
+}
+
+void p1(void)
+{
+  struct move moves[BUFF_SIZE];
+  int count;
+
+  load_moves(moves, &count);
+
+  int dir = NORTH, x = 0, y = 0;
+  for (int j = 0; j < count; j++) {
+    dir = turn(dir, moves[j].turn);
+    if (dir == NORTH)
+      y -= moves[j].distance;
+    else if (dir == SOUTH)
+      y += moves[j].distance;
+    else if (dir == EAST)
+      x += moves[j].distance;
+    else if (dir == WEST)
+      x -= moves[j].distance;
+  }
 
   printf("P1: %d\n", taxi_d(x, y));
 }
