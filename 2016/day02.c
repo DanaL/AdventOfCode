@@ -1,16 +1,11 @@
 #include <stdio.h>
 
-unsigned int calc_num(int num, int row, int col)
-{
-  return num * 10 + row * 3 + col + 1;
-}
-
 void p1(void)
 {
-  unsigned int num = 0;
   int ch, row = 1, col = 1;
   int nr, nc;
   FILE *fp = fopen("inputs/day02.txt", "r");
+  printf("P1: ");
   while ((ch = fgetc(fp)) != EOF) {
     nr = row;
     nc = col;
@@ -28,7 +23,7 @@ void p1(void)
         nc = col + 1;
         break;
       case '\n':
-        num = calc_num(num, row, col);
+        printf("%d", row * 3 + col + 1);
         break;
       default:
         continue;
@@ -41,8 +36,8 @@ void p1(void)
     }
   }
 
-  num = calc_num(num, row, col);
-  printf("P1: %u\n", num);
+
+  printf("%d\n", row * 3 + col + 1);
 
   fclose(fp);
 }
