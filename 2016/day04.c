@@ -69,17 +69,52 @@ int check_line(char *line)
   return valid ? sector_id : 0;
 }
 
+int first_digit(char *s) 
+{
+  int x = 0;
+  while (!isdigit(*s++)) {
+    ++x;
+  }
+
+  return x;
+}
+
+void decrypt(char *s, int sector_id) {
+  char *ch = s;
+  while (*ch != '\0') {
+    if (*ch == '-')
+      *ch = ' ';
+    else
+      *ch = 'a' + (*ch - 'a' + sector_id) % 26;
+    ++ch;
+  }
+}
+
 int main(void)
 {
-  FILE *fp;
   char line[100];
-
+  char s[100];
   int sector_id_totals = 0;
-  fp = fopen("inputs/day04.txt", "r");
+  int objects_room = -1;
+  FILE *fp = fopen("inputs/day04.txt", "r");
   while (fgets(line, sizeof line, fp) != NULL) {
-    sector_id_totals += check_line(line);
+    int sector_id = check_line(line);
+    if (sector_id > 0)
+    {
+      sector_id_totals += sector_id;
+      int i = first_digit(line); 
+      strncpy(s, line, i);
+      s[i] = '\0';
+      decrypt(s, sector_id);
+
+      if (strstr(s, "north"))
+      {
+        objects_room = sector_id;
+      }
+    }
   }
   fclose(fp);
 
   printf("P1: %d\n", sector_id_totals);
+  printf("P2: %d\n", objects_room);
 }
