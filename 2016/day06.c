@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <limits.h>
 #include <string.h>
 
 #define NUM_OF_COLS 8
@@ -10,7 +11,7 @@ int main(void)
 
   for (int j = 0; j < NUM_OF_COLS; j++)
   {
-    for(int k =0; k < 26; k++)
+    for(int k = 0; k < 26; k++)
     {
       table[j][k] = 0;
     }
@@ -27,19 +28,32 @@ int main(void)
   }  
   fclose(fp);
 
+  char p1[NUM_OF_COLS + 1];
+  p1[NUM_OF_COLS] = '\0';
+  char p2[NUM_OF_COLS + 1];
+  p2[NUM_OF_COLS] = '\0';
+
   for (int j = 0; j < NUM_OF_COLS; j++) {
-    char ch = '\0';
-    int max = 0;
+    char ch_p1 = '\0', ch_p2 = '\0';
+    int max = 0, min = INT_MAX;
 
     for (int k = 0; k < 26; k++) {
        if (table[j][k] > max) {
-        ch = k + 'a';
+        ch_p1 = k + 'a';
         max = table[j][k];
+       }
+
+       if (table[j][k] > 0 && table[j][k] < min)
+       {
+        ch_p2 = k + 'a';
+        min = table[j][k];
        }
     }
 
-    printf("%c", ch);
+    p1[j] = ch_p1;
+    p2[j] = ch_p2;
   }
   
-  printf("\n");
+  printf("P1: %s\n", p1);
+  printf("P2: %s\n", p2);
 }
