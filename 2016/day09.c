@@ -85,7 +85,18 @@ char *decompress(char *src)
 
 int main(void)
 {
-  char *decompressed = decompress("A(2x2)BCD(2x2)EFG");
-  printf("%d\n", strlen(decompressed));
+  FILE *fp = fopen("inputs/day09.txt", "r");
+  fseek(fp, 0L, SEEK_END);
+  long bytes = ftell(fp);
+  fseek(fp, 0L, SEEK_SET);
+
+  char *txt = calloc(bytes, sizeof(char));
+  fread(txt, sizeof(char), bytes, fp);  
+  fclose(fp);
+
+  char *decompressed = decompress(txt);
+  printf("P1: %lu\n", strlen(decompressed));
   free(decompressed);
+
+  free(txt);
 }
