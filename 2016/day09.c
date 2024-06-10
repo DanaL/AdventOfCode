@@ -83,6 +83,46 @@ char *decompress(char *src)
   return decompressed;
 }
 
+void p1(char *txt)
+{
+  char *decompressed = decompress(txt);
+  printf("P1: %lu\n", strlen(decompressed));
+  free(decompressed);  
+}
+
+unsigned long calc_decompressed_len(char *txt)
+{
+  unsigned long total = 0;
+  char *c = txt;
+
+  while (*c != '\0') {
+    if (*c == '(') {
+      int char_count = 0, reps = 0;
+      char *s2 = calc_decomp(c, &char_count, &reps);
+      
+      char *sub_s = malloc(char_count * sizeof(char) + 1);
+      strncpy(sub_s, s2, char_count);
+      sub_s[char_count] = '\0';
+  
+      total += reps * calc_decompressed_len(sub_s);
+      c = s2 + char_count;
+      free(sub_s);      
+    }
+    else {
+      ++total;
+      ++c;
+    }    
+  }
+
+  return total;
+}
+
+void p2(char *txt)
+{
+  unsigned long total = calc_decompressed_len(txt);
+  printf("P2: %lu\n", total);
+}
+
 int main(void)
 {
   FILE *fp = fopen("inputs/day09.txt", "r");
@@ -94,9 +134,8 @@ int main(void)
   fread(txt, sizeof(char), bytes, fp);  
   fclose(fp);
 
-  char *decompressed = decompress(txt);
-  printf("P1: %lu\n", strlen(decompressed));
-  free(decompressed);
+  p1(txt);
+  p2(txt);
 
   free(txt);
 }
