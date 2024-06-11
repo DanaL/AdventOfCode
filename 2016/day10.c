@@ -11,13 +11,9 @@ struct bot {
   int val2;
 };
 
-
 struct rule {
-  int bot_id;
-  int lo_dest;
-  int lo_val;
-  int hi_dest;
-  int hi_val;
+  bool processed;
+  char *txt;
 };
 
 int get_val(char *s, char *word)
@@ -72,14 +68,18 @@ bool contains(char *s, char *word, int target)
   return false;
 }
 
+void assign_val_to_bot(struct bot *bot, int val)
+{
+  if (bot->val1 == -1)
+    bot->val1 = val;
+  else
+    bot->val2 = val;
+}
+
 int main(void)
 {
   struct rule *rules = NULL;
-  int rule_count = 0;
-
-  char **lines = NULL;
   int lc = 0;
-
   char buffer[LINE_W];
   FILE *fp = fopen("inputs/day10.txt", "r");
   while (fgets(buffer, sizeof buffer, fp) != NULL) {
@@ -88,59 +88,57 @@ int main(void)
       buffer[len - 1] = '\0';
     }
 
-    lines = realloc(lines, sizeof(char *) * (lc + 1));
-
     char *s = malloc(sizeof(char) * (len + 1));
     strcpy(s, buffer);
-    lines[lc] = s;
+
+    rules = realloc(rules, sizeof(struct rule) * (lc +1));
+    rules[lc].processed = false;
+    rules[lc].txt = s;
     ++lc;
-    //strcpy(&lines[lc - 1], buffer);
-    //lines[lc - 1][len] = '\0';
-    /*
-    if (strncmp("value", buffer, 5) == 0) {
-      int v1, id;
-      sscanf(buffer, "value %d goes to bot %d", &v1, &id);
-      struct bot b = { .val1 = v1, .id = id, .val2 = 0 };
-      bots = realloc(bots, sizeof *bots * ++bot_count);
-      bots[bot_count - 1] = b;
-    }
-    else {
-      int bot_id, lo, hi;
-      sscanf(buffer, "bot %d gives low to bot %d and high to bot %d", &bot_id, &lo, &hi);
-      struct rule r = { .bot_id = bot_id, .lo = lo, .hi = hi };
-      rules = realloc(rules, sizeof *rules * ++rule_count);
-      rules[rule_count - 1] = r;
-      printf("flag: %s %d %d %d\n", buffer, bot_id, lo, hi);
-    }*/
   }
   fclose(fp);
 
   int max_bot = 0, max_output = 0;
   for (int i = 0; i < lc; i++) {
-    int max = find_max_val(lines[i], "bot"); 
+    int max = find_max_val(rules[i].txt, "bot"); 
     if (max > max_bot)
       max_bot = max;
-    max = find_max_val(lines[i], "output");
+    max = find_max_val(rules[i].txt, "output");
     if (max > max_output)
       max_output = max;
   }
+  int num_of_bots = max_bot + 1;
+  int num_of_outputs = max_output + 1;
 
-  int *outputs = calloc(max_output + 1, sizeof(int));
-  struct bot *bots = calloc(max_bot + 1, sizeof(struct bot));
-  for (int i = 0; i < max_bot; i++) {
-    bots[i].id = i;
+  int *outputs = calloc(num_of_outputs, sizeof(int));
+  struct bot *bots = malloc(num_of_bots * sizeof(struct bot));
+  for (int i = 0; i < num_of_bots; i++) {
+    bots[i].id = i + 1;
     bots[i].val1 = -1;
     bots[i].val2 = -1;
   }
 
-  for (int j = 0; j < lc; j++) {
-    
+  while (true) {    
+    for (int j = 0; j < lc; j++) {
+      printf("%s\n", rules[j].txt);
+      if (strncmp("value", rules[j].txt, 5) == 0) {
+        int v, id;
+        sscanf(rules[j].txt, "value %d goes to bot %d", &v, &id);
+        assign_val_to_bot(&bots[id - 1], v);
+      }
+
+    }
+    break;
   }
 
+  printf("\n");
+  for (int j = 0; j < num_of_bots; j++)
+    printf("bot %d: %d %d\n", bots[j].id, bots[j].val1, bots[j].val2);
+  
   // end-of-program cleanup
   for (int i = 0; i < lc; i++)
-    free(lines[i]);
-  free(lines);
+    free(rules[i].txt);
+  free(rules);
   free(bots);
   free(outputs);
 }
