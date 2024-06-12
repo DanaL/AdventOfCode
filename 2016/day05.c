@@ -3,14 +3,24 @@
 #include <string.h>
 #include <stdint.h>
 
-char *pad(char *txt)
+void fuck_off(uint8_t *arr)
+{
+  for (int j = 0; j < 64; j++)
+    printf("%u ", arr[j]);
+  printf("\n");
+}
+
+uint8_t *pad(uint8_t *txt, int *padded_len)
 {
   int len = strlen(txt);
-  int padded_len = len + (63 - len % 64);
+  *padded_len = len + (64 - len % 64);
 
-  char *padded = calloc(padded_len, sizeof(char));
+  uint8_t *padded = calloc(*padded_len, sizeof(uint8_t));
+  fuck_off(padded);
   memcpy(padded, txt, len);
+  fuck_off(padded);
   padded[len] = 0x80;
+  fuck_off(padded);
 
   uint64_t og_len_in_bits = (uint64_t)len * 8;
  
@@ -25,7 +35,7 @@ char *pad(char *txt)
   }
 
   // Copy the byte representation into the last 8 bytes
-  int i = padded_len - 8;
+  int i = *padded_len - 8;
   for (int j = 0; j < len_bit_count; j++) {
     padded[i++] = bytes[j];
   }
@@ -33,15 +43,34 @@ char *pad(char *txt)
   return padded;
 }
 
+uint32_t left_rotate(uint32_t x, uint32_t shift) 
+{
+  uint32_t left = x << shift;
+  uint32_t right = x >> (32 - shift);
+
+  return left | right;
+}
+
+uint32_t to_32b_word(uint32_t a, uint32_t b, uint32_t c, uint32_t d) 
+{
+  uint32_t word = 0;
+  word += a << 24;
+  word += b << 16;
+  word += c << 8;
+  word += d;
+
+  return word;
+}
+
 int main(void)
 {
-  unsigned int s[64] = 
+  uint32_t s[64] = 
     { 7, 12, 17, 22,  7, 12, 17, 22, 7, 12, 17, 22,  7, 12, 17, 22,
       5,  9, 14, 20,  5,  9, 14, 20, 5,  9, 14, 20,  5,  9, 14, 20,
       4, 11, 16, 23,  4, 11, 16, 23, 4, 11, 16, 23,  4, 11, 16, 23,
       6, 10, 15, 21,  6, 10, 15, 21, 6, 10, 15, 21,  6, 10, 15, 21 };
 
-  unsigned int k[64] = {
+  uint32_t k[64] = {
     0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
     0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
     0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be,
@@ -60,8 +89,69 @@ int main(void)
     0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391
   };
 
+  uint32_t a0 = 0x67452301;
+  uint32_t b0 = 0xefcdab89;
+  uint32_t c0 = 0x98badcfe;
+  uint32_t d0 = 0x10325476;
+    
+  printf("before: %u %u %u %u\n", a0, b0, c0, d0);
   char *txt = "Hello, world?0";
-  char *padded = pad(txt);
+  int padded_len = 0;
+  uint8_t *padded = pad(txt, &padded_len);
+
+  for (int j = 0; j < 64; j++)
+    printf("%02d %u\n", j, padded[j]);
+
+  // Proceed in 512 bit (64 byte for my purposes) chunks
+  int offset = 0;
+  while (offset < padded_len) {
+    uint32_t a = a0, b = b0, c = c0, d = d0;
+
+    printf("%lu %lu %lu %lu\n", a0, b0, c0, d0);
+    // Convert the 512 bit chunk into 16, 32-bit words
+    uint32_t words[16];
+    for (int j = 0; j < 64; j += 4) {
+      uint32_t word = to_32b_word(padded[offset+j+3], padded[offset+j+2], padded[offset+j+1], padded[offset+j]);
+      words[j / 4] = word; 
+    }
+
+    for (int i = 0; i < 64; i++) {
+      uint32_t f, g;
+
+      if (i < 16) {
+        f = (b & c) | ((~b) & d);
+        g = i;
+      }
+      else if (i < 32) {
+        f = (d & b) | ((~d) & c);
+        g = (5 * i + 1) % 16;
+      }
+      else if (i < 48) {
+        f = b ^ c ^ d;
+        g = (3 * i + 5) % 16;
+      }
+      else {
+        f = c ^ (b | (~d));
+        g = (7 * i) % 16;
+      }
+
+      f = f + a + k[i] + words[g];
+      a = d;
+      d = c;
+      c = b;
+      b = b + left_rotate(f, s[i]);
+    }
+   
+    a0 += a;
+    b0 += b;
+    c0 += c;
+    d0 += d;
+
+    offset += 64;
+  }
+
+
+  printf("after %u %u %u %u\n", a0, b0, c0, d0);
 
   free(padded);
 }
