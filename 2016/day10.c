@@ -51,23 +51,6 @@ int find_max_val(char *s, char *word)
   return max;
 }
 
-bool contains(char *s, char *word, int target)
-{
-  char *sub_str = s;
-  char *w;
-
-  while ((w = strstr(sub_str, word)) != NULL) {
-    if (w != NULL) {
-      int val = get_val(w, word);
-      if (val == target)
-        return true;
-    }
-    sub_str = w + 1;
-  }
-
-  return false;
-}
-
 void assign_val_to_bot(struct bot *bot, int val)
 {
   if (bot->val1 == -1)
@@ -113,28 +96,87 @@ int main(void)
   int *outputs = calloc(num_of_outputs, sizeof(int));
   struct bot *bots = malloc(num_of_bots * sizeof(struct bot));
   for (int i = 0; i < num_of_bots; i++) {
-    bots[i].id = i + 1;
+    bots[i].id = i;
     bots[i].val1 = -1;
     bots[i].val2 = -1;
   }
 
-  while (true) {    
+  while (true) {
+    int processed = 0;
+    
     for (int j = 0; j < lc; j++) {
-      printf("%s\n", rules[j].txt);
+      if (rules[j].processed)
+        continue;
+      ++processed;
+      //printf("%s\n", rules[j].txt);
       if (strncmp("value", rules[j].txt, 5) == 0) {
         int v, id;
         sscanf(rules[j].txt, "value %d goes to bot %d", &v, &id);
-        assign_val_to_bot(&bots[id - 1], v);
+        assign_val_to_bot(&bots[id], v);
+        rules[j].processed = true;
       }
+      else {
+        int bot_id = get_val(rules[j].txt, "bot");
+        struct bot *bot = &bots[bot_id];
+        
+        // if the bot doesn't have both its inputs yet, skip it
+        if (bot->val1 == -1 || bot->val2 == -1)
+          continue;
 
+        int hi, lo;
+        if (bot->val1 > bot->val2) {
+          hi = bot->val1;
+          lo = bot->val2;
+        }
+        else {
+          hi = bot->val2;
+          lo = bot->val1;
+        }
+
+        // determine low target
+        char *sub_s = strstr(rules[j].txt, "low to ") + 7;
+        if (strncmp(sub_s, "bot", 3) == 0) {
+          // low target is a bot
+          int low_bot_id = get_val(sub_s, "bot");
+          assign_val_to_bot(&bots[low_bot_id], lo);
+        }
+        else {
+          // low target is output
+          int low_output_id = get_val(sub_s, "output");
+          outputs[low_output_id] = lo;          
+        }
+
+        // now the high target
+        sub_s = strstr(sub_s, "high to ") + 8;
+        if (strncmp(sub_s, "bot", 3) == 0) {
+          // low target is a bot
+          int hi_bot_id = get_val(sub_s, "bot");
+          assign_val_to_bot(&bots[hi_bot_id], hi);          
+        }
+        else {
+          // low target is output
+          int hi_output_id = get_val(sub_s, "output");
+          outputs[hi_output_id] = hi;          
+        }
+      
+        rules[j].processed = true;
+      }
     }
-    break;
+
+    if (processed == 0)
+      break;
   }
 
-  printf("\n");
-  for (int j = 0; j < num_of_bots; j++)
-    printf("bot %d: %d %d\n", bots[j].id, bots[j].val1, bots[j].val2);
-  
+  int t1 = 17, t2 = 61;
+  for (int j = 0; j < num_of_bots; j++) {
+    if ((bots[j].val1 == t1 && bots[j].val2 == t2) || (bots[j].val1 == t2 && bots[j].val2 == t1)) {
+      printf("P1: %d\n", j);
+      break;
+    } 
+  }
+
+  printf("P2: %d\n", outputs[0] * outputs[1] * outputs[2]);
+
   // end-of-program cleanup
   for (int i = 0; i < lc; i++)
     free(rules[i].txt);
