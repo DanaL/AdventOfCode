@@ -3,25 +3,15 @@
 #include <string.h>
 #include <stdint.h>
 
-void fuck_off(uint8_t *arr)
-{
-  for (int j = 0; j < 64; j++)
-    printf("%u ", arr[j]);
-  printf("\n");
-}
-
 uint8_t *pad(uint8_t *txt, int *padded_len)
 {
   int len = strlen(txt);
   *padded_len = len + (64 - len % 64);
 
   uint8_t *padded = calloc(*padded_len, sizeof(uint8_t));
-  fuck_off(padded);
   memcpy(padded, txt, len);
-  fuck_off(padded);
   padded[len] = 0x80;
-  fuck_off(padded);
-
+  
   uint64_t og_len_in_bits = (uint64_t)len * 8;
  
   // If the length of the text to be hashed can't be represented in 64 bits,
@@ -62,7 +52,23 @@ uint32_t to_32b_word(uint32_t a, uint32_t b, uint32_t c, uint32_t d)
   return word;
 }
 
-int main(void)
+// 01111011 10000010 00001111 10011001
+// 153 15 130 123
+char *word_to_bytes(uint32_t x)
+{
+  char *s = malloc(9 * sizeof(char));
+  uint8_t a = (x & 255);
+  uint8_t b = (x & 65280) >> 8;
+  uint8_t c = (x & 16711680) >> 16;
+  uint8_t d = (x & 4278190080) >> 24;
+
+  sprintf(s, "%02X%02X%02X%02X", a, b, c, d);
+  s[8] = '\0';
+  
+  return s;
+}
+
+char *md5(char *txt)
 {
   uint32_t s[64] = 
     { 7, 12, 17, 22,  7, 12, 17, 22, 7, 12, 17, 22,  7, 12, 17, 22,
@@ -93,21 +99,15 @@ int main(void)
   uint32_t b0 = 0xefcdab89;
   uint32_t c0 = 0x98badcfe;
   uint32_t d0 = 0x10325476;
-    
-  printf("before: %u %u %u %u\n", a0, b0, c0, d0);
-  char *txt = "Hello, world?0";
+
   int padded_len = 0;
   uint8_t *padded = pad(txt, &padded_len);
-
-  for (int j = 0; j < 64; j++)
-    printf("%02d %u\n", j, padded[j]);
 
   // Proceed in 512 bit (64 byte for my purposes) chunks
   int offset = 0;
   while (offset < padded_len) {
     uint32_t a = a0, b = b0, c = c0, d = d0;
 
-    printf("%lu %lu %lu %lu\n", a0, b0, c0, d0);
     // Convert the 512 bit chunk into 16, 32-bit words
     uint32_t words[16];
     for (int j = 0; j < 64; j += 4) {
@@ -150,8 +150,28 @@ int main(void)
     offset += 64;
   }
 
-
-  printf("after %u %u %u %u\n", a0, b0, c0, d0);
-
+  char *hex_str = malloc(33 * sizeof(char));
+  offset = 0;
+  uint32_t bytes[] = { a0, b0, c0, d0 };
+  for (int j = 0; j < 4; j++) {
+    char *hex_bytes = word_to_bytes(bytes[j]);
+    strcpy(hex_str + offset, hex_bytes);
+    free(hex_bytes);
+    offset += 8;
+  }
+  hex_str[32] = '\0';
+  
   free(padded);
+
+  return hex_str;
 }
+
+int main(void)
+{
+  char *txt = "Hello, world?0";
+  char *s = md5(txt);
+  printf("%s\n", s);
+  free(s);
+}
+
+
