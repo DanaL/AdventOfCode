@@ -159,7 +159,6 @@ char *md5(char *txt)
     free(hex_bytes);
     offset += 8;
   }
-  hex_str[32] = '\0';
   
   free(padded);
 
@@ -168,10 +167,23 @@ char *md5(char *txt)
 
 int main(void)
 {
-  char *txt = "Hello, world?0";
-  char *s = md5(txt);
-  printf("%s\n", s);
-  free(s);
+  char pwd[9] = { '\0' };
+  int digit = 0;
+  uint32_t x = 0;
+  char buffer[100];
+  while (digit < 8) {
+    sprintf(buffer, "uqwqemis%d", x);
+    char *s = md5(buffer);
+    if (strncmp(s, "00000", 5) == 0) {
+      pwd[digit++] = s[5];
+      printf("%s\n", buffer);
+      printf("%s\n", s);
+    }
+    free(s);
+    x++;
+  }
+
+  printf("P1: %s\n", pwd);
 }
 
 
