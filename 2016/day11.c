@@ -10,7 +10,15 @@
 #define VT_SIZE 101719
 
 #define NUM_OF_ELTS 2
-#define STATE_LEN (2 * NUM_OF_ELTS + 1)
+#define CONFIG_LEN (2 * NUM_OF_ELTS + 1)
+
+uint32_t lowest_moves = UINT32_MAX;
+
+struct state {
+  uint32_t moves;
+  uint8_t *config;
+  struct state *next;
+};
 
 struct vt_entry {
   char *key;
@@ -28,6 +36,25 @@ uint64_t calc_hash(const char *key)
   }
 
   return hash;
+}
+
+struct state *state_copy(struct state *p)
+{
+  struct state *n = malloc(sizeof(struct state));
+  n->moves = p->moves;
+  n->next = NULL;
+  n->config = malloc(CONFIG_LEN * sizeof(uint8_t));
+
+  for (int i = 0; i < CONFIG_LEN; i++)
+    n->config[i] = p->config[i];
+
+  return n;
+}
+
+void state_destroy(struct state *state) 
+{
+  free(state->config);
+  free(state);
 }
 
 struct vt_entry **visited_table_create(void)
@@ -90,27 +117,47 @@ bool visited_table_contains(struct vt_entry  **vt, const char *key)
   return false;
 }
 
-bool valid_state(uint8_t *state)
+char *config_to_key(const uint8_t *config)
+{
+  char *key = calloc(CONFIG_LEN, sizeof(char));
+  for (int i = 0; i < CONFIG_LEN - 1; i++) {
+    key[i] = (char) config[i+1] + '0';
+  }
+
+  return key;
+}
+
+bool finished(uint8_t *config)
+{
+  for (int j = 0; j < CONFIG_LEN; j++) {
+    if (config[j] != 4)
+      return false;
+  }
+
+  return true;
+}
+
+bool valid_config(uint8_t *config)
 {  
   // check where the elevator is
-  if (state[0] < 1 || state[0] > 4) {
+  if (config[0] < 1 || config[0] > 4) {
     return false;
   }
 
   // check to make sure no elements are on a floor with a
   // generator when their generator isn't present
-  for (int i = 1; i < STATE_LEN; i += 2) {
+  for (int i = 1; i < CONFIG_LEN; i += 2) {
     // if the generator is on the same floor as the element,
     // we're good, otherwise we have to make sure there are
     // no other generators on the same floor.
-    uint8_t elt_floor = state[i];
-    uint8_t elt_gen_floor = state[i+1];
+    uint8_t elt_floor = config[i];
+    uint8_t elt_gen_floor = config[i+1];
     if (elt_floor == elt_gen_floor) {
       continue;
     }
 
-    for (int j = 2; j < STATE_LEN; j += 2) {
-      if (state[j] == elt_floor) {
+    for (int j = 2; j < CONFIG_LEN; j += 2) {
+      if (config[j] == elt_floor) {
         return false;
       }
     }
@@ -120,53 +167,165 @@ bool valid_state(uint8_t *state)
 }
 
 // moves should start off as null
-void find_valid_moves(uint8_t **moves, int *moves_len, uint8_t *curr_state)
+struct state **find_valid_moves(struct state **moves, int *moves_count, struct state *curr_state)
 {
-  uint8_t elevator = curr_state[0];
-  uint8_t *other_state = malloc(STATE_LEN * sizeof(uint8_t));
+  *moves_count = 0;
+  uint8_t elevator = curr_state->config[0];
+  struct state *other_state = malloc(sizeof(struct state));
+  other_state->config = malloc(CONFIG_LEN * sizeof(uint8_t));
+  other_state->next = NULL;
+  moves = NULL;
 
-  printf("Elevator at: %d\n", elevator);
-  
   // I'm going to loop over each thing on the floor and see what is
   // possible to be moved. Nested loop to check all possible combos?
-  for (int i = 1; i < STATE_LEN; i++) {
-    if (curr_state[i] == elevator) {
-      for (int j = 0; j < STATE_LEN; j++)
-        other_state[j] = curr_state[j];
+  for (int i = 1; i < CONFIG_LEN; i++) {
+    if (curr_state->config[i] == elevator) {
+      other_state->moves = curr_state->moves + 1;
+      for (int j = 0; j < CONFIG_LEN; j++)
+        other_state->config[j] = curr_state->config[j];
 
-      other_state[0] = elevator + 1;
-      other_state[i] = curr_state[i] + 1;
-      printf("Checking: \nup ");
-      for (int k = 0; k < STATE_LEN; k++)
-        printf(" %d ", other_state[k]);
-      printf("\n");
-      
-      printf("  valid? %d\n", valid_state(other_state));
-      other_state[0] = elevator - 1;
-      other_state[i] = curr_state[i] - 1;
-      printf(" down ");
-      for (int k = 0; k < STATE_LEN; k++)
-        printf(" %d ", other_state[k]);
-      printf("\n  valid? %d\n\n", valid_state(other_state));
+      // check up one floor
+      other_state->config[0] = elevator + 1;
+      other_state->config[i] = elevator + 1;
 
-      // for (int j = i + 1; j < STATE_LEN; j++) {
-      //   if (curr_state[i] == curr_state[j]) {
-          
-      //     printf("  -- possibly can also move %d\n", j);
-      //   } 
-      // }
+      //printf("  check ");
+      //for (int i = 0; i < CONFIG_LEN; i++)
+      //  printf(" %d", other_state->config[i]);
+      //printf("\n");
+      if (valid_config(other_state->config)) {
+        *moves_count += 1;
+        moves = realloc(moves, *moves_count * sizeof(struct state *));
+        moves[*moves_count - 1] = state_copy(other_state);
+      }
+     
+      // check down one floor
+      other_state->config[0] = elevator - 1;
+      other_state->config[i] = elevator - 1;
+
+      //printf("  check ");
+      //for (int i = 0; i < CONFIG_LEN; i++)
+      //  printf(" %d", other_state->config[i]);
+      //printf("\n");
+      if (valid_config(other_state->config)) {
+        *moves_count += 1;
+        moves = realloc(moves, *moves_count * sizeof(struct state *));
+        moves[*moves_count - 1] = state_copy(other_state);
+      }
+    
+      for (int k = i + 1; k < CONFIG_LEN; k++) {
+        if (curr_state->config[k] == elevator) {
+          other_state->config[0] = elevator + 1;
+          other_state->config[i] = elevator + 1;
+          other_state->config[k] = elevator + 1;
+
+          //printf("  check ");
+          //for (int j = 0; j < CONFIG_LEN; j++)
+          //  printf(" %d", other_state->config[j]);
+          //printf("\n");
+          if (valid_config(other_state->config)) {
+            *moves_count += 1;
+            moves = realloc(moves, *moves_count * sizeof(struct state *));
+            moves[*moves_count - 1] = state_copy(other_state);
+          }
+
+          other_state->config[0] = elevator - 1;
+          other_state->config[i] = elevator - 1;
+          other_state->config[k] = elevator - 1;
+
+          //printf("  check ");
+          //for (int j = 0; j < CONFIG_LEN; j++)
+          //  printf(" %d", other_state->config[j]);
+          //printf("\n");
+          if (valid_config(other_state->config)) {
+            *moves_count += 1;
+            moves = realloc(moves, *moves_count * sizeof(struct state *));
+            moves[*moves_count - 1] = state_copy(other_state);
+          }
+        }
+      }
     }
   }
-  
-  free(other_state);
 
-  *moves_len = 44;  
+  state_destroy(other_state);
+
+  return moves;
+}
+
+void dump_config(uint8_t *config) 
+{
+  for (int j = 0; j < CONFIG_LEN; j++)
+    printf(" %d", config[j]);
+  printf("\n");
+}
+
+void p1() {
+  struct vt_entry **vt = visited_table_create();
+  uint32_t shortest = UINT32_MAX;
+
+  struct state *initial = malloc(sizeof(struct state));
+  initial->moves = 0;
+  initial->next = NULL;
+
+  initial->config = calloc(CONFIG_LEN, sizeof(uint8_t));
+  initial->config[0] = 1; // elevator
+  // in order of chip then generator so chips are ood indexes
+  // and their corresponding generators are even indexes
+  initial->config[1] = 1;
+  initial->config[2] = 2;
+  initial->config[3] = 1;
+  initial->config[4] = 3;
+
+  struct state *to_test_q = initial;
+
+  while (to_test_q) {
+    struct state *curr = to_test_q;
+    printf("Testing: ");
+    dump_config(curr->config);
+
+    if (finished(curr->config)) {
+      if (curr->moves < lowest_moves)
+        lowest_moves = curr->moves;
+      to_test_q = to_test_q->next;
+      state_destroy(curr);
+      continue;
+    }
+
+    // add to visited table
+    char *key = config_to_key(curr->config);
+    visited_table_insert(vt, key);
+    free(key);
+
+    struct state **moves = NULL;
+    int moves_count = 0;
+    moves = find_valid_moves(moves, &moves_count, to_test_q);
+
+    for (int j = 0; j < moves_count; j++) {
+      char *move_key = config_to_key(moves[j]->config);
+      if (moves[j]->moves < lowest_moves && !visited_table_contains(vt, move_key)) {
+        moves[j]->next = to_test_q->next;
+        to_test_q->next = moves[j];
+      }
+      else {
+        state_destroy(moves[j]);
+      }
+
+      free(move_key);
+    }
+
+    to_test_q = to_test_q->next;
+    state_destroy(curr);
+  }
+
+  // need to free any remaining items in to_test_q
+
+  visited_table_destroy(vt);
+
+  printf("P1: %d\n", lowest_moves);
 }
 
 int main(void)
 { 
-  struct vt_entry **vt = visited_table_create();
-
+  p1();
   // visited_table_insert(vt, "hello, world?");
   // visited_table_insert(vt, "test");
   // visited_table_insert(vt, "lorem ipsum");
@@ -177,30 +336,10 @@ int main(void)
   // printf("%d\n", visited_table_contains(vt, "test"));
   // printf("%d\n", visited_table_contains(vt, s));
 
-  uint8_t *state = calloc(STATE_LEN, sizeof(uint8_t));
-  state[0] = 1; // elevator
-  
-  // in order of chip then generator so chips are ood indexes
-  // and their corresponding generators are even indexes
-  state[1] = 1;
-  state[2] = 2;
-  state[3] = 1;
-  state[4] = 3;
 
-  uint8_t **next_moves = NULL;
-  int moves_len = 0;
+  //uint8_t **next_moves = NULL;
+  //int moves_len = 0;
 
-  find_valid_moves(next_moves, &moves_len, state);
+  //find_valid_moves(next_moves, &moves_len, config);
 
-  //  2  2  2  1  3 
-  state[0] = 2;
-  state[1] = 2;
-  state[2] = 2;
-  state[3] = 1;
-  state[4] = 3;
-  printf("fucking valid? %d\n", valid_state(state));
-
-  visited_table_destroy(vt);
-
-  free(state);
 }
