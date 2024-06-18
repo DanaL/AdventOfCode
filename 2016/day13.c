@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
-#include <stdint.h>
+#include <limits.h>
 
 #define MAGIC_NUMBER 10
 
@@ -8,17 +8,17 @@
 #define HEIGHT 100
 
 struct point {
-  uint32_t x;
-  uint32_t y;
+  int x;
+  int y;
   struct point *next;
 };
 
 // x*x + 3*x + 2*x*y + y + y*y + magic number
-bool is_wall(uint32_t x, uint32_t y)
+bool is_wall(int x, int y)
 {
-  uint32_t n = x*x + 3*x + 2*x*y + y + y*y + MAGIC_NUMBER;
-  uint32_t i = 1;
-  uint32_t ones = 0;
+  int n = x*x + 3*x + 2*x*y + y + y*y + MAGIC_NUMBER;
+  int i = 1;
+  int ones = 0;
 
   while (i <= n) {
     if ((i & n) != 0)
@@ -31,12 +31,17 @@ bool is_wall(uint32_t x, uint32_t y)
   return (ones % 2 != 0);
 }
 
-uint32_t shortest_path(uint32_t start_x, uint32_t start_y) 
+bool in_bounds(int x, int y)
 {
-  uint32_t grid[HEIGHT][WIDTH];
+  return x >= 0 && y >= 0 && x < WIDTH && y < HEIGHT;
+}
+
+int shortest_path(int start_x, int start_y) 
+{ 
+  int grid[HEIGHT][WIDTH];
   for (int i = 0; i < HEIGHT; i++) {
     for (int j = 0; j < WIDTH; j++) {
-      grid[i][j] = UINT32_MAX;
+      grid[i][j] = INT_MAX;
     }
   }
   grid[start_x][start_y] = 0;
@@ -46,7 +51,7 @@ uint32_t shortest_path(uint32_t start_x, uint32_t start_y)
 
 void p1(void)
 {
-  printf("P1: %lu\n", shortest_path(7, 4));
+  printf("P1: %d\n", shortest_path(7, 4));
 }
 
 int main(void)
