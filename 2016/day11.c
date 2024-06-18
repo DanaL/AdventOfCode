@@ -155,7 +155,7 @@ char *state_to_key(const struct state *state)
 
 bool finished(uint8_t *config)
 {
-  for (int j = 0; j < CONFIG_LEN; j++) {
+  for (int j = 1; j < CONFIG_LEN; j++) {
     if (config[j] != 4)
       return false;
   }
@@ -273,6 +273,18 @@ void p1() {
   initial->config[0] = 1; // elevator
   // in order of chip then generator so chips are ood indexes
   // and their corresponding generators are even indexes
+
+  // initial->config[1] = 1; // promethium
+  // initial->config[2] = 1;
+  // initial->config[3] = 3; // cobalt
+  // initial->config[4] = 2;
+  // initial->config[5] = 3; // curium
+  // initial->config[6] = 2;
+  // initial->config[7] = 3; // ruthenium
+  // initial->config[8] = 2;
+  // initial->config[9] = 3; // plutonium
+  // initial->config[10] = 2;
+
   initial->config[1] = 1;
   initial->config[2] = 2;
   initial->config[3] = 1;
@@ -283,8 +295,8 @@ void p1() {
   int x = 0;
   while (to_test_q) {
     struct state *curr = to_test_q;
-    printf("Testing: ");
-    dump_config(curr->config);
+    //printf("Testing: ");
+    //dump_config(curr->config);
 
     if (finished(curr->config)) {
       if (curr->move_count < shortest)
@@ -310,6 +322,8 @@ void p1() {
       struct vt_entry *entry = visited_table_contains(vt, move_key);
       uint32_t mc = moves[j]->move_count;
       if (mc < shortest && (!entry || mc < entry->move_count)) {
+        //if (entry)
+        //  entry->move_count = mc;
         moves[j]->next = to_test_q->next;
         to_test_q->next = moves[j];
       }
@@ -323,16 +337,20 @@ void p1() {
     to_test_q = to_test_q->next;
     state_destroy(curr);
 
-    if (++x > 5000)
+    if (++x > 500000)
       break;
   }
+
+  printf("interations: %d\n", x);
 
   // need to free any remaining items in to_test_q
   x = 0;
   struct state *t = to_test_q;
   while (t) {
     ++x;
-    t = t->next;
+    printf("T %d", t->config[0]);
+    dump_config(t->config);
+    t = t->next;    
   }
   printf("Leftover: %d\n", x);
 
