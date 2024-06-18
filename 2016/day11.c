@@ -143,15 +143,7 @@ void dump_config(uint8_t *config)
 }
 
 char *state_to_key(const struct state *state)
-{
-  //char num[9]; // should be plenty of space...
-  //sprintf(num, "%d", state->move_count);
-  //size_t num_length = strlen(num);
-  //num[num_length] = '_';
-  //num[num_length + 1] = '\0';
-
-  //char *key = calloc(CONFIG_LEN + num_length + 1, sizeof(char));
-  //strcpy(key, num);
+{ 
   char *key = calloc(CONFIG_LEN, sizeof(char));
 
   for (int i = 1; i < CONFIG_LEN; i++) {    
@@ -222,10 +214,6 @@ struct state **find_valid_moves(struct state **moves, int *moves_count, struct s
       other_state->config[0] = elevator + 1;
       other_state->config[i] = elevator + 1;
 
-      //printf("  check ");
-      //for (int i = 0; i < CONFIG_LEN; i++)
-      //  printf(" %d", other_state->config[i]);
-      //printf("\n");
       if (valid_config(other_state->config)) {
         *moves_count += 1;
         moves = realloc(moves, *moves_count * sizeof(struct state *));
@@ -236,10 +224,6 @@ struct state **find_valid_moves(struct state **moves, int *moves_count, struct s
       other_state->config[0] = elevator - 1;
       other_state->config[i] = elevator - 1;
 
-      //printf("  check ");
-      //for (int i = 0; i < CONFIG_LEN; i++)
-      //  printf(" %d", other_state->config[i]);
-      //printf("\n");
       if (valid_config(other_state->config)) {
         *moves_count += 1;
         moves = realloc(moves, *moves_count * sizeof(struct state *));
@@ -252,10 +236,6 @@ struct state **find_valid_moves(struct state **moves, int *moves_count, struct s
           other_state->config[i] = elevator + 1;
           other_state->config[k] = elevator + 1;
 
-          //printf("  check ");
-          //for (int j = 0; j < CONFIG_LEN; j++)
-          //  printf(" %d", other_state->config[j]);
-          //printf("\n");
           if (valid_config(other_state->config)) {
             *moves_count += 1;
             moves = realloc(moves, *moves_count * sizeof(struct state *));
@@ -266,10 +246,6 @@ struct state **find_valid_moves(struct state **moves, int *moves_count, struct s
           other_state->config[i] = elevator - 1;
           other_state->config[k] = elevator - 1;
 
-          //printf("  check ");
-          //for (int j = 0; j < CONFIG_LEN; j++)
-          //  printf(" %d", other_state->config[j]);
-          //printf("\n");
           if (valid_config(other_state->config)) {
             *moves_count += 1;
             moves = realloc(moves, *moves_count * sizeof(struct state *));
@@ -368,20 +344,4 @@ void p1() {
 int main(void)
 { 
   p1();
-  // visited_table_insert(vt, "hello, world?");
-  // visited_table_insert(vt, "test");
-  // visited_table_insert(vt, "lorem ipsum");
-
-  // char *s = "foo";
-  // printf("%d\n", visited_table_contains(vt, "hello, world?"));
-  // printf("%d\n", visited_table_contains(vt, "hello, world!"));
-  // printf("%d\n", visited_table_contains(vt, "test"));
-  // printf("%d\n", visited_table_contains(vt, s));
-
-
-  //uint8_t **next_moves = NULL;
-  //int moves_len = 0;
-
-  //find_valid_moves(next_moves, &moves_len, config);
-
 }
