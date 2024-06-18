@@ -5,7 +5,7 @@
 
 #include "utils.h"
 
-char **read_all_lines(const char *filename, int *line_count)
+char **read_all_lines(const char *filename, size_t *line_count)
 {
   char **lines = NULL;
   FILE *fp = fopen(filename, "r");
@@ -24,6 +24,13 @@ char **read_all_lines(const char *filename, int *line_count)
   fclose(fp);
 
   return lines;
+}
+
+void lines_free(char **lines, size_t line_count)
+{
+  for (size_t j = 0; j < line_count; j++)
+    free(lines[j]);
+  free(lines);
 }
 
 uint8_t *pad(uint8_t *txt, int *padded_len)
@@ -49,7 +56,7 @@ uint8_t *pad(uint8_t *txt, int *padded_len)
 
   // Copy the byte representation into the last 8 bytes
   int i = *padded_len - 8;
-  for (int j = 0; j < len_bit_count; j++) {
+  for (size_t j = 0; j < len_bit_count; j++) {
     padded[i++] = bytes[j];
   }
 
@@ -132,7 +139,7 @@ char *md5(const char *txt)
 
     // Convert the 512 bit chunk into 16, 32-bit words
     uint32_t words[16];
-    for (int j = 0; j < 64; j += 4) {
+    for (size_t j = 0; j < 64; j += 4) {
       uint32_t word = to_32b_word(padded[offset+j+3], padded[offset+j+2], padded[offset+j+1], padded[offset+j]);
       words[j / 4] = word; 
     }
@@ -176,7 +183,7 @@ char *md5(const char *txt)
   char hex_bytes[9];
   offset = 0;
   uint32_t bytes[] = { a0, b0, c0, d0 };
-  for (int j = 0; j < 4; j++) {
+  for (size_t j = 0; j < 4; j++) {
     word_to_bytes(bytes[j], hex_bytes);
     strcpy(hex_str + offset, hex_bytes);
     offset += 8;

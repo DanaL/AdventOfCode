@@ -4,6 +4,7 @@
 #include <ctype.h>
 
 #include "utils.h"
+
 int extract_int(char *s) 
 {
   int val = 0;
@@ -17,7 +18,7 @@ int extract_int(char *s)
 
 int exec_vm(int reg_c_val)
 {
-  int num_of_lines = 0;
+  size_t num_of_lines = 0;
   char **program = read_all_lines("inputs/day12.txt", &num_of_lines);
 
   int registers[] = { 0, 0, reg_c_val, 0 };
@@ -61,10 +62,8 @@ int exec_vm(int reg_c_val)
 
     ++pc;
   }
-
-  for (int j = 0; j < num_of_lines; j++)
-    free(program[j]);
-  free(program);
+  
+  lines_free(program, num_of_lines);
 
   return registers[0];
 }
