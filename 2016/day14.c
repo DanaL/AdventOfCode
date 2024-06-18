@@ -3,7 +3,7 @@
 
 #include "utils.h"
 
-bool has_repeater(char *s, int count)
+char has_repeater(char *s, int count)
 {
   for (size_t j = 0; j < strlen(s) - count; j++) {
     if (s[j+1] == s[j]) {
@@ -16,21 +16,34 @@ bool has_repeater(char *s, int count)
       }
 
       if (n == count)
-        return true;
+        return s[j];
     }
   }
 
-  return false;
+  return '\0';
 }
 
 void p1(void)
 {
-  char *s = md5("abc200");
+  char *salt = "abc";
+  char buffer[100];
 
-  printf("%s\n", s);
-  printf("%d\n", has_repeater(s, 5));
-
-  free(s);
+  for (size_t j = 0; j < 30000; j++) {
+    sprintf(buffer, "%s%d", salt, j);
+    char *s = md5(buffer);
+    //printf("%s\n", s);
+    char ch3 = has_repeater(s, 3);
+    char ch5 = has_repeater(s, 5);
+    if (ch3 != '\0' || ch5 != '\0')
+      printf("%d", j); 
+    if (ch3 != '\0' && ch3 != ch5)
+      printf(" 3 repeater");
+    if (ch5 != '\0')
+      printf(" 5 repeater");
+    if (ch3 != '\0' || ch5 != '\0')
+      printf("\n");
+    free(s);
+  }
 }
 
 int main(void)
