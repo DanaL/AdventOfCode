@@ -1,8 +1,9 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-#include<ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 
+#include "utils.h"
 int extract_int(char *s) 
 {
   int val = 0;
@@ -16,21 +17,8 @@ int extract_int(char *s)
 
 int exec_vm(int reg_c_val)
 {
-  char **program = NULL;
-  FILE *fp = fopen("inputs/day12.txt", "r");
-      
-  char buffer[50];
   int num_of_lines = 0;
-  while (fgets(buffer, sizeof buffer, fp) != NULL) {
-    size_t bc = strlen(buffer);
-    if (buffer[bc - 1] == '\n')
-      buffer[bc - 1] = '\0';
-    
-    program = realloc(program, ++num_of_lines * sizeof(char*));
-    program[num_of_lines - 1] = malloc((bc + 1) * sizeof(char));
-    strcpy(program[num_of_lines - 1], buffer);
-  }
-  fclose(fp);
+  char **program = read_all_lines("inputs/day12.txt", &num_of_lines);
 
   int registers[] = { 0, 0, reg_c_val, 0 };
   int pc = 0;

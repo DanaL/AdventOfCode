@@ -1,8 +1,30 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 
 #include "utils.h"
+
+char **read_all_lines(const char *filename, int *line_count)
+{
+  char **lines = NULL;
+  FILE *fp = fopen(filename, "r");
+  char buffer[100];
+  *line_count = 0;
+  while (fgets(buffer, sizeof buffer, fp) != NULL) {
+    size_t bc = strlen(buffer);
+    if (buffer[bc - 1] == '\n')
+      buffer[bc - 1] = '\0';
+    
+    lines = realloc(lines, ++(*line_count) * sizeof(char*));
+    lines[*line_count - 1] = malloc((bc + 1) * sizeof(char));
+    strcpy(lines[*line_count - 1], buffer);
+  }
+
+  fclose(fp);
+
+  return lines;
+}
 
 uint8_t *pad(uint8_t *txt, int *padded_len)
 {
@@ -68,7 +90,7 @@ char *word_to_bytes(uint32_t x, char *s)
   return s;
 }
 
-char *md5(char *txt)
+char *md5(const char *txt)
 {
   uint32_t s[64] = 
     { 7, 12, 17, 22,  7, 12, 17, 22, 7, 12, 17, 22,  7, 12, 17, 22,
