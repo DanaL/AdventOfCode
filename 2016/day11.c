@@ -12,16 +12,15 @@
 #define NUM_OF_ELTS 2
 #define CONFIG_LEN (2 * NUM_OF_ELTS + 1)
 
-uint32_t lowest_moves = UINT32_MAX;
-
 struct state {
-  uint32_t moves;
+  uint32_t move_count;
   uint8_t *config;
   struct state *next;
 };
 
 struct vt_entry {
   char *key;
+  uint32_t move_count;
   struct vt_entry *next;
 };
 
@@ -41,7 +40,7 @@ uint64_t calc_hash(const char *key)
 struct state *state_copy(struct state *p)
 {
   struct state *n = malloc(sizeof(struct state));
-  n->moves = p->moves;
+  n->move_count = p->move_count;
   n->next = NULL;
   n->config = malloc(CONFIG_LEN * sizeof(uint8_t));
 
@@ -82,48 +81,83 @@ void visited_table_destroy(struct vt_entry **vt) {
   free(vt);
 }
 
-void visited_table_insert(struct vt_entry **vt, const char *key)
+void visited_table_insert(struct vt_entry **vt, const char *key, int move_count)
 {
   struct vt_entry *entry = malloc(sizeof(struct vt_entry));
   entry->next = NULL;
+  entry->move_count = move_count;
   entry->key = malloc(sizeof(char) * (strlen(key) + 1));
   strcpy(entry->key, key);
 
   uint64_t hash = calc_hash(key) % VT_SIZE;
   
+  // Easy case -- the table location is empty
   if (!vt[hash]) {
     vt[hash] = entry;
+    return;
   }
-  else {
-    entry->next = vt[hash];
-    vt[hash] = entry;
+
+  // if the same key exists with higher move count, replace move found 
+  // with smaller value
+  struct vt_entry *p = vt[hash];
+  while (p) {
+    if (strcmp(key, p->key)) {
+      if (move_count < p->move_count) {
+        p->move_count = move_count;
+      }
+      free(entry->key);
+      free(entry);
+
+      return;
+    }
+
+    p = p->next;
   }
+  
+  entry->next = vt[hash];
+  vt[hash] = entry;
 }
 
-bool visited_table_contains(struct vt_entry  **vt, const char *key)
+struct vt_entry *visited_table_contains(struct vt_entry  **vt, const char *key)
 {
   uint64_t hash = calc_hash(key) % VT_SIZE;
   if (!vt[hash])
-    return false;
+    return NULL;
 
   struct vt_entry *e = vt[hash];
   do {
     if (strcmp(key, e->key) == 0)
-      return true;
+      return e;
     e = e->next;
   }
   while (e);
 
-  return false;
+  return NULL;
 }
 
-char *config_to_key(const uint8_t *config)
+void dump_config(uint8_t *config) 
 {
-  char *key = calloc(CONFIG_LEN, sizeof(char));
-  for (int i = 0; i < CONFIG_LEN - 1; i++) {
-    key[i] = (char) config[i+1] + '0';
-  }
+  for (int j = 0; j < CONFIG_LEN; j++)
+    printf(" %d", config[j]);
+  printf("\n");
+}
 
+char *state_to_key(const struct state *state)
+{
+  //char num[9]; // should be plenty of space...
+  //sprintf(num, "%d", state->move_count);
+  //size_t num_length = strlen(num);
+  //num[num_length] = '_';
+  //num[num_length + 1] = '\0';
+
+  //char *key = calloc(CONFIG_LEN + num_length + 1, sizeof(char));
+  //strcpy(key, num);
+  char *key = calloc(CONFIG_LEN, sizeof(char));
+
+  for (int i = 1; i < CONFIG_LEN; i++) {    
+    key[i - 1] = (char) state->config[i] + '0';
+  }
+  
   return key;
 }
 
@@ -180,7 +214,7 @@ struct state **find_valid_moves(struct state **moves, int *moves_count, struct s
   // possible to be moved. Nested loop to check all possible combos?
   for (int i = 1; i < CONFIG_LEN; i++) {
     if (curr_state->config[i] == elevator) {
-      other_state->moves = curr_state->moves + 1;
+      other_state->move_count = curr_state->move_count + 1;
       for (int j = 0; j < CONFIG_LEN; j++)
         other_state->config[j] = curr_state->config[j];
 
@@ -251,19 +285,12 @@ struct state **find_valid_moves(struct state **moves, int *moves_count, struct s
   return moves;
 }
 
-void dump_config(uint8_t *config) 
-{
-  for (int j = 0; j < CONFIG_LEN; j++)
-    printf(" %d", config[j]);
-  printf("\n");
-}
-
 void p1() {
   struct vt_entry **vt = visited_table_create();
   uint32_t shortest = UINT32_MAX;
 
   struct state *initial = malloc(sizeof(struct state));
-  initial->moves = 0;
+  initial->move_count = 0;
   initial->next = NULL;
 
   initial->config = calloc(CONFIG_LEN, sizeof(uint8_t));
@@ -277,31 +304,36 @@ void p1() {
 
   struct state *to_test_q = initial;
 
+  int x = 0;
   while (to_test_q) {
     struct state *curr = to_test_q;
     printf("Testing: ");
     dump_config(curr->config);
 
     if (finished(curr->config)) {
-      if (curr->moves < lowest_moves)
-        lowest_moves = curr->moves;
+      if (curr->move_count < shortest)
+        shortest = curr->move_count;
       to_test_q = to_test_q->next;
       state_destroy(curr);
       continue;
     }
 
     // add to visited table
-    char *key = config_to_key(curr->config);
-    visited_table_insert(vt, key);
+    char *key = state_to_key(curr);
+    visited_table_insert(vt, key, curr->move_count);
     free(key);
 
     struct state **moves = NULL;
     int moves_count = 0;
     moves = find_valid_moves(moves, &moves_count, to_test_q);
 
+    // Maybe I need to structure visited table as key -> moves, and skip
+    // visiting a state with identical config but more moves
     for (int j = 0; j < moves_count; j++) {
-      char *move_key = config_to_key(moves[j]->config);
-      if (moves[j]->moves < lowest_moves && !visited_table_contains(vt, move_key)) {
+      char *move_key = state_to_key(moves[j]);
+      struct vt_entry *entry = visited_table_contains(vt, move_key);
+      uint32_t mc = moves[j]->move_count;
+      if (mc < shortest && (!entry || mc < entry->move_count)) {
         moves[j]->next = to_test_q->next;
         to_test_q->next = moves[j];
       }
@@ -314,13 +346,23 @@ void p1() {
 
     to_test_q = to_test_q->next;
     state_destroy(curr);
+
+    if (++x > 5000)
+      break;
   }
 
   // need to free any remaining items in to_test_q
+  x = 0;
+  struct state *t = to_test_q;
+  while (t) {
+    ++x;
+    t = t->next;
+  }
+  printf("Leftover: %d\n", x);
 
   visited_table_destroy(vt);
 
-  printf("P1: %d\n", lowest_moves);
+  printf("P1: %d\n", shortest);  
 }
 
 int main(void)
