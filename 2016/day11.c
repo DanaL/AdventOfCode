@@ -261,6 +261,10 @@ struct state **find_valid_moves(struct state **moves, int *moves_count, struct s
   return moves;
 }
 
+// Maybe I need to think of this as a graph search? Each node
+// being a path from one state to another? If I find path to
+// a state that is shorter, replace it. If I am on a path and 
+// there is a shorter path to it already, I can abandon that path
 void p1() {
   struct vt_entry **vt = visited_table_create();
   uint32_t shortest = UINT32_MAX;
