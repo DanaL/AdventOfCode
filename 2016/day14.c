@@ -5,9 +5,13 @@
 
 #include "utils.h"
 
+#define SALT "abc"
+//#define SALT "jlmsuwbz"
+
 struct repeat {
   size_t index;
   char repeat_char;
+  int repeat_count;
 };
 
 char repeat3(char *s) 
@@ -31,85 +35,87 @@ char repeat5(char *s) {
   return '\0';
 }
 
-int count_keys(struct repeat *hashes, size_t hash_count, size_t i, char ch, int curr_total)
-{  
-  printf("checking %zu %c\n", i, ch);
-  int start_index = hash_count - 1;
-  do
-  {
-   if (i - hashes[start_index].index > 1000) 
-    break;
-    start_index--;
-  } while (start_index > 0);
-  printf("  si %d\n", start_index);
-
-  for (int j = start_index; j < hash_count; j++) {
-    if (hashes[j].repeat_char == ch) {
-      ++curr_total;
-      if (curr_total == 64) {
-        printf("P1: %zu\n", hashes[j].index);
-        break;
-      }
-    }
-  }
-
-  return curr_total;
-}
-
-// I think what should work is keep generating hashes and record
-// the ones with 3 repeated characters. When I find one with 5
-// repeated charaters, work backwards and find its index.
-// Or: is there ever a 5-repeater that doesn't have a 3-repeat within
-// 1000 characters? Do I just need to find the 64th 5-repeater and then
-// work backwards to find the corresponding key?
-void p1(void)
+struct repeat *expand_table(struct repeat *hashes, size_t *hash_count, size_t curr_hash, size_t *curr_index)
 {
-  char *salt = "jlmsuwbz";
-  //char *salt = "abc";
   char buffer[100];
-  struct repeat *hashes = NULL;
-  size_t hash_count = 0;  
-  int total_keys = 0;
+  size_t index = hashes[curr_hash].index;
+  for (size_t i = curr_hash + 1; i < *hash_count; i++) {
+    if (hashes[i].index - *curr_index > 1000)
+      return hashes; // we don't need to further expand the table
+    index = hashes[i].index;
+  }
+  ++index;
 
-  size_t j = 0;
-  while (true) {
-    sprintf(buffer, "%s%zu", salt, j);
+  while (index <= *curr_index + 1000) {
+    sprintf(buffer, "%s%zu", SALT, index);
     char *s = md5(buffer);    
     char ch3 = repeat3(s);
     char ch5 = repeat5(s);
     free(s);
 
-    if (ch5 != '\0') { 
-      total_keys = count_keys(hashes, hash_count, j, ch5, total_keys);
-      printf("total: %d\n", total_keys);
-      if (total_keys >= 64) {
-        printf("kf %d\n", total_keys);
-        for (int k = hash_count - 1; k >= 0; k--) {
-          if (hashes[k].repeat_char == ch5) {
-            printf("P1: %zu\n", hashes[k].index);
-            break;
-          }
-        }
-        break;
-      }      
-    }
+    if (ch3 != '\0' || ch5 != '\0') {
+      hashes = realloc(hashes, ++(*hash_count) * sizeof(struct repeat));
     
-    int ch = ch3 != '\0' ? ch3 : ch5;
-    if (ch)
-    {
-      hashes = realloc(hashes, ++hash_count * sizeof(struct repeat));
-      size_t i = hash_count - 1;
-      hashes[i].index = j;
-      hashes[i].repeat_char = ch;
+      size_t i = *hash_count - 1;
+      hashes[i].index = index;
+      hashes[i].repeat_char = ch3;
+      hashes[i].repeat_count = ch5 != '\0' ? 5 : 3;
     }
 
-    ++j;
-
-    //if (j > 30000) break;
+    ++index;
   }
 
-  //printf("%d %zu\n", j, hash_count);
+  *curr_index = index;
 
+  return hashes;
+}
+
+void p1(void)
+{
+  char buffer[100];
+  struct repeat *hashes = malloc(sizeof(struct repeat));
+  
+  size_t index = 0;
+  // find first candidate
+  do {
+    sprintf(buffer, "%s%zu", SALT, index);
+    char *s = md5(buffer);    
+    char ch3 = repeat3(s);
+    char ch5 = repeat5(s);
+    free(s);
+
+    if (ch3 != '\0' || ch5 != '\0') {
+      hashes[0].index = index;
+      hashes[0].repeat_char = ch3;
+      hashes[0].repeat_count = ch5 != '\0' ? 5 : 3;
+      break;
+    }
+
+    ++index;
+  } while (true);
+
+  size_t hash_count = 1;
+  printf("foo %zu %c\n", hashes[0].index, hashes[0].repeat_char);
+  printf("flag %zu\n", index);
+  size_t key_candidate = 0;
+  int keys_found = 0;
+  
+  do {
+    // expand table
+    hashes = expand_table(hashes, &hash_count, key_candidate, &index);
+    // search table to see if key
+
+    // move to next candidate (ie., inc key_candidate)
+    break;
+  } while (true);
+  
+  printf("hc %zu \n", hash_count);
+  printf("index %zu \n", index);
+  for (int i = 0; i < hash_count; i++) {
+    printf("hash %d %lu %d %c\n", i, hashes[i].index, hashes[i].repeat_count, hashes[i].repeat_char);
+  }
+  
+  
   free(hashes);
 }
 
