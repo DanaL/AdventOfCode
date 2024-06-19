@@ -35,21 +35,35 @@ char repeat5(char *s) {
   return '\0';
 }
 
-struct repeat *expand_table(struct repeat *hashes, size_t *hash_count, size_t curr_index)
+char *calc_hash(size_t index, size_t stretch)
+{
+  char buffer[100];
+  sprintf(buffer, "%s%zu", SALT, index);
+
+  for (int j = 0; j < stretch; j++) {
+    char *s = md5(buffer);    
+    strcpy(buffer, s);
+    free(s);
+  }
+  
+  char *hashed = malloc((strlen(buffer) + 1) * sizeof(char));
+  strcpy(hashed, buffer);
+
+  return hashed;
+}
+
+struct repeat *expand_table(struct repeat *hashes, size_t *hash_count, size_t curr_index, size_t stretch)
 {
   char buffer[100];
 
   struct repeat last = hashes[*hash_count - 1];
   size_t index = last.index + 1;
 
-  //if (index <= curr_index + 1000) printf("gotta expand\n");
-
   while (index <= curr_index + 1000) {
-    sprintf(buffer, "%s%zu", SALT, index);
-    char *s = md5(buffer);    
-    char ch3 = repeat3(s);
-    char ch5 = repeat5(s);
-    free(s);
+    char *hashed = calc_hash(index, stretch);
+    char ch3 = repeat3(hashed);
+    char ch5 = repeat5(hashed);
+    free(hashed);
 
     if (ch3 != '\0' || ch5 != '\0') {
       hashes = realloc(hashes, ++(*hash_count) * sizeof(struct repeat));
@@ -76,20 +90,18 @@ bool is_key(struct repeat *hashes, size_t hash_count, size_t i, char seeking, si
   return false;
 }
 
-void p1(void)
+void calc(size_t stretch)
 {
-  char buffer[100];
   struct repeat *hashes = malloc(sizeof(struct repeat));
   
   size_t index = 0;
   // find first candidate
   do {
-    sprintf(buffer, "%s%zu", SALT, index);
-    char *s = md5(buffer);    
-    char ch3 = repeat3(s);
-    char ch5 = repeat5(s);
-    free(s);
-
+    char *hashed = calc_hash(index, stretch);
+    char ch3 = repeat3(hashed);
+    char ch5 = repeat5(hashed);
+    free(hashed);
+    
     if (ch3 != '\0' || ch5 != '\0') {
       hashes[0].index = index;
       hashes[0].repeat_char = ch3;
@@ -107,12 +119,10 @@ void p1(void)
   do {
     // expand table if needed
     struct repeat r = hashes[key_candidate];
-    hashes = expand_table(hashes, &hash_count, r.index);
+    hashes = expand_table(hashes, &hash_count, r.index, stretch);
 
-    //printf("kc: %zu %zu %zu \n", key_candidate, r.index, hashes[hash_count-1].index);
     if (is_key(hashes, hash_count, key_candidate + 1, r.repeat_char, r.index)) {
       ++keys_found;
-      //printf("it's a key! %zu\n", r.index);
       if (keys_found == 64) {
         printf("done! %zu\n", r.index);
         break;
@@ -120,13 +130,15 @@ void p1(void)
     }
     
     ++key_candidate;
-
-    //if (key_candidate > 20) break;
   } while (true);
   free(hashes);
 }
 
 int main(void)
 {
-  p1();
+  calc(1);
+  // lol part 2 is extrmeley slow because I am doing so many malloc()s 
+  // free()s while hashing the keys but I've little interest in making
+  // it less dumb
+  calc(2017);
 }
