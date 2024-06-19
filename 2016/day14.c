@@ -5,8 +5,8 @@
 
 #include "utils.h"
 
-#define SALT "abc"
-//#define SALT "jlmsuwbz"
+//#define SALT "abc"
+#define SALT "jlmsuwbz"
 
 struct repeat {
   size_t index;
@@ -35,18 +35,16 @@ char repeat5(char *s) {
   return '\0';
 }
 
-struct repeat *expand_table(struct repeat *hashes, size_t *hash_count, size_t curr_hash, size_t *curr_index)
+struct repeat *expand_table(struct repeat *hashes, size_t *hash_count, size_t curr_index)
 {
   char buffer[100];
-  size_t index = hashes[curr_hash].index;
-  for (size_t i = curr_hash + 1; i < *hash_count; i++) {
-    if (hashes[i].index - *curr_index > 1000)
-      return hashes; // we don't need to further expand the table
-    index = hashes[i].index;
-  }
-  ++index;
 
-  while (index <= *curr_index + 1000) {
+  struct repeat last = hashes[*hash_count - 1];
+  size_t index = last.index + 1;
+
+  //if (index <= curr_index + 1000) printf("gotta expand\n");
+
+  while (index <= curr_index + 1000) {
     sprintf(buffer, "%s%zu", SALT, index);
     char *s = md5(buffer);    
     char ch3 = repeat3(s);
@@ -55,7 +53,6 @@ struct repeat *expand_table(struct repeat *hashes, size_t *hash_count, size_t cu
 
     if (ch3 != '\0' || ch5 != '\0') {
       hashes = realloc(hashes, ++(*hash_count) * sizeof(struct repeat));
-    
       size_t i = *hash_count - 1;
       hashes[i].index = index;
       hashes[i].repeat_char = ch3;
@@ -65,9 +62,18 @@ struct repeat *expand_table(struct repeat *hashes, size_t *hash_count, size_t cu
     ++index;
   }
 
-  *curr_index = index;
-
   return hashes;
+}
+
+bool is_key(struct repeat *hashes, size_t hash_count, size_t i, char seeking, size_t index)
+{
+  while (i < hash_count && hashes[i].index < index + 1000) {
+    if (hashes[i].repeat_count == 5 && hashes[i].repeat_char == seeking)
+      return true;
+    ++i;
+  }
+
+  return false;
 }
 
 void p1(void)
@@ -95,27 +101,28 @@ void p1(void)
   } while (true);
 
   size_t hash_count = 1;
-  printf("foo %zu %c\n", hashes[0].index, hashes[0].repeat_char);
-  printf("flag %zu\n", index);
   size_t key_candidate = 0;
   int keys_found = 0;
   
   do {
-    // expand table
-    hashes = expand_table(hashes, &hash_count, key_candidate, &index);
-    // search table to see if key
+    // expand table if needed
+    struct repeat r = hashes[key_candidate];
+    hashes = expand_table(hashes, &hash_count, r.index);
 
-    // move to next candidate (ie., inc key_candidate)
-    break;
+    //printf("kc: %zu %zu %zu \n", key_candidate, r.index, hashes[hash_count-1].index);
+    if (is_key(hashes, hash_count, key_candidate + 1, r.repeat_char, r.index)) {
+      ++keys_found;
+      //printf("it's a key! %zu\n", r.index);
+      if (keys_found == 64) {
+        printf("done! %zu\n", r.index);
+        break;
+      }
+    }
+    
+    ++key_candidate;
+
+    //if (key_candidate > 20) break;
   } while (true);
-  
-  printf("hc %zu \n", hash_count);
-  printf("index %zu \n", index);
-  for (int i = 0; i < hash_count; i++) {
-    printf("hash %d %lu %d %c\n", i, hashes[i].index, hashes[i].repeat_count, hashes[i].repeat_char);
-  }
-  
-  
   free(hashes);
 }
 
