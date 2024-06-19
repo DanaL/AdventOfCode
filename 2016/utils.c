@@ -35,7 +35,7 @@ void lines_free(char **lines, size_t line_count)
 
 uint8_t *pad(uint8_t *txt, int *padded_len)
 {
-  int len = strlen(txt);
+  size_t len = strlen(txt);
   *padded_len = len + (64 - len % 64);
 
   uint8_t *padded = calloc(*padded_len, sizeof(uint8_t));
@@ -91,7 +91,7 @@ char *word_to_bytes(uint32_t x, char *s)
   uint8_t c = (x & 16711680) >> 16;
   uint8_t d = (x & 4278190080) >> 24;
 
-  sprintf(s, "%02X%02X%02X%02X", a, b, c, d);
+  sprintf(s, "%02x%02x%02x%02x", a, b, c, d);
   s[8] = '\0';
   
   return s;
