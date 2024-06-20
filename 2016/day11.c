@@ -9,7 +9,7 @@
 
 #define VT_SIZE 101719
 
-#define NUM_OF_ELTS 2
+#define NUM_OF_ELTS 5
 #define CONFIG_LEN (2 * NUM_OF_ELTS + 1)
 
 #define HT_SIZE 1000
@@ -322,13 +322,14 @@ struct state **find_valid_moves(struct state **moves, int *moves_count, struct s
   uint8_t elevator = curr_state->config[0];
   struct state *other_state = malloc(sizeof(struct state));
   other_state->config = malloc(CONFIG_LEN * sizeof(uint8_t));
+  other_state->move_count = curr_state->move_count + 1;
   moves = NULL;
 
   // I'm going to loop over each thing on the floor and see what is
   // possible to be moved. Nested loop to check all possible combos?
   for (int i = 1; i < CONFIG_LEN; i++) {
     if (curr_state->config[i] == elevator) {
-      other_state->move_count = curr_state->move_count + 1;
+      //other_state->move_count = curr_state->move_count + 1;
       for (int j = 0; j < CONFIG_LEN; j++)
         other_state->config[j] = curr_state->config[j];
 
@@ -399,7 +400,6 @@ void p1() {
   // in order of chip then generator so chips are ood indexes
   // and their corresponding generators are even indexes
 
-  /*
   initial->config[1] = 1; // promethium
   initial->config[2] = 1;
   initial->config[3] = 3; // cobalt
@@ -410,11 +410,13 @@ void p1() {
   initial->config[8] = 2;
   initial->config[9] = 3; // plutonium
   initial->config[10] = 2;
-  */
+
+  /*
   initial->config[1] = 1;
   initial->config[2] = 2;
   initial->config[3] = 1;
   initial->config[4] = 3;
+  */
 
   struct heap *queue = heap_new();
   min_heap_push(queue, initial);
@@ -422,6 +424,14 @@ void p1() {
   uint64_t x = 0;
   while (queue->num_of_elts > 0) {
     struct state *curr = min_heap_pop(queue);
+   
+    if (x % 1000 == 0) {
+      char *kk = state_to_key(curr);
+      printf("---------\nChecking: %s %d\n", kk, dist_from_goal(curr));
+      if (queue->num_of_elts > 0)
+        printf("\t%zu %zu\n", queue->table[0]->move_count, queue->num_of_elts);
+      free(kk);
+    }
 
     if (finished(curr->config)) {
       if (curr->move_count < shortest)
@@ -433,7 +443,7 @@ void p1() {
     char *key = state_to_key(curr);
     visited_table_insert(vt, key, curr->move_count);
     free(key);
-
+    
     struct state **moves = NULL;
     int moves_count = 0;
     moves = find_valid_moves(moves, &moves_count, curr);
@@ -443,9 +453,14 @@ void p1() {
       char *move_key = state_to_key(moves[j]);
       uint32_t visited_moves = visited_table_check(vt, move_key);
       uint32_t mc = moves[j]->move_count;
-      
-      if (mc < shortest && mc < visited_moves) {
+      uint32_t mv_distance = dist_from_goal(moves[j]);
+    
+      //if (mc < visited_moves)
+      //  printf("\t\t%s  mc: %zu  vm: %zu\n", move_key, mc, visited_moves);
+      //printf("\t%s\n", move_key);
+      if (mc + mv_distance <= shortest && mc < visited_moves) {
         min_heap_push(queue, moves[j]);
+        //visited_table_insert(vt, move_key, mc);
       }
       else {
         state_destroy(moves[j]);
@@ -457,8 +472,6 @@ void p1() {
 iterate:
     state_destroy(curr);
 
-    //if (++x > 40000000)
-    //  break;
   }
 
   printf("interations: %d\n", x);
@@ -472,59 +485,4 @@ iterate:
 int main(void)
 { 
   p1();
-  
-  /*
-  struct heap *h = heap_new();
-
-  struct state *s = malloc(sizeof(struct state));
-  s->move_count = 0;
-  s->config = calloc(CONFIG_LEN, sizeof(uint8_t));
-  s->config[0] = 1; // elevator
-  s->config[1] = 1;
-  s->config[2] = 2;
-  s->config[3] = 1;
-  s->config[4] = 3;
-
-  struct state *s2 = state_copy(s);
-  s2->config[0] = 4;
-  s2->config[1] = 2;
-
-  struct state *s3 = state_copy(s);
-  s3->config[0] = 4;
-  s3->config[1] = 4;
-  s3->config[2] = 4;
-  s3->config[3] = 4;
-  s3->config[4] = 4;
-  min_heap_push(h, s3);
-
-  struct state *s4 = state_copy(s);
-  s4->config[0] = 1;
-  s4->config[1] = 1;
-  s4->config[2] = 1;
-  s4->config[3] = 1;
-  s4->config[4] = 1;
-  min_heap_push(h, s4);
-
-  min_heap_push(h, s);
-  min_heap_push(h, s2);
-
-  struct state *s5 = state_copy(s);
-  s5->config[0] = 3;
-  s5->config[1] = 4;
-  s5->config[2] = 3;
-  s5->config[3] = 3;
-  s5->config[4] = 3;
-  min_heap_push(h, s5);
-
-  while (h->num_of_elts) {
-    struct state *ss = min_heap_pop(h);
-    printf("%lu\t", dist_from_goal(ss));
-    for (int j = 0; j < CONFIG_LEN; j++)
-     printf("%x ", ss->config[j]);
-    printf("\n");
-  }
-
-  heap_free(h);
-  printf("all done?\n");
-  */
-}
+} 
