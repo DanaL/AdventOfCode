@@ -50,7 +50,7 @@ uint32_t dist_from_goal(const struct state *s) {
   uint32_t distance = 0;
 
   for (int j = 0; j < CONFIG_LEN; j++)
-    distance += 4 - s->config[j];
+    distance += (4 - s->config[j]) * 2;
 
   return distance;
 }
@@ -205,8 +205,8 @@ void visited_table_insert(struct vt_entry **vt, const char *key, int move_count)
   // if the same key exists with higher move count, replace move found 
   // with smaller value
   struct vt_entry *p = vt[hash];
-  while (p) {
-    if (strcmp(key, p->key)) {
+  while (p) {   
+    if (strcmp(key, p->key) == 0) {
       if (move_count < p->move_count) {
         p->move_count = move_count;
       }
@@ -327,6 +327,9 @@ struct state **find_valid_moves(struct state **moves, int *moves_count, struct s
 
   // I'm going to loop over each thing on the floor and see what is
   // possible to be moved. Nested loop to check all possible combos?
+
+  // Maybe more grokable: get list of everything on the same floor as the
+  // elevator, then test each permutation of moving them?
   for (int i = 1; i < CONFIG_LEN; i++) {
     if (curr_state->config[i] == elevator) {
       //other_state->move_count = curr_state->move_count + 1;
@@ -411,12 +414,12 @@ void p1() {
   initial->config[9] = 3; // plutonium
   initial->config[10] = 2;
 
-  /*
-  initial->config[1] = 1;
-  initial->config[2] = 2;
-  initial->config[3] = 1;
-  initial->config[4] = 3;
-  */
+  
+  // initial->config[1] = 1;
+  // initial->config[2] = 2;
+  // initial->config[3] = 1;
+  // initial->config[4] = 3;
+  
 
   struct heap *queue = heap_new();
   min_heap_push(queue, initial);
@@ -425,15 +428,23 @@ void p1() {
   while (queue->num_of_elts > 0) {
     struct state *curr = min_heap_pop(queue);
    
-    if (x % 1000 == 0) {
-      char *kk = state_to_key(curr);
-      printf("---------\nChecking: %s %d\n", kk, dist_from_goal(curr));
-      if (queue->num_of_elts > 0)
-        printf("\t%zu %zu\n", queue->table[0]->move_count, queue->num_of_elts);
-      free(kk);
+    // if (x % 10000 == 0) {
+    //   char *kk = state_to_key(curr);
+    //   printf("---------\nChecking: %s %d\n", kk, dist_from_goal(curr));
+    //   if (queue->num_of_elts > 0)
+    //     printf("\t%zu %zu\n", queue->table[0]->move_count, queue->num_of_elts);
+    //   free(kk);
+    // }
+
+    char *curr_key = state_to_key(curr);
+    uint32_t visited_mc = visited_table_check(vt, curr_key);
+    free(curr_key);
+    if (curr->move_count >= visited_mc || curr->move_count >= shortest) {
+      goto iterate;
     }
 
     if (finished(curr->config)) {
+      printf("found one %d %d\n", x, curr->move_count);      
       if (curr->move_count < shortest)
         shortest = curr->move_count;
       goto iterate;
@@ -455,10 +466,13 @@ void p1() {
       uint32_t mc = moves[j]->move_count;
       uint32_t mv_distance = dist_from_goal(moves[j]);
     
-      //if (mc < visited_moves)
-      //  printf("\t\t%s  mc: %zu  vm: %zu\n", move_key, mc, visited_moves);
-      //printf("\t%s\n", move_key);
-      if (mc + mv_distance <= shortest && mc < visited_moves) {
+      uint32_t sum = 0;
+      for (int k = 0; k < CONFIG_LEN; k++)
+        sum += 4 - moves[j]->config[k];
+      //sum /= 2;
+
+      if (mc + sum < shortest && mc < visited_moves) {
+      //if (mc + sum < shortest && mc < visited_moves) {      
         min_heap_push(queue, moves[j]);
         //visited_table_insert(vt, move_key, mc);
       }
@@ -485,4 +499,27 @@ iterate:
 int main(void)
 { 
   p1();
+
+  // struct vt_entry **vt = visited_table_create();
+  
+  // char buffer[20];
+  // for (int j = 0; j < 10000; j++) {
+  //   sprintf(buffer, "%05d", j);
+  //   visited_table_insert(vt, buffer, j);
+  // }
+  // printf("zz %zu\n", visited_table_check(vt, "09988"));
+  // printf("zz %zu\n", visited_table_check(vt, "01141"));
+  // printf("zz %zu\n", visited_table_check(vt, "00488"));
+  // //uint64_t hash = calc_hash("01141");
+  // //printf("%zu\n", hash);
+
+  // return 0;
+  // for (int k = 9999; k >= 0; k--) {
+  //   sprintf(buffer, "%05d", k);
+  //   uint32_t x = visited_table_check(vt, buffer);
+  //   if (k != x)
+  //     printf("%d not found :(\n", k);
+  // }
+
+  // visited_table_destroy(vt);
 } 
