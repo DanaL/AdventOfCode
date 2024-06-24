@@ -315,6 +315,135 @@ bool valid_config(uint8_t *config)
   return true;
 }
 
+bool move_already_in_list(struct state **list, int mc, struct state *a) 
+{
+  if (mc == 0)
+    return false;
+
+  for (int m = 0; m < mc; m++) {
+    bool difference = false;
+    for (int j = 0; j < CONFIG_LEN; j++) {
+      if (list[m]->config[j] != a->config[j]) {
+        difference = true;
+        break;
+      }
+    }
+
+    if (difference)
+      return false;
+  }
+
+  return true;
+}
+
+struct state **find_valid_moves2(int *moves_count, struct state *curr_state)
+{
+  uint8_t elevator = curr_state->config[0];
+  struct state **moves = NULL;
+  *moves_count = 0;
+  struct state *other;
+
+  for (size_t j = 1; j < CONFIG_LEN; j++) {
+    if (curr_state->config[j] == elevator) {      
+      // test move pos by itself up
+      other = state_copy(curr_state);
+      other->move_count += 1;
+      other->config[0] += 1;
+      other->config[j] += 1;
+
+      if (valid_config(other->config)) {   
+        ++(*moves_count);
+        moves = realloc(moves, *moves_count * sizeof(struct state*));
+        moves[*moves_count - 1] = other;
+      }
+      else {
+        state_destroy(other);
+      }
+      
+      // 11 32 32 32 32
+      // 11 31 32 32 32
+
+      // 11 32 32 32 32
+      // 11 32 31 32 32
+
+      // 11 32 32 32 32
+      // 11 32 32 31 32
+
+      // 11 32 32 32 32
+      // 11 32 32 32 31
+
+      // test move pos by itself down
+      other = state_copy(curr_state);
+      other->move_count += 1;
+      other->config[0] -= 1;
+      other->config[j] -= 1;
+      if (valid_config(other->config)) {
+        ++(*moves_count);
+        moves = realloc(moves, *moves_count * sizeof(struct state*));
+        moves[*moves_count - 1] = other;
+      }
+      else {
+        state_destroy(other);
+      }
+
+      // test moving pos with each of the other moveable things (up and down)
+      for (size_t k = 1; k < CONFIG_LEN; k++) 
+      {
+        if (j == k)
+          continue;
+
+        if (curr_state->config[k] == elevator) {
+          other = state_copy(curr_state);
+          other->move_count += 1;
+          other->config[0] += 1;
+          other->config[j] += 1;
+          other->config[k] += 1;
+
+          if (move_already_in_list(moves, *moves_count, other)) {
+            state_destroy(other);
+            continue;
+          }
+
+          if (valid_config(other->config)) {   
+            ++(*moves_count);
+            moves = realloc(moves, *moves_count * sizeof(struct state*));
+            moves[*moves_count - 1] = other;
+          }
+          else {
+            state_destroy(other);
+          }
+
+          other = state_copy(curr_state);
+          other->move_count -= 1;
+          other->config[0] -= 1;
+          other->config[j] -= 1;
+          other->config[k] -= 1;
+
+          char *keykey = state_to_key(other);
+          if (strcmp(keykey, "1131313232") == 0)
+            printf("FLAG %d %d\n", *moves_count, move_already_in_list(moves, *moves_count, other));
+
+          if (move_already_in_list(moves, *moves_count, other)) {
+            state_destroy(other);
+            continue;            
+          }
+
+          if (valid_config(other->config)) {   
+            ++(*moves_count);
+            moves = realloc(moves, *moves_count * sizeof(struct state*));
+            moves[*moves_count - 1] = other;
+          }
+          else {
+            state_destroy(other);
+          }
+        }
+      }
+    }
+  }
+
+  return moves;
+}
+
 // moves should start off as null
 struct state **find_valid_moves(struct state **moves, int *moves_count, struct state *curr_state)
 {
@@ -414,7 +543,6 @@ void p1() {
   initial->config[9] = 3; // plutonium
   initial->config[10] = 2;
 
-  
   // initial->config[1] = 1;
   // initial->config[2] = 2;
   // initial->config[3] = 1;
@@ -498,8 +626,33 @@ iterate:
 
 int main(void)
 { 
-  p1();
+  //p1();
 
+  struct state *initial = malloc(sizeof(struct state));
+  initial->config = calloc(CONFIG_LEN, sizeof(uint8_t));
+  initial->config[0] = 2; // elevator
+  // in order of chip then generator so chips are ood indexes
+  // and their corresponding generators are even indexes
+
+  initial->config[1] = 1; // promethium
+  initial->config[2] = 1;
+  initial->config[3] = 3; // cobalt
+  initial->config[4] = 2;
+  initial->config[5] = 3; // curium
+  initial->config[6] = 2;
+  initial->config[7] = 3; // ruthenium
+  initial->config[8] = 2;
+  initial->config[9] = 3; // plutonium
+  initial->config[10] = 2;
+
+  printf("start %s\n", state_to_key(initial));
+  int mc;
+  struct state **mvs = find_valid_moves2(&mc, initial);
+
+  printf("Moves found: %d\n", mc);
+  for (int j = 0; j < mc; j++) {
+    printf("%s\n", state_to_key(mvs[j]));
+  }
   // struct vt_entry **vt = visited_table_create();
   
   // char buffer[20];
