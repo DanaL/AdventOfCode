@@ -9,11 +9,10 @@
 
 #define VT_SIZE 101719
 
-#define NUM_OF_ELTS 5
-#define CONFIG_LEN (2 * NUM_OF_ELTS + 1)
-
 #define HT_SIZE 1000
 #define PARENT(i) ((i) - 1) / 2
+
+static size_t config_len = 0;
 
 struct state {
   uint32_t move_count;
@@ -26,30 +25,38 @@ struct heap {
   size_t num_of_elts;
 };
 
-struct heap *heap_new()
+struct heap *heap_new(void)
 {
   struct heap *h = malloc(sizeof(struct heap));
   h->num_of_elts = 0;
   h->table_size = HT_SIZE;
   h->table = calloc(HT_SIZE, sizeof(struct state*));
 
-
   return h;
 }
 
 void heap_free(struct heap *h)
 {
-  for (int i = 0; i < h->num_of_elts; i++)
+  for (size_t i = 0; i < h->num_of_elts; i++)
     free(h->table[i]);
   free(h);
 }
 
+void state_print(const struct state *s)
+{
+  for (size_t i = 0; i < config_len; i++) {
+    printf("%zu ", s->config[i]);
+  }
+  printf(" | mc: %zu\n", s->move_count);
+}
+
 // Calc the distance from our goal state (ie., having all chips and generators
 // on floor four). Used for the heap ordering to make a priority queue
-uint32_t dist_from_goal(const struct state *s) {
+uint32_t dist_from_goal(const struct state *s) 
+{
   uint32_t distance = 0;
 
-  for (int j = 0; j < CONFIG_LEN; j++)
+  for (int j = 0; j < config_len; j++)
     distance += (4 - s->config[j]) * 2;
 
   return distance;
@@ -147,9 +154,9 @@ struct state *state_copy(struct state *p)
 {
   struct state *n = malloc(sizeof(struct state));
   n->move_count = p->move_count;
-  n->config = malloc(CONFIG_LEN * sizeof(uint8_t));
+  n->config = malloc(config_len * sizeof(uint8_t));
 
-  for (int i = 0; i < CONFIG_LEN; i++)
+  for (int i = 0; i < config_len; i++)
     n->config[i] = p->config[i];
 
   return n;
@@ -258,19 +265,12 @@ uint32_t visited_table_check(struct vt_entry **vt, const char *key)
   return UINT32_MAX;
 }
 
-void dump_config(uint8_t *config) 
-{
-  for (int j = 0; j < CONFIG_LEN; j++)
-    printf(" %d", config[j]);
-  printf("\n");
-}
-
 char *state_to_key(const struct state *state)
 { 
-  char *key = calloc(CONFIG_LEN, sizeof(char));
+  char *key = calloc(config_len + 1, sizeof(char));
 
-  for (int i = 1; i < CONFIG_LEN; i++) {    
-    key[i - 1] = (char) state->config[i] + '0';
+  for (int i = 0; i < config_len; i++) {    
+    key[i] = (char) state->config[i] + '0';
   }
   
   return key;
@@ -278,7 +278,7 @@ char *state_to_key(const struct state *state)
 
 bool finished(uint8_t *config)
 {
-  for (int j = 1; j < CONFIG_LEN; j++) {
+  for (int j = 1; j < config_len; j++) {
     if (config[j] != 4)
       return false;
   }
@@ -295,7 +295,7 @@ bool valid_config(uint8_t *config)
 
   // check to make sure no elements are on a floor with a
   // generator when their generator isn't present
-  for (int i = 1; i < CONFIG_LEN; i += 2) {
+  for (int i = 1; i < config_len; i += 2) {
     // if the generator is on the same floor as the element,
     // we're good, otherwise we have to make sure there are
     // no other generators on the same floor.
@@ -305,7 +305,7 @@ bool valid_config(uint8_t *config)
       continue;
     }
 
-    for (int j = 2; j < CONFIG_LEN; j += 2) {
+    for (int j = 2; j < config_len; j += 2) {
       if (config[j] == elt_floor) {
         return false;
       }
@@ -319,7 +319,7 @@ bool move_already_in_list(struct state **list, int mc, struct state *a)
 {
   for (int m = 0; m < mc; m++) {
     bool match = true;
-    for (int j = 0; j < CONFIG_LEN; j++) {
+    for (int j = 0; j < config_len; j++) {
       if (list[m]->config[j] != a->config[j]) {
         match = false;
         break;
@@ -333,14 +333,14 @@ bool move_already_in_list(struct state **list, int mc, struct state *a)
   return false;
 }
 
-struct state **find_valid_moves2(int *moves_count, struct state *curr_state)
+struct state **find_valid_moves(int *moves_count, struct state *curr_state)
 {
   uint8_t elevator = curr_state->config[0];
   struct state **moves = NULL;
   *moves_count = 0;
   struct state *other;
 
-  for (size_t j = 1; j < CONFIG_LEN; j++) {
+  for (size_t j = 1; j < config_len; j++) {
     if (curr_state->config[j] == elevator) {      
       // test move pos by itself up
       other = state_copy(curr_state);
@@ -356,18 +356,6 @@ struct state **find_valid_moves2(int *moves_count, struct state *curr_state)
       else {
         state_destroy(other);
       }
-      
-      // 11 32 32 32 32
-      // 11 31 32 32 32
-
-      // 11 32 32 32 32
-      // 11 32 31 32 32
-
-      // 11 32 32 32 32
-      // 11 32 32 31 32
-
-      // 11 32 32 32 32
-      // 11 32 32 32 31
 
       // test move pos by itself down
       other = state_copy(curr_state);
@@ -384,7 +372,7 @@ struct state **find_valid_moves2(int *moves_count, struct state *curr_state)
       }
 
       // test moving pos with each of the other moveable things (up and down)
-      for (size_t k = 1; k < CONFIG_LEN; k++) 
+      for (size_t k = 1; k < config_len; k++) 
       {
         if (j == k)
           continue;
@@ -411,7 +399,7 @@ struct state **find_valid_moves2(int *moves_count, struct state *curr_state)
           }
 
           other = state_copy(curr_state);
-          other->move_count -= 1;
+          other->move_count += 1;
           other->config[0] -= 1;
           other->config[j] -= 1;
           other->config[k] -= 1;
@@ -437,92 +425,18 @@ struct state **find_valid_moves2(int *moves_count, struct state *curr_state)
   return moves;
 }
 
-// moves should start off as null
-struct state **find_valid_moves(struct state **moves, int *moves_count, struct state *curr_state)
-{
-  *moves_count = 0;
-  uint8_t elevator = curr_state->config[0];
-  struct state *other_state = malloc(sizeof(struct state));
-  other_state->config = malloc(CONFIG_LEN * sizeof(uint8_t));
-  other_state->move_count = curr_state->move_count + 1;
-  moves = NULL;
-
-  // I'm going to loop over each thing on the floor and see what is
-  // possible to be moved. Nested loop to check all possible combos?
-
-  // Maybe more grokable: get list of everything on the same floor as the
-  // elevator, then test each permutation of moving them?
-  for (int i = 1; i < CONFIG_LEN; i++) {
-    if (curr_state->config[i] == elevator) {
-      //other_state->move_count = curr_state->move_count + 1;
-      for (int j = 0; j < CONFIG_LEN; j++)
-        other_state->config[j] = curr_state->config[j];
-
-      // check up one floor
-      other_state->config[0] = elevator + 1;
-      other_state->config[i] = elevator + 1;
-
-      if (valid_config(other_state->config)) {
-        *moves_count += 1;
-        moves = realloc(moves, *moves_count * sizeof(struct state *));
-        moves[*moves_count - 1] = state_copy(other_state);
-      }
-     
-      // check down one floor
-      other_state->config[0] = elevator - 1;
-      other_state->config[i] = elevator - 1;
-
-      if (valid_config(other_state->config)) {
-        *moves_count += 1;
-        moves = realloc(moves, *moves_count * sizeof(struct state *));
-        moves[*moves_count - 1] = state_copy(other_state);
-      }
-    
-      for (int k = i + 1; k < CONFIG_LEN; k++) {
-        if (curr_state->config[k] == elevator) {
-          other_state->config[0] = elevator + 1;
-          other_state->config[i] = elevator + 1;
-          other_state->config[k] = elevator + 1;
-
-          if (valid_config(other_state->config)) {
-            *moves_count += 1;
-            moves = realloc(moves, *moves_count * sizeof(struct state *));
-            moves[*moves_count - 1] = state_copy(other_state);
-          }
-
-          other_state->config[0] = elevator - 1;
-          other_state->config[i] = elevator - 1;
-          other_state->config[k] = elevator - 1;
-
-          if (valid_config(other_state->config)) {
-            *moves_count += 1;
-            moves = realloc(moves, *moves_count * sizeof(struct state *));
-            moves[*moves_count - 1] = state_copy(other_state);
-          }
-        }
-      }
-    }
-  }
-
-  state_destroy(other_state);
-
-  return moves;
-}
-
-// Maybe I need to think of this as a graph search? Each node
-// being a path from one state to another? If I find path to
-// a state that is shorter, replace it. If I am on a path and 
-// there is a shorter path to it already, I can abandon that path
-void p1() {
+void p1(void) {
+  config_len = 11;
   struct vt_entry **vt = visited_table_create();
   uint32_t shortest = UINT32_MAX;
 
   struct state *initial = malloc(sizeof(struct state));
   initial->move_count = 0;
 
-  initial->config = calloc(CONFIG_LEN, sizeof(uint8_t));
+  initial->config = calloc(config_len, sizeof(uint8_t));
   initial->config[0] = 1; // elevator
-  // in order of chip then generator so chips are ood indexes
+  
+  // in order of chip then generator so chips are odd indexes
   // and their corresponding generators are even indexes
 
   initial->config[1] = 1; // promethium
@@ -536,28 +450,14 @@ void p1() {
   initial->config[9] = 3; // plutonium
   initial->config[10] = 2;
 
-  // initial->config[1] = 1;
-  // initial->config[2] = 2;
-  // initial->config[3] = 1;
-  // initial->config[4] = 3;
-  
-
   struct heap *queue = heap_new();
   min_heap_push(queue, initial);
 
   uint64_t x = 0;
   while (queue->num_of_elts > 0) {
     struct state *curr = min_heap_pop(queue);
-   
-    // if (x % 10000 == 0) {
-    //   char *kk = state_to_key(curr);
-    //   printf("---------\nChecking: %s %d\n", kk, dist_from_goal(curr));
-    //   if (queue->num_of_elts > 0)
-    //     printf("\t%zu %zu\n", queue->table[0]->move_count, queue->num_of_elts);
-    //   free(kk);
-    // }
-
     char *curr_key = state_to_key(curr);
+
     uint32_t visited_mc = visited_table_check(vt, curr_key);
     free(curr_key);
     if (curr->move_count >= visited_mc || curr->move_count >= shortest) {
@@ -578,7 +478,7 @@ void p1() {
     
     struct state **moves = NULL;
     int moves_count = 0;
-    moves = find_valid_moves(moves, &moves_count, curr);
+    moves = find_valid_moves(&moves_count, curr);
 
     ++x;
     for (int j = 0; j < moves_count; j++) {
@@ -588,14 +488,11 @@ void p1() {
       uint32_t mv_distance = dist_from_goal(moves[j]);
     
       uint32_t sum = 0;
-      for (int k = 0; k < CONFIG_LEN; k++)
+      for (int k = 0; k < config_len; k++)
         sum += 4 - moves[j]->config[k];
-      //sum /= 2;
 
-      if (mc + sum < shortest && mc < visited_moves) {
-      //if (mc + sum < shortest && mc < visited_moves) {      
+      if (mc + sum < shortest && mc < visited_moves) {      
         min_heap_push(queue, moves[j]);
-        //visited_table_insert(vt, move_key, mc);
       }
       else {
         state_destroy(moves[j]);
@@ -603,10 +500,8 @@ void p1() {
   
       free(move_key);
     }
-    
 iterate:
     state_destroy(curr);
-
   }
 
   printf("interations: %d\n", x);
@@ -619,53 +514,5 @@ iterate:
 
 int main(void)
 { 
-  //p1();
-
-  struct state *initial = malloc(sizeof(struct state));
-  initial->config = calloc(CONFIG_LEN, sizeof(uint8_t));
-  initial->config[0] = 2; // elevator
-  // in order of chip then generator so chips are ood indexes
-  // and their corresponding generators are even indexes
-
-  initial->config[1] = 1; // promethium
-  initial->config[2] = 1;
-  initial->config[3] = 3; // cobalt
-  initial->config[4] = 2;
-  initial->config[5] = 3; // curium
-  initial->config[6] = 2;
-  initial->config[7] = 3; // ruthenium
-  initial->config[8] = 2;
-  initial->config[9] = 3; // plutonium
-  initial->config[10] = 2;
-
-  printf("start %s\n", state_to_key(initial));
-  int mc;
-  struct state **mvs = find_valid_moves2(&mc, initial);
-
-  printf("Moves found: %d\n", mc);
-  for (int j = 0; j < mc; j++) {
-    printf("%s\n", state_to_key(mvs[j]));
-  }
-  // struct vt_entry **vt = visited_table_create();
-  
-  // char buffer[20];
-  // for (int j = 0; j < 10000; j++) {
-  //   sprintf(buffer, "%05d", j);
-  //   visited_table_insert(vt, buffer, j);
-  // }
-  // printf("zz %zu\n", visited_table_check(vt, "09988"));
-  // printf("zz %zu\n", visited_table_check(vt, "01141"));
-  // printf("zz %zu\n", visited_table_check(vt, "00488"));
-  // //uint64_t hash = calc_hash("01141");
-  // //printf("%zu\n", hash);
-
-  // return 0;
-  // for (int k = 9999; k >= 0; k--) {
-  //   sprintf(buffer, "%05d", k);
-  //   uint32_t x = visited_table_check(vt, buffer);
-  //   if (k != x)
-  //     printf("%d not found :(\n", k);
-  // }
-
-  // visited_table_destroy(vt);
+  p1();
 } 
