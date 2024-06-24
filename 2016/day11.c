@@ -317,23 +317,20 @@ bool valid_config(uint8_t *config)
 
 bool move_already_in_list(struct state **list, int mc, struct state *a) 
 {
-  if (mc == 0)
-    return false;
-
   for (int m = 0; m < mc; m++) {
-    bool difference = false;
+    bool match = true;
     for (int j = 0; j < CONFIG_LEN; j++) {
       if (list[m]->config[j] != a->config[j]) {
-        difference = true;
+        match = false;
         break;
       }
     }
 
-    if (difference)
-      return false;
+    if (match)
+      return true;
   }
 
-  return true;
+  return false;
 }
 
 struct state **find_valid_moves2(int *moves_count, struct state *curr_state)
@@ -418,10 +415,6 @@ struct state **find_valid_moves2(int *moves_count, struct state *curr_state)
           other->config[0] -= 1;
           other->config[j] -= 1;
           other->config[k] -= 1;
-
-          char *keykey = state_to_key(other);
-          if (strcmp(keykey, "1131313232") == 0)
-            printf("FLAG %d %d\n", *moves_count, move_already_in_list(moves, *moves_count, other));
 
           if (move_already_in_list(moves, *moves_count, other)) {
             state_destroy(other);
