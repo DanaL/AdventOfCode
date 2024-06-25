@@ -425,30 +425,12 @@ struct state **find_valid_moves(int *moves_count, struct state *curr_state)
   return moves;
 }
 
-void p1(void) {
-  config_len = 11;
+void determine_moves(struct state *initial, size_t cl) 
+{
+  config_len = cl;
+
   struct vt_entry **vt = visited_table_create();
   uint32_t shortest = UINT32_MAX;
-
-  struct state *initial = malloc(sizeof(struct state));
-  initial->move_count = 0;
-
-  initial->config = calloc(config_len, sizeof(uint8_t));
-  initial->config[0] = 1; // elevator
-  
-  // in order of chip then generator so chips are odd indexes
-  // and their corresponding generators are even indexes
-
-  initial->config[1] = 1; // promethium
-  initial->config[2] = 1;
-  initial->config[3] = 3; // cobalt
-  initial->config[4] = 2;
-  initial->config[5] = 3; // curium
-  initial->config[6] = 2;
-  initial->config[7] = 3; // ruthenium
-  initial->config[8] = 2;
-  initial->config[9] = 3; // plutonium
-  initial->config[10] = 2;
 
   struct heap *queue = heap_new();
   min_heap_push(queue, initial);
@@ -487,11 +469,11 @@ void p1(void) {
       uint32_t mc = moves[j]->move_count;
       uint32_t mv_distance = dist_from_goal(moves[j]);
     
-      uint32_t sum = 0;
-      for (int k = 0; k < config_len; k++)
-        sum += 4 - moves[j]->config[k];
+      // uint32_t sum = 0;
+      // for (int k = 0; k < config_len; k++)
+      //   sum += 4 - moves[j]->config[k];
 
-      if (mc + sum < shortest && mc < visited_moves) {      
+      if (mc < visited_moves) {      
         min_heap_push(queue, moves[j]);
       }
       else {
@@ -512,7 +494,59 @@ iterate:
   printf("P1: %d\n", shortest);  
 }
 
+void p1(void)
+{
+  struct state *initial = malloc(sizeof(struct state));
+  initial->move_count = 0;
+
+  initial->config = calloc(config_len, sizeof(uint8_t));
+  initial->config[0] = 1; // elevator
+  
+  // in order of chip then generator so chips are odd indexes
+  // and their corresponding generators are even indexes
+
+  initial->config[1] = 1; // promethium
+  initial->config[2] = 1;
+  initial->config[3] = 3; // cobalt
+  initial->config[4] = 2;
+  initial->config[5] = 3; // curium
+  initial->config[6] = 2;
+  initial->config[7] = 3; // ruthenium
+  initial->config[8] = 2;
+  initial->config[9] = 3; // plutonium
+  initial->config[10] = 2;
+
+  determine_moves(initial, 11);
+}
+
+void p2(void)
+{
+  struct state *initial = malloc(sizeof(struct state));
+  initial->move_count = 0;
+
+  initial->config = calloc(config_len, sizeof(uint8_t));
+  initial->config[0] = 1; // elevator
+  
+  initial->config[1] = 1; // promethium
+  initial->config[2] = 1;
+  initial->config[3] = 3; // cobalt
+  initial->config[4] = 2;
+  initial->config[5] = 3; // curium
+  initial->config[6] = 2;
+  initial->config[7] = 3; // ruthenium
+  initial->config[8] = 2;
+  initial->config[9] = 3; // plutonium
+  initial->config[10] = 2;
+  initial->config[11] = 1; // elerium
+  initial->config[12] = 1;
+  initial->config[13] = 1; // dilithium
+  initial->config[14] = 1;
+
+  determine_moves(initial, 15);
+}
+
 int main(void)
 { 
   p1();
+  p2();
 } 
