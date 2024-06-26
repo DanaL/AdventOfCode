@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <limits.h>
 
 #include "utils.h"
 
@@ -191,4 +192,88 @@ char *md5(const char *txt)
   free(padded);
 
   return hex_str;
+}
+
+// heap implementation
+
+#define HT_SIZE 1000
+#define HEAP_PARENT(i) ((i) - 1) / 2
+
+struct heap *heap_new(void)
+{
+  struct heap *h = malloc(sizeof(struct heap));
+  h->num_of_elts = 0;
+  h->table_size = HT_SIZE;
+  h->table = calloc(HT_SIZE, sizeof(void*));
+
+  return h;
+}
+
+void min_heap_push(struct heap *h, void *item, int (*priority)(const void *))
+{
+  if (h->num_of_elts == h->table_size) {
+    // need to expand the table
+    h->table_size += HT_SIZE;
+    h->table = realloc(h->table, h->table_size * sizeof(void*));
+  }
+
+  size_t i = h->num_of_elts;
+  h->table[i] = item;
+  int p = (*priority)(item);
+  
+  while (i > 0 && p < (*priority)(h->table[HEAP_PARENT(i)])) {
+    size_t parent = HEAP_PARENT(i);
+    struct state *tmp = h->table[parent];
+    h->table[parent] = item;
+    h->table[i] = tmp;
+    i = parent;
+  }
+
+  ++h->num_of_elts;
+}
+
+void min_heapify(struct heap *h, size_t i, int (*priority)(const void *))
+{
+  int left_child_priority = INT_MAX;
+  size_t left_child_i = 2 * i + 1;
+  if (left_child_i < h->num_of_elts) {
+    left_child_priority = (*priority)(h->table[left_child_i]);
+  }
+  int right_child_priority = INT_MAX;
+  size_t right_child_i = 2 * i + 2;
+  if (right_child_i < h->num_of_elts) {
+    right_child_priority = (*priority)(h->table[right_child_i]);
+  }
+
+  int p = (*priority)(h->table[i]);
+  if (p > left_child_priority || p > right_child_priority) {
+    if (left_child_priority < right_child_priority) {
+      // swap i and left and reheapify left branch
+      struct state *tmp = h->table[left_child_i];
+      h->table[left_child_i] = h->table[i];
+      h->table[i] = tmp;
+      min_heapify(h, left_child_i, priority);
+    }
+    else {
+      // swap i and right and reheapify right branch
+      struct state *tmp = h->table[right_child_i];
+      h->table[right_child_i] = h->table[i];
+      h->table[i] = tmp;
+      min_heapify(h, right_child_i, priority);
+    }
+  }
+}
+
+void *min_heap_pop(struct heap *h, int (*priority)(const void *))
+{
+  void *result = h->table[0];
+  --h->num_of_elts;
+
+  h->table[0] = h->table[h->num_of_elts];
+  h->table[h->num_of_elts] = NULL;
+
+  if (h->num_of_elts > 0)
+    min_heapify(h, 0, priority);
+
+  return result;
 }

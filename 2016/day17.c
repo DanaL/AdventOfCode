@@ -77,7 +77,44 @@ void p1(const char *seed)
   free(n);
 }
 
+int priority(const void *item)
+{
+  struct node *n = item;
+
+  return strlen(n->path);
+}
+
+
+struct num {
+  int x;
+};
+
+int p(const void *x)
+{
+  struct num *n = x;
+
+  return n->x;
+}
+
+
+
 int main(void)
 {
-  p1("hijkl");
+  //p1("hijkl");
+
+  struct heap *h = heap_new();
+
+  srand(120091189);
+  for (int j = 0; j < 10; j++) {
+    struct num *n = malloc(sizeof(struct num));
+    n->x = 1000 - (rand() % 2000);
+    min_heap_push(h, n, p);
+    printf("%d\n", n->x);
+  }
+  
+  printf("\n");
+  while (h->num_of_elts) {
+    struct num *n = min_heap_pop(h, p);
+    printf("%d\n", n->x);
+  }
 }
