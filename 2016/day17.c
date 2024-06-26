@@ -51,7 +51,7 @@ void p1(const char *seed)
   char path[100];
   struct node *initial = node_create(1, 1, seed);
   uint32_t shortest = UINT32_MAX;
-
+  uint32_t longest = 0;
   struct heap *q = heap_new();
   min_heap_push(q, initial, priority);
 
@@ -60,9 +60,9 @@ void p1(const char *seed)
     struct node *curr = min_heap_pop(q, priority);
     char *hash = md5(curr->path);
 
-    if (strlen(curr->path) > shortest) {
-      goto iterate;
-    }
+    //if (strlen(curr->path) > shortest) {
+    //  goto iterate;
+    //}
 
     if (curr->row == 4 && curr->col == 4) {
       size_t path_len = strlen(curr->path) - strlen(seed);
@@ -70,7 +70,9 @@ void p1(const char *seed)
         shortest = path_len;
         strcpy(path, &curr->path[strlen(seed)]);
       }
-
+      if (path_len > longest) {
+        longest = path_len;
+      }
       goto iterate;
     }
 
@@ -105,32 +107,17 @@ void p1(const char *seed)
         min_heap_push(q, n, priority);
       }
     }
-
 iterate:
     free(hash);
     node_free(curr);
   }
 
   printf("P1: %s\n", path);
+  printf("P2: %zu\n", longest);
 }
-
-
-struct num {
-  int x;
-};
-
-int p(const void *x)
-{
-  struct num *n = x;
-
-  return n->x;
-}
-
-
 
 int main(void)
 {
-  //p1("hijkl");
-  p1("rrrbmfta");
-  //p1("ihgpwlah");
+  //p1("rrrbmfta");
+  p1("ulqzkmiv");
 }
