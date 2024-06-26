@@ -39,49 +39,79 @@ bool in_bounds(uint8_t row, uint8_t col)
   return row > 0 && row < 5 && col > 0 && col < 5;
 }
 
-void p1(const char *seed)
-{
-  struct node *n = node_create(1, 1, seed);
-  
-  // gonna need a queue of nodes to visit starting
-  // with the initial one
-  //
-  // does it make sense to track visited? or are 
-  // all paths going to be unique?
-  //
-  // I guess I can at least insert into heap ordered
-  // by path length and then bail on paths longer
-  // than known shortest
-  char *h = md5(n->path);
-  printf("%s\n", h);
-
-  // up, down, left, right
-  for (int j = 0; j < 4; j++) {
-    if (h[j] >= 'b' && h['j'] <= 'f') {
-      if (j == UP && in_bounds(n->row - 1, n->col)) {
-        printf("up\n");
-      }
-      else if (j == DOWN && in_bounds(n->row + 1, n->col)) {
-        printf("down\n");
-      }
-      else if (j == LEFT && in_bounds(n->row, n->col - 1)) {
-       printf("left\n");
-      }
-      else if (j == RIGHT && in_bounds(n->row, n->col + 1)) {
-        printf("right\n");
-      }
-    }    
-  }
-
-  free(h);
-  free(n);
-}
-
 int priority(const void *item)
 {
   struct node *n = item;
 
   return strlen(n->path);
+}
+
+void p1(const char *seed)
+{
+  char path[100];
+  struct node *initial = node_create(1, 1, seed);
+  uint32_t shortest = UINT32_MAX;
+
+  struct heap *q = heap_new();
+  min_heap_push(q, initial, priority);
+
+  char buffer[1000];
+  while (q->num_of_elts) {
+    struct node *curr = min_heap_pop(q, priority);
+    char *hash = md5(curr->path);
+
+    if (strlen(curr->path) > shortest) {
+      goto iterate;
+    }
+
+    if (curr->row == 4 && curr->col == 4) {
+      size_t path_len = strlen(curr->path) - strlen(seed);
+      if (path_len < shortest) {
+        shortest = path_len;
+        strcpy(path, &curr->path[strlen(seed)]);
+      }
+
+      goto iterate;
+    }
+
+    size_t path_len = strlen(curr->path);
+    strcpy(buffer, curr->path);
+    buffer[path_len+1] = '\0';
+
+    struct node *n = NULL;
+    for (int j = 0; j < 4; j++) {
+      if (hash[j] < 'b' || hash[j] > 'f') 
+        continue;
+
+      n = NULL;
+      if (j == UP && in_bounds(curr->row - 1, curr->col)) {
+        buffer[path_len] = 'U';
+        n = node_create(curr->row-1, curr->col, buffer);
+      }
+      else if (j == DOWN && in_bounds(curr->row + 1, curr->col)) {
+        buffer[path_len] = 'D';
+        n = node_create(curr->row+1, curr->col, buffer);
+      }
+      else if (j == LEFT && in_bounds(curr->row, curr->col - 1)) {
+        buffer[path_len] = 'L';
+        n = node_create(curr->row, curr->col-1, buffer);
+      }
+      else if (j == RIGHT && in_bounds(curr->row, curr->col + 1)) {
+        buffer[path_len] = 'R';
+        n = node_create(curr->row, curr->col+1, buffer);
+      }
+
+      if (n) {
+        min_heap_push(q, n, priority);
+      }
+    }
+
+iterate:
+    free(hash);
+    node_free(curr);
+  }
+
+  printf("P1: %s\n", path);
 }
 
 
@@ -101,20 +131,6 @@ int p(const void *x)
 int main(void)
 {
   //p1("hijkl");
-
-  struct heap *h = heap_new();
-
-  srand(120091189);
-  for (int j = 0; j < 10; j++) {
-    struct num *n = malloc(sizeof(struct num));
-    n->x = 1000 - (rand() % 2000);
-    min_heap_push(h, n, p);
-    printf("%d\n", n->x);
-  }
-  
-  printf("\n");
-  while (h->num_of_elts) {
-    struct num *n = min_heap_pop(h, p);
-    printf("%d\n", n->x);
-  }
+  p1("rrrbmfta");
+  //p1("ihgpwlah");
 }
