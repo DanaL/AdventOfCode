@@ -21,7 +21,7 @@ struct node {
 
 struct node *node_create(uint8_t row, uint8_t col, const char *path) 
 {
-  struct node *n = malloc(sizeof(struct node *));
+  struct node *n = malloc(sizeof(struct node));
   n->row = row;
   n->col = col;
   n->path = malloc((strlen(path) + 1) * sizeof(char));
@@ -43,7 +43,7 @@ bool in_bounds(uint8_t row, uint8_t col)
 
 int priority(const void *item)
 {
-  struct node *n = item;
+  const struct node *n = item;
 
   return strlen(n->path);
 }
