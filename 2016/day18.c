@@ -15,17 +15,9 @@ int count_safe(const char *s)
 
 char calc_trap(char left, char centre, char right) 
 {
-  if (left == '^' && centre == '^' && right == '.')
-    return '^';
-  else if (left == '.' && centre == '^' && right == '^')
-    return '^';
-  else if (left == '^' && centre == '.' && right == '.')
-    return '^';
-  else if (left == '.' && centre == '.' && right == '^')
-    return '^';
-
-  return '.';
+  return left != right ? '^' : '.';
 }
+
 char *next_gen(const char *s) 
 {
   size_t len = strlen(s);
