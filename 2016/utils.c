@@ -183,7 +183,7 @@ char *md5(const char *txt)
     offset += 64;
   }
 
-  char *hex_str = malloc(33 * sizeof(char));
+  char *hex_str = malloc(33);
   char hex_bytes[9];
   offset = 0;
   uint32_t bytes[] = { a0, b0, c0, d0 };

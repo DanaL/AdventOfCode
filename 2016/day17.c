@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <stdbool.h>
 
 #include "utils.h"
 
@@ -24,7 +23,7 @@ struct node *node_create(uint8_t row, uint8_t col, const char *path)
   struct node *n = malloc(sizeof(struct node));
   n->row = row;
   n->col = col;
-  n->path = malloc((strlen(path) + 1) * sizeof(char));
+  n->path = malloc(strlen(path) + 1);
   strcpy(n->path, path);
 
   return n;
@@ -43,8 +42,9 @@ int priority(const void *item)
   return strlen(n->path);
 }
 
-void p1(const char *seed)
+int main(void)
 {
+  char *seed = "rrrbmfta";
   char path[100];
   struct node *initial = node_create(1, 1, seed);
   uint32_t shortest = UINT32_MAX;
@@ -55,10 +55,6 @@ void p1(const char *seed)
   char buffer[1000];
   while (q->num_of_elts) {
     struct node *curr = min_heap_pop(q, priority);
-    
-    //if (strlen(curr->path) > shortest) {
-    //  goto iterate;
-    //}
 
     if (curr->row == 4 && curr->col == 4) {
       size_t path_len = strlen(curr->path) - strlen(seed);
@@ -107,14 +103,4 @@ void p1(const char *seed)
 
   printf("P1: %s\n", path);
   printf("P2: %u\n", longest);
-}
-
-int main(void)
-{
-  //p1("rrrbmfta");
-  p1("rrrbmfta");
-  //printf("%s\n", md5("ulqzkmivDRURDRUDDLLDLUURRDULRLDUUDDDRLURUDLURDRULDLDUURDR"));
-
-  //printf("%s\n", md5("ulqzkmivDRURDRUDDLLDLUURRDUULDDDLUDRLURLURRR"));
-  //1658164ec5db9e05cf6cb56c301df41b
 }
