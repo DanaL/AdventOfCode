@@ -11,6 +11,8 @@
 #define LEFT 2
 #define RIGHT 3
 
+#define OPEN(c) ((c) >= 'b' && (c) <= 'f')
+
 struct node {
   uint8_t row;
   uint8_t col;
@@ -80,32 +82,25 @@ void p1(const char *seed)
     strcpy(buffer, curr->path);
     buffer[path_len+1] = '\0';
 
-    struct node *n = NULL;
-    for (int j = 0; j < 4; j++) {
-      if (hash[j] < 'b' || hash[j] > 'f') 
-        continue;
-
-      n = NULL;
-      if (j == UP && in_bounds(curr->row - 1, curr->col)) {
-        buffer[path_len] = 'U';
-        n = node_create(curr->row-1, curr->col, buffer);
-      }
-      else if (j == DOWN && in_bounds(curr->row + 1, curr->col)) {
-        buffer[path_len] = 'D';
-        n = node_create(curr->row+1, curr->col, buffer);
-      }
-      else if (j == LEFT && in_bounds(curr->row, curr->col - 1)) {
-        buffer[path_len] = 'L';
-        n = node_create(curr->row, curr->col-1, buffer);
-      }
-      else if (j == RIGHT && in_bounds(curr->row, curr->col + 1)) {
-        buffer[path_len] = 'R';
-        n = node_create(curr->row, curr->col+1, buffer);
-      }
-
-      if (n) {
-        min_heap_push(q, n, priority);
-      }
+    if (OPEN(hash[UP]) && in_bounds(curr->row-1, curr->col)) {
+      buffer[path_len] = 'U';
+      struct node *n = node_create(curr->row-1, curr->col, buffer);
+      min_heap_push(q, n, priority);
+    }
+    if (OPEN(hash[DOWN]) && in_bounds(curr->row+1, curr->col)) {
+      buffer[path_len] = 'D';
+      struct node *n = node_create(curr->row+1, curr->col, buffer);
+      min_heap_push(q, n, priority);
+    }
+    if (OPEN(hash[LEFT]) && in_bounds(curr->row, curr->col-1)) {
+      buffer[path_len] = 'L';
+      struct node *n = node_create(curr->row, curr->col-1, buffer);
+      min_heap_push(q, n, priority);
+    }
+    if (OPEN(hash[RIGHT]) && in_bounds(curr->row, curr->col+1)) {
+      buffer[path_len] = 'R';
+      struct node *n = node_create(curr->row, curr->col+1, buffer);
+      min_heap_push(q, n, priority);
     }
 iterate:
     free(hash);
@@ -113,7 +108,7 @@ iterate:
   }
 
   printf("P1: %s\n", path);
-  printf("P2: %zu\n", longest);
+  printf("P2: %u\n", longest);
 }
 
 int main(void)
