@@ -40,16 +40,14 @@ char *next_gen(const char *s)
   return n;
 }
 
-int main(void)
+int solve(char *seed, size_t generations)
 {
-  char *seed = ".^^.^^^..^.^..^.^^.^^^^.^^.^^...^..^...^^^..^^...^..^^^^^^..^.^^^..^.^^^^.^^^.^...^^^.^^.^^^.^.^^.^.";
   char *s = calloc(strlen(seed) + 1, sizeof(char)); 
   strcpy(s, seed);
   int safe = 0;
 
-  for (int j = 0; j < 40; j++) {
-    safe += count_safe(s);
-    printf("%s\n", s);
+  for (size_t j = 0; j < generations; j++) {
+    safe += count_safe(s);    
     char *n = next_gen(s);
     free(s);
     s = n;
@@ -57,5 +55,12 @@ int main(void)
   
   free(s);
 
-  printf("P1: %d\n", safe);
+  return safe;
+}
+
+int main(void)
+{
+  char *seed = ".^^.^^^..^.^..^.^^.^^^^.^^.^^...^..^...^^^..^^...^..^^^^^^..^.^^^..^.^^^^.^^^.^...^^^.^^.^^^.^.^^.^.";
+  printf("P1: %d\n", solve(seed, 40));
+  printf("P1: %d\n", solve(seed, 400000));
 }
