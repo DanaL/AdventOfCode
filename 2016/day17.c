@@ -36,11 +36,6 @@ void node_free(struct node *n)
   free(n);
 }
 
-bool in_bounds(uint8_t row, uint8_t col)
-{
-  return row > 0 && row < 5 && col > 0 && col < 5;
-}
-
 int priority(const void *item)
 {
   const struct node *n = item;
@@ -60,8 +55,7 @@ void p1(const char *seed)
   char buffer[1000];
   while (q->num_of_elts) {
     struct node *curr = min_heap_pop(q, priority);
-    char *hash = md5(curr->path);
-
+    
     //if (strlen(curr->path) > shortest) {
     //  goto iterate;
     //}
@@ -75,34 +69,38 @@ void p1(const char *seed)
       if (path_len > longest) {
         longest = path_len;
       }
-      goto iterate;
+      
+      node_free(curr);
+
+      continue;
     }
 
     size_t path_len = strlen(curr->path);
     strcpy(buffer, curr->path);
     buffer[path_len+1] = '\0';
 
-    if (OPEN(hash[UP]) && in_bounds(curr->row-1, curr->col)) {
+    char *hash = md5(curr->path);
+    if (OPEN(hash[UP]) && curr->row - 1 > 0) {
       buffer[path_len] = 'U';
       struct node *n = node_create(curr->row-1, curr->col, buffer);
       min_heap_push(q, n, priority);
     }
-    if (OPEN(hash[DOWN]) && in_bounds(curr->row+1, curr->col)) {
+    if (OPEN(hash[DOWN]) && curr->row + 1 < 5) {
       buffer[path_len] = 'D';
       struct node *n = node_create(curr->row+1, curr->col, buffer);
       min_heap_push(q, n, priority);
     }
-    if (OPEN(hash[LEFT]) && in_bounds(curr->row, curr->col-1)) {
+    if (OPEN(hash[LEFT]) && curr->col - 1 > 0) {
       buffer[path_len] = 'L';
       struct node *n = node_create(curr->row, curr->col-1, buffer);
       min_heap_push(q, n, priority);
     }
-    if (OPEN(hash[RIGHT]) && in_bounds(curr->row, curr->col+1)) {
+    if (OPEN(hash[RIGHT]) && curr->col + 1 < 5) {
       buffer[path_len] = 'R';
       struct node *n = node_create(curr->row, curr->col+1, buffer);
       min_heap_push(q, n, priority);
     }
-iterate:
+
     free(hash);
     node_free(curr);
   }
@@ -114,5 +112,9 @@ iterate:
 int main(void)
 {
   //p1("rrrbmfta");
-  p1("ulqzkmiv");
+  p1("rrrbmfta");
+  //printf("%s\n", md5("ulqzkmivDRURDRUDDLLDLUURRDULRLDUUDDDRLURUDLURDRULDLDUURDR"));
+
+  //printf("%s\n", md5("ulqzkmivDRURDRUDDLLDLUURRDUULDDDLUDRLURLURRR"));
+  //1658164ec5db9e05cf6cb56c301df41b
 }

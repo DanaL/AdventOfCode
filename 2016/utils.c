@@ -34,17 +34,20 @@ void lines_free(char **lines, size_t line_count)
   free(lines);
 }
 
-uint8_t *pad(uint8_t *txt, int *padded_len)
+uint8_t *pad(const uint8_t *txt, size_t *padded_len)
 {
-  size_t len = strlen(txt);
-  *padded_len = len + (64 - len % 64);
-
+  size_t len = strlen((char*)txt);
+  size_t mod_len = len % 64 + 1;
+  size_t padding_length = mod_len <= 56 ? 56 - mod_len : 64 - (mod_len - 56);
+  
+  *padded_len = len + 1 + padding_length + 8;
   uint8_t *padded = calloc(*padded_len, sizeof(uint8_t));
   memcpy(padded, txt, len);
   padded[len] = 0x80;
   
   uint64_t og_len_in_bits = (uint64_t)len * 8;
- 
+  
+  // Calc representation of original len in bits in little endian
   // If the length of the text to be hashed can't be represented in 64 bits,
   // we'd use the 64 least significant bits but I'm not going to worry about
   // that here.
@@ -130,8 +133,8 @@ char *md5(const char *txt)
   uint32_t c0 = 0x98badcfe;
   uint32_t d0 = 0x10325476;
 
-  int padded_len = 0;
-  uint8_t *padded = pad(txt, &padded_len);
+  size_t padded_len = 0;
+  uint8_t *padded = pad((const uint8_t *)txt, &padded_len);
 
   // Proceed in 512 bit (64 byte for my purposes) chunks
   int offset = 0;
@@ -215,6 +218,7 @@ void min_heap_push(struct heap *h, void *item, int (*priority)(const void *))
     // need to expand the table
     h->table_size += HT_SIZE;
     h->table = realloc(h->table, h->table_size * sizeof(void*));
+    printf("FLAG\n");
   }
 
   size_t i = h->num_of_elts;
