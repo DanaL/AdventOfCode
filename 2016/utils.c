@@ -10,6 +10,12 @@ char **read_all_lines(const char *filename, size_t *line_count)
 {
   char **lines = NULL;
   FILE *fp = fopen(filename, "r");
+
+  if (!fp) {
+    printf("File '%s' not found.\n", filename);
+    exit(1);
+  }
+
   char buffer[100];
   *line_count = 0;
   while (fgets(buffer, sizeof buffer, fp) != NULL) {
