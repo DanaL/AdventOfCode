@@ -287,3 +287,13 @@ void *min_heap_pop(struct heap *h, int (*priority)(const void *))
 
   return result;
 }
+
+// misc string functions
+
+bool str_starts_with(const char *a, const char *b)
+{
+  if (strncmp(a, b, strlen(b)) == 0)
+    return true;
+
+  return false;
+}
