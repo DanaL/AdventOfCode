@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "utils.h"
 
@@ -28,11 +29,15 @@ void p1(void)
   char **lines = read_all_lines("inputs/day20.txt", &lc);
   struct range *ranges = malloc(lc * sizeof(struct range));
 
+  char buffer[50];
   for (size_t j = 0; j < lc; j++) {
-    uint32_t lo, hi;
-    sscanf(lines[j], "%zu-%zu", &lo, &hi);
-    ranges[j].lo = lo;
-    ranges[j].hi = hi;
+    //uint32_t lo, hi;
+    char *dash = strchr(lines[j], '-');
+    size_t n = dash - lines[j];
+    strncpy(buffer, lines[j], n);
+    buffer[n] = '\0';
+    ranges[j].lo = strtol(buffer, NULL, 10);
+    ranges[j].hi = strtol(dash+1, NULL, 10);
   }
   lines_free(lines, lc);
 
