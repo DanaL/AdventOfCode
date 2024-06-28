@@ -31,7 +31,6 @@ void p1(void)
 
   char buffer[50];
   for (size_t j = 0; j < lc; j++) {
-    //uint32_t lo, hi;
     char *dash = strchr(lines[j], '-');
     size_t n = dash - lines[j];
     strncpy(buffer, lines[j], n);
@@ -49,7 +48,23 @@ void p1(void)
       lowest = ranges[j].hi + 1;
   }
 
-  printf("%zu\n", lowest);
+  printf("P1: %zu\n", lowest);
+
+  uint32_t allowed = 0;
+  uint32_t upper = ranges[0].hi;
+  for (size_t j = 0; j < lc - 1; j++) {
+    if (upper >= ranges[j+1].lo) {
+      if (upper >= ranges[j+1].hi) {
+        ranges[j+1].hi = upper;
+      }      
+    }
+    else {
+      allowed += ranges[j+1].lo - upper - 1;
+    }
+
+    upper = ranges[j+1].hi;
+  }
+  printf("P2: %zu\n", allowed);
 
   free(ranges);
 }
