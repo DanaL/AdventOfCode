@@ -1,24 +1,32 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "utils.h"
 
+char *goal = "fbgdceah";
+char **lines;
+size_t lc;
+
+void rotate_left(char buffer[], size_t buff_len)
+{
+  char tmp[10];
+  strcpy(tmp, buffer);
+  strncpy(&buffer[buff_len - 1], tmp, 1);
+  strncpy(buffer, &tmp[1], buff_len - 1);
+}
+
 void rotate_right(char buffer[], size_t buff_len)
 {
-  char tmp[100];
+  char tmp[10];
   strcpy(tmp, buffer);
   strncpy(&buffer[1], tmp, buff_len - 1);
   strncpy(buffer, &tmp[buff_len - 1], 1);
 }
 
-int main(void)
+void scramble(char *buffer)
 {
-  size_t lc;
-  char **lines = read_all_lines("inputs/day21.txt", &lc);
-  char buffer[] = "abcdefgh";
   size_t buff_len = strlen(buffer);
-
-  printf("before: %s\n", buffer);
 
   for (size_t j = 0; j < lc; j++) {
     if (str_starts_with(lines[j], "swap position")) {
@@ -53,12 +61,9 @@ int main(void)
     else if (str_starts_with(lines[j], "rotate left")) {
       int steps;
       sscanf(lines[j], "rotate left %d step", &steps);
-      steps %= buff_len;
 
-      char tmp[100];
-      strcpy(tmp, buffer);
-      strncpy(&buffer[buff_len - steps], tmp, steps);
-      strncpy(buffer, &tmp[steps], buff_len - steps);
+      for (int k = 0; k < steps; k++)
+        rotate_left(buffer, buff_len);      
     }
     else if (str_starts_with(lines[j], "rotate right")) {
       int steps;
@@ -96,11 +101,52 @@ int main(void)
       }
       buffer[to] = c;
     }
+  }  
+}
 
-    // printf("%d) %s\n", j, buffer);
+void swap(char *buffer, size_t a, size_t b)
+{
+  char tmp = buffer[a];
+  buffer[a] = buffer[b];
+  buffer[b] = tmp;
+}
+
+void permute(char *buffer, size_t start, size_t end)
+{
+  // check the permutation to see if it's our password
+  if (start == end) {
+    char copy[10];
+    strcpy(copy, buffer);
+    scramble(copy);
+
+    if (strcmp(goal, copy) == 0) {
+      printf("original pwd: %s\n", buffer);
+      exit(0);
+    }
+    return;
   }
 
-  printf("after: %s\n", buffer);
+  permute(buffer, start+1, end);
+
+  for (size_t i = start+1; i < end; i++) {
+    if (buffer[start] == buffer[i])
+      continue;
+    swap(buffer, start, i);
+    permute(buffer, start+1, end);
+    swap(buffer, start, i); // restore order
+  }
+}
+
+int main(void)
+{
+  lines = read_all_lines("inputs/day21.txt", &lc);  
+  
+  char buffer[] = "abcdefgh";
+  scramble(buffer);
+  printf("P1: %s\n", buffer);
+
+  char buffer2[] = "abcdefgh";
+  permute(buffer2, 0, strlen(buffer2));
 
   lines_free(lines, lc);
 }
