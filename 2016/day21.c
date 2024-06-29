@@ -1,12 +1,21 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "utils.h"
+
+void rotate_right(char buffer[], size_t buff_len)
+{
+  char tmp[100];
+  strcpy(tmp, buffer);
+  strncpy(&buffer[1], tmp, buff_len - 1);
+  strncpy(buffer, &tmp[buff_len - 1], 1);
+}
 
 int main(void)
 {
   size_t lc;
   char **lines = read_all_lines("inputs/day21.txt", &lc);
-  char buffer[] = "abcde";
+  char buffer[] = "abcdefgh";
   size_t buff_len = strlen(buffer);
 
   printf("before: %s\n", buffer);
@@ -54,12 +63,21 @@ int main(void)
     else if (str_starts_with(lines[j], "rotate right")) {
       int steps;
       sscanf(lines[j], "rotate right %d step", &steps);
-      steps %= buff_len;
+      
+      for (int k = 0; k < steps; k++)
+        rotate_right(buffer, buff_len);
+    }
+    else if (str_starts_with(lines[j], "rotate based on pos")) {
+      char ch = lines[j][strlen(lines[j]) - 1];
+      int i = 0;
+      for ( ; buffer[i] != ch; i++)
+        ;
+      int rotations = 1 + i;
+      if (i >= 4)
+        ++rotations;
 
-      char tmp[100];
-      strcpy(tmp, buffer);
-      strncpy(&buffer[steps], tmp, buff_len - steps);
-      strncpy(buffer, &tmp[buff_len - steps], steps);
+      for (int k = 0; k < rotations; k++)
+        rotate_right(buffer, buff_len);
     }
     else if (str_starts_with(lines[j], "move position")) {
       int from, to;
