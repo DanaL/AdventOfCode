@@ -297,3 +297,4 @@ bool str_starts_with(const char *a, const char *b)
 
   return false;
 }
+
