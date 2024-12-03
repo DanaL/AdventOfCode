@@ -7,7 +7,9 @@ Token = {
   RIGHT_PAREN = 6,
   COMMA = 7,
   MISC = 8,
-  GUARD = 9
+  GUARD = 9,
+  DO = 10,
+  DONT = 11
 }
 
 TokenTypeLabels = {
@@ -19,7 +21,9 @@ TokenTypeLabels = {
   [Token.MISC] = "MISC",
   [Token.WHITESPACE] = "WHITESPACE",
   [Token.NUMBER] = "NUMBER",
-  [Token.GUARD] = "GUARD"
+  [Token.GUARD] = "GUARD",
+  [Token.DO] = "DO",
+  [Token.DONT] = "DONT"
 }
 
 function atEnd(txtInfo)
@@ -113,6 +117,25 @@ function scan(txtInfo)
       })
       advance(txtInfo)
       advance(txtInfo)
+    elseif ch == "d" and matchesText(txtInfo, "o()") then
+      table.insert(tokens, {
+        type = Token.DO,
+        value = "do"
+      })
+      advance(txtInfo)
+      advance(txtInfo)
+      advance(txtInfo)
+    elseif ch == "d" and matchesText(txtInfo, "on't()") then
+      table.insert(tokens, {
+        type = Token.DONT,
+        value = "don't"
+      })
+      advance(txtInfo)
+      advance(txtInfo)
+      advance(txtInfo)
+      advance(txtInfo)
+      advance(txtInfo)
+      advance(txtInfo)
     elseif ch:match("%a") ~= nil then
       table.insert(tokens, {
         type = Token.LETTER,
@@ -167,6 +190,7 @@ end
 
 function execute(instrs)
   local total = 0
+
   while instrs.pos <= #instrs.tokens do
     local token = nextToken(instrs)
     if token.type == Token.GUARD then
@@ -182,7 +206,30 @@ function execute(instrs)
   return total
 end
 
-function part1()
+function execute2(instrs)
+  local total = 0
+  local doMul = true
+  
+  while instrs.pos <= #instrs.tokens do
+    local token = nextToken(instrs)
+
+    if token.type == Token.GUARD then
+      break
+    elseif token.type == Token.OPERATOR and token.value == "mul" and doMul then
+      instrs.a = 0
+      instrs.b = 0
+      total = total + execMul(instrs, token)
+    elseif token.type == Token.DO then
+      doMul = true
+    elseif token.type == Token.DONT then
+      doMul = false
+    end
+  end
+
+  return total
+end
+
+function scanInput()
   local file = io.open("inputs/day03.txt", "r")
   local txt = file:read("*all")
   file:close()
@@ -191,8 +238,8 @@ function part1()
     txt = txt,
     pos = 1
   };
-
-  tokens = scan(txtInfo) 
+  
+  local tokens = scan(txtInfo)
 
   local instrs = {
     tokens = tokens,
@@ -201,7 +248,18 @@ function part1()
     b = 0
   }
 
+  return instrs
+end
+
+function part2()
+  local instrs = scanInput()
+  print("P2: " .. execute2(instrs))
+end
+
+function part1()
+  local instrs = scanInput()
   print("P1: " .. execute(instrs))
 end
 
 part1()
+part2()
