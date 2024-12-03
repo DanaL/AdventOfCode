@@ -6,7 +6,20 @@ Token = {
   LEFT_PAREN = 5,
   RIGHT_PAREN = 6,
   COMMA = 7,
-  MISC = 8
+  MISC = 8,
+  GUARD = 9
+}
+
+TokenTypeLabels = {
+  [Token.LEFT_PAREN] = "LEFT_PAREN",
+  [Token.RIGHT_PAREN] = "RIGHT_PAREN", 
+  [Token.COMMA] = "COMMA",
+  [Token.OPERATOR] = "OPERATOR",
+  [Token.LETTER] = "LETTER",
+  [Token.MISC] = "MISC",
+  [Token.WHITESPACE] = "WHITESPACE",
+  [Token.NUMBER] = "NUMBER",
+  [Token.GUARD] = "GUARD"
 }
 
 function atEnd(txtInfo)
@@ -113,7 +126,60 @@ function scan(txtInfo)
     end
   end
 
+  table.insert(tokens, {
+    type = Token.GUARD,
+    value = ""
+  })
+
   return tokens
+end
+
+
+function nextToken(instrs)
+  local token = instrs.tokens[instrs.pos]
+  instrs.pos = instrs.pos + 1
+  return token
+end
+
+function peekToken(instrs)
+  return instrs.tokens[instrs.pos].type
+end
+
+function execMul(instrs, curr)
+  if curr.type == Token.OPERATOR and peekToken(instrs) == Token.LEFT_PAREN then
+    return execMul(instrs, nextToken(instrs))
+  elseif curr.type == Token.LEFT_PAREN and peekToken(instrs) == Token.NUMBER then
+    return execMul(instrs, nextToken(instrs))
+  elseif curr.type == Token.NUMBER and peekToken(instrs) == Token.COMMA then
+    instrs.a = curr.value
+    return execMul(instrs, nextToken(instrs))
+  elseif curr.type == Token.COMMA and peekToken(instrs) == Token.NUMBER then
+    return execMul(instrs, nextToken(instrs))
+  elseif curr.type == Token.NUMBER and peekToken(instrs) == Token.RIGHT_PAREN then
+    instrs.b = curr.value
+    return execMul(instrs, nextToken(instrs))
+  elseif curr.type == Token.RIGHT_PAREN then
+    return instrs.a * instrs.b    
+  end
+
+  return 0
+end
+
+function execute(instrs)
+  local total = 0
+  while instrs.pos <= #instrs.tokens do
+    local token = nextToken(instrs)
+    if token.type == Token.GUARD then
+      break
+    elseif token.type == Token.OPERATOR and token.value == "mul" then
+      instrs.a = 0
+      instrs.b = 0
+      total = total + execMul(instrs, token)
+      --break
+    end
+  end
+
+  return total
 end
 
 function part1()
@@ -128,21 +194,14 @@ function part1()
 
   tokens = scan(txtInfo) 
 
-  local tokenTypeLabels = {
-    [Token.LEFT_PAREN] = "LEFT_PAREN",
-    [Token.RIGHT_PAREN] = "RIGHT_PAREN", 
-    [Token.COMMA] = "COMMA",
-    [Token.OPERATOR] = "OPERATOR",
-    [Token.LETTER] = "LETTER",
-    [Token.MISC] = "MISC",
-    [Token.WHITESPACE] = "WHITESPACE",
-    [Token.NUMBER] = "NUMBER"
+  local instrs = {
+    tokens = tokens,
+    pos = 1,
+    a = 0,
+    b = 0
   }
 
-  for _, token in ipairs(tokens) do
-    local type = tokenTypeLabels[token.type] or tostring(token.type)
-    print(type .. " " .. token.value)
-    end
+  print("P1: " .. execute(instrs))
 end
 
 part1()
