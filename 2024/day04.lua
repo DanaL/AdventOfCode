@@ -13,34 +13,27 @@ function readPuzzle()
   return puzzle
 end
 
-function checkP1(puzzle, r, c)
-  count = 0
-  if c <= #puzzle[r] - 3 then
-    local word = puzzle[r][c] .. puzzle[r][c+1] .. puzzle[r][c+2] .. puzzle[r][c+3]
-    if word == "XMAS" or word == "SAMX" then
-      count = count + 1
-    end
+function checkLetters(a, b, c, d)
+  local word = a .. b .. c .. d
+  return word == "XMAS" or word == "SAMX"
+end
+
+function checkP1(p, r, c)
+  local count = 0
+  if c <= #p[r] - 3 and checkLetters(p[r][c], p[r][c+1], p[r][c+2], p[r][c+3]) then
+    count = count + 1
   end
   
-  if c <= #puzzle[r] - 3 and r <= #puzzle - 3 then
-    local word = puzzle[r][c] .. puzzle[r+1][c+1] .. puzzle[r+2][c+2] .. puzzle[r+3][c+3]
-    if word == "XMAS" or word == "SAMX" then
-      count = count + 1
-    end
+  if c <= #p[r] - 3 and r <= #p - 3 and checkLetters(p[r][c], p[r+1][c+1], p[r+2][c+2], p[r+3][c+3]) then
+    count = count + 1
   end
 
-  if r <= #puzzle - 3 then
-    local word = puzzle[r][c] .. puzzle[r+1][c] .. puzzle[r+2][c] .. puzzle[r+3][c]
-    if word == "XMAS" or word == "SAMX" then
-      count = count + 1
-    end
+  if r <= #p - 3 and checkLetters(p[r][c], p[r+1][c], p[r+2][c], p[r+3][c]) then
+    count = count + 1
   end
 
-  if c >= 4 and r <= #puzzle - 3 then
-    local word = puzzle[r][c] .. puzzle[r+1][c-1] .. puzzle[r+2][c-2] .. puzzle[r+3][c-3]
-    if word == "XMAS" or word == "SAMX" then
-      count = count + 1
-    end
+  if c >= 4 and r <= #p - 3 and checkLetters(p[r][c], p[r+1][c-1], p[r+2][c-2], p[r+3][c-3]) then
+    count = count + 1
   end
 
   return count
@@ -65,22 +58,18 @@ function p2()
   local count = 0
   for r = 2, #p - 1 do
     for c = 2, #p[r] - 1 do
-      if p[r][c] ~= "A" then
-        goto continue
+      local function checkAB(a, b)
+        return  (a == "M" and b == "S") or (a == "S" and b == "M")
       end
 
-      local a = p[r-1][c-1]
-      local b = p[r+1][c+1]
-      local forSlash =  (a == "M" and b == "S") or (a == "S" and b == "M")
-      
-      a = p[r+1][c-1]
-      b = p[r-1][c+1]
-      local backSlash = (a == "M" and b == "S") or (a == "S" and b == "M")
+      if p[r][c] == "A" then       
+        local backSlash = checkAB(p[r-1][c-1], p[r+1][c+1])  
+        local forSlash = checkAB(p[r+1][c-1], p[r-1][c+1])
 
-      if forSlash and backSlash then
-        count = count + 1
+        if forSlash and backSlash then
+          count = count + 1
+        end
       end
-      ::continue::
     end    
   end
 
