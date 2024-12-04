@@ -59,4 +59,33 @@ function p1()
   print("P1: " .. count)
 end
 
+function p2()
+  local p = readPuzzle()
+
+  local count = 0
+  for r = 2, #p - 1 do
+    for c = 2, #p[r] - 1 do
+      if p[r][c] ~= "A" then
+        goto continue
+      end
+
+      local a = p[r-1][c-1]
+      local b = p[r+1][c+1]
+      local forSlash =  (a == "M" and b == "S") or (a == "S" and b == "M")
+      
+      a = p[r+1][c-1]
+      b = p[r-1][c+1]
+      local backSlash = (a == "M" and b == "S") or (a == "S" and b == "M")
+
+      if forSlash and backSlash then
+        count = count + 1
+      end
+      ::continue::
+    end    
+  end
+
+  print("P2: " .. count)
+end
+
 p1()
+p2()
