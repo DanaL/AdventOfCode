@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -43,7 +44,7 @@ void toggle(char *stmt)
   }
 }
 
-int calc_val(int registers[], const char *s, int param)
+int64_t calc_val(int64_t registers[], const char *s, int param)
 {
   char *cs = malloc(strlen(s) + 1);
   strcpy(cs, s);
@@ -54,7 +55,7 @@ int calc_val(int registers[], const char *s, int param)
   if (param == 2)
     token = strtok(NULL, " ");
 
-  int val;
+  int64_t val;
   if (token[0] >= 'a' && token[0] <= 'e')
     val = registers[token[0] - 'a'];
   else
@@ -65,12 +66,12 @@ int calc_val(int registers[], const char *s, int param)
   return val;
 }
 
-int exec_vm(int reg_a_val)
+int64_t exec_vm(int64_t reg_a_val)
 {
   size_t lc = 0;
   char **program = read_all_lines("inputs/day23.txt", &lc);
 
-  int registers[] = { reg_a_val, 0, 0, 0 };
+  int64_t registers[] = { reg_a_val, 0, 0, 0 };
   int pc = 0;
 
   while (pc < lc) {
@@ -94,13 +95,13 @@ int exec_vm(int reg_a_val)
       }
 
       int dest_reg = ch - 'a';
-      int val = calc_val(registers, program[pc], 1);
+      int64_t val = calc_val(registers, program[pc], 1);
 
       registers[dest_reg] = val;
     }
     else if (strncmp("jnz", program[pc], 3) == 0) {
-      int x = calc_val(registers, program[pc], 1);
-      int jump_val = calc_val(registers, program[pc], 2);
+      int64_t x = calc_val(registers, program[pc], 1);
+      int jump_val = (int) calc_val(registers, program[pc], 2);
       
       if (x != 0) {
         pc += jump_val;
@@ -126,7 +127,7 @@ int exec_vm(int reg_a_val)
 
 void p1(void)
 {
-  printf("P1: %d\n", exec_vm(7));
+  printf("P1: %lld\n", exec_vm(7));
 }
 
 int main(void)

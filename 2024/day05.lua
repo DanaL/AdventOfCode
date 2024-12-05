@@ -47,10 +47,8 @@ function compareLists(a, b)
   return true
 end
 
-function p1()
-  local info = readInput()
-  
-  local function cmp(a, b)
+function getCmp(info)
+  return function(a, b)
     if info.rules[a] then
       for _, val in pairs(info.rules[a]) do
         if val == b then
@@ -61,13 +59,32 @@ function p1()
 
     return false
   end
+end
+
+function p2()
+  local info = readInput()
+
+  local total = 0
+  for _, list in pairs(info.updates) do
+    local copy = copyList(list)
+    table.sort(copy, getCmp(info))
+    if not compareLists(list, copy) then
+      local i = math.floor(#copy / 2) + 1
+      total = total + copy[i]
+    end    
+  end  
+
+  print("P2: " .. total)
+end
+
+function p1()
+  local info = readInput()
     
   local total = 0
   for _, list in pairs(info.updates) do
     local copy = copyList(list)
-    table.sort(copy, cmp)
-    local correct = compareLists(list, copy)
-    if correct then
+    table.sort(copy, getCmp(info))
+    if compareLists(list, copy) then
       local i = math.floor(#list / 2) + 1
       total = total + list[i]
     end    
@@ -77,3 +94,4 @@ function p1()
 end
 
 p1()
+p2()
