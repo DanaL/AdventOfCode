@@ -61,37 +61,20 @@ function getCmp(info)
   end
 end
 
-function p2()
-  local info = readInput()
+local info = readInput()  
+local totalP1 = 0
+local totalP2 = 0
+for _, list in pairs(info.updates) do
+  local copy = copyList(list)
+  table.sort(copy, getCmp(info))
+  local i = math.floor(#list / 2) + 1
+  if compareLists(list, copy) then      
+    totalP1 = totalP1 + list[i]
+  else
+    totalP2 = totalP2 + copy[i]
+  end
 
-  local total = 0
-  for _, list in pairs(info.updates) do
-    local copy = copyList(list)
-    table.sort(copy, getCmp(info))
-    if not compareLists(list, copy) then
-      local i = math.floor(#copy / 2) + 1
-      total = total + copy[i]
-    end    
-  end  
+end  
 
-  print("P2: " .. total)
-end
-
-function p1()
-  local info = readInput()
-    
-  local total = 0
-  for _, list in pairs(info.updates) do
-    local copy = copyList(list)
-    table.sort(copy, getCmp(info))
-    if compareLists(list, copy) then
-      local i = math.floor(#list / 2) + 1
-      total = total + list[i]
-    end    
-  end  
-
-  print("P1: " .. total)
-end
-
-p1()
-p2()
+print("P1: " .. totalP1)
+print("P2: " .. totalP2)
