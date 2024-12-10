@@ -27,6 +27,35 @@ function fetchInput()
   return { s, height, width }
 end
 
+function countPaths2(i, map, height, width)
+  local adj = { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 } }
+  local r, c = fromIdx(i, width)
+  local q = {}
+  table.insert(q, { r, c, 0 })
+
+  local paths = 0
+  while #q > 0 do
+    local r, c, d = table.unpack(table.remove(q, 1))
+        
+      for _, a in ipairs(adj) do
+        local nr, nc = r + a[1], c + a[2]
+        if inBounds(nr, nc, height, width) then
+          local j = toIdx(nr, nc, width)
+          local n = tonumber(map:sub(j, j))
+    
+          if d == 8 and n == 9 then
+            paths = paths + 1
+          elseif n == d + 1 then
+            table.insert(q, { nr, nc, n })
+          end
+        end
+  
+    end
+  end
+
+  return paths
+end
+
 function countPaths(i, map, height, width)
   local adj = { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 } }
   local r, c = fromIdx(i, width)
@@ -38,33 +67,24 @@ function countPaths(i, map, height, width)
   while #q > 0 do
     local r, c, d = table.unpack(table.remove(q, 1))
 
-    if visited[tostring(r) .. "," .. tostring(c)] then
-      goto continue2
-    end
-
-    visited[tostring(r) .. "," .. tostring(c)] = true
+    if not visited[tostring(r) .. "," .. tostring(c)] then
+      visited[tostring(r) .. "," .. tostring(c)] = true
+        
+      for _, a in ipairs(adj) do
+        local nr, nc = r + a[1], c + a[2]
+        if inBounds(nr, nc, height, width) then
+          local j = toIdx(nr, nc, width)
+          local n = tonumber(map:sub(j, j))
     
-    for _, a in ipairs(adj) do
-      local nr, nc = r + a[1], c + a[2]
-      if not inBounds(nr, nc, height, width) then
-        goto continue
+          if d == 8 and n == 9 then
+            peaks[tostring(nr) .. "," .. tostring(nc)] = true
+          elseif n == d + 1 and not visited[tostring(nr) .. "," .. tostring(nc)] then
+            table.insert(q, { nr, nc, n })
+          end
+        end
       end
-      
-      local j = toIdx(nr, nc, width)
-      local n = tonumber(map:sub(j, j))
-  
-      if d == 8 and n == 9 then
-        peaks[tostring(nr) .. "," .. tostring(nc)] = true        
-      elseif n == d + 1 and not visited[tostring(nr) .. "," .. tostring(nc)] then
-        table.insert(q, { nr, nc, n })
-      end
-
-      ::continue::
     end
-
-    ::continue2::
   end
-
 
   local paths = 0
   for _ in pairs(peaks) do
@@ -87,5 +107,20 @@ function p1()
   print("P1: ", paths)
 end
 
+function p2()
+  local map, height, width = table.unpack(fetchInput())
+  local paths = 0
+
+  for i = 1, #map do
+    local n = map:sub(i,i)
+    if n == "0" then
+      paths = paths + countPaths2(i, map, height, width)
+    end
+  end
+
+  print("P2: ", paths)
+end
+
 p1()
+p2()
 
