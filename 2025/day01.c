@@ -5,7 +5,7 @@
 
 #define mod(n) ((((n) % 100) + 100) % 100)
 
-void main(void) {
+int main(void) {
   FILE *fp;
   char s[BUFF_SIZE];
 
@@ -37,4 +37,6 @@ void main(void) {
 
   printf("P1: %d\n", zeroes);
   printf("P2: %d\n", zeroes + wraps);
+
+  return 0;
 }
