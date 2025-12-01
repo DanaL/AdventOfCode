@@ -24,17 +24,16 @@ void main(void) {
 
     int delta_wrap = 0;
     if (v < 0 && dial_pre < abs(v)) {
-      delta_wrap += 1 + (abs(v) - dial_pre) / 100;
+      wraps += 1 + (abs(v) - dial_pre) / 100;
       if (dial_pre == 0 || dial == 0)
-        --delta_wrap;
+        --wraps;
     }
     else if (v > 100 - dial_pre) {
-      delta_wrap += (dial_pre + v) / 100;
+      wraps += (dial_pre + v) / 100;
       if (dial == 0)
-        --delta_wrap;
+      --wraps;
     }
-    wraps += delta_wrap;
-
+    
     if (dial == 0)
       ++zeroes;
   }
