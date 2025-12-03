@@ -55,7 +55,7 @@ unsigned long long calc_p2_joltage(const char *s, size_t len)
 int main(void)
 {
     FILE *fp;
-    char buffer[BUFF_SIZE + 1];
+    char buffer[BUFF_SIZE];
 
     fp = fopen("data/day03.txt", "r");
     unsigned int p1_joltage = 0;
