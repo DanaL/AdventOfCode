@@ -18,7 +18,7 @@ int adj(bool grid[DIM][DIM], int r, int c) {
   return total;
 }
 
-int count_adj_rolls(bool grid[DIM][DIM], int height, int width) {
+int calc_p1(bool grid[DIM][DIM], int height, int width) {
   int total = 0;
 
   for (int r = 1; r <= height; r++) {
@@ -27,6 +27,28 @@ int count_adj_rolls(bool grid[DIM][DIM], int height, int width) {
         ++total;        
       }
     }
+  }
+
+  return total;
+}
+
+int calc_p2(bool grid[DIM][DIM], int height, int width) {
+  int total = 0;
+
+  while (true) {
+    int iter_total = 0;
+    for (int r = 1; r <= height; r++) {
+      for (int c = 1; c <= width; c++) {
+        if (grid[r][c] && adj(grid, r, c) < 4) {
+          ++iter_total;
+          grid[r][c] = false;
+        }
+      }
+    }
+
+    if (iter_total == 0)
+      break;
+    total += iter_total;
   }
 
   return total;
@@ -46,9 +68,9 @@ int main(void)
     for (int j = 0; j < line_width; j++)
       grid[line_count][j + 1] = buffer[j] == '@';
   }
-
-  int p1 = count_adj_rolls(grid, line_count, line_width);
-  printf("P1: %d\n", p1);
+  
+  printf("P1: %d\n", calc_p1(grid, line_count, line_width));
+  printf("P2: %d\n", calc_p2(grid, line_count, line_width));
 
   return 0;
 }
