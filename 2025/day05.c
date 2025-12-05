@@ -15,7 +15,9 @@ typedef struct node_t {
 Node* make_node(uint64_t a, uint64_t b)
 {
   Node *n = malloc(sizeof(Node));
-  if (!n) return NULL;
+  if (!n) {
+    return NULL;
+  }
 
   n->lower = a;
   n->upper = b;
@@ -43,12 +45,20 @@ Node* insert(Node *head, Node *n)
       // return head
     }
     else if (n->upper < curr->lower) {
-      // insert
+      n->next = curr;
+      n->prev = curr->prev;
+
+      curr->prev->next = n;      
+      curr->prev = n;
+
       // check for merge with prev?
-      // return head
+      
+      return head;      
     }
     else if (!curr->next) {
       curr->next = n;
+      n->prev = curr;
+
       return head;
     }
 
@@ -60,7 +70,7 @@ Node* insert(Node *head, Node *n)
 
 void print_list(Node *head)
 {
-  printf("Listy list:\n");
+  printf("\nListy list:\n");
   Node *n = head;
   while (n) {
     printf("  %llu - %llu\n", n->lower, n->upper);
@@ -78,34 +88,61 @@ void free_list(Node *head)
   }
 }
 
+int search(const Node *head, uint64_t v) {
+  Node *curr = head;
+
+  while (curr) {
+    if (v >= curr->lower && v <= curr->upper)
+      return 1;
+    curr = curr->next;
+  }
+
+  return 0;
+}
+
 int main(void)
 {
   FILE *fp = fopen("data/day05.txt", "rb");
   char buffer[BUFF_LEN];
 
   int read_state = 0;
-  Node *head = NULL;
-  int x = 0;
-  while (fgets(buffer, BUFF_LEN, fp)) {
-    ++x;
-    if (strcmp(buffer, "\n") == 0) {
+  Node *head = NULL, *curr;
+  int p1 = 0;
+  while (fgets(buffer, BUFF_LEN, fp)) {    
+    if (buffer[0] == '\n' || buffer[0] == '\r') {
       read_state = 1;
     }
     else if (read_state == 0) {
-      u_int64_t a, b;
+      uint64_t a, b;
       sscanf(buffer, "%llu-%llu", &a, &b);
+      
       Node *n = make_node(a, b);
-      head = insert(head, n);
+      
+      if (!head) {
+        head = n;
+        curr = n; 
+      }
+      else {
+        curr->next = n;
+        curr = n;
+      }
+      
+      //head = insert(head, n);
     }
     else {
       uint64_t v = strtoull(buffer, NULL, 10);
-      printf("%llu\n", v);
+      p1 += search(head, v);
     }
-    if (x > 2)
-      break;
   }
 
-  print_list(head);
+  printf("P1: %d\n", p1);
+
+  //printf("%llu %llu\n", head->lower, head->upper);
+
+  //Node *n0 = make_node(6, 8);
+  //head = insert(head, n0);
+  //print_list(head);
+
   free_list(head);
 
   fclose(fp);
