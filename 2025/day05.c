@@ -29,43 +29,38 @@ Node* make_node(uint64_t a, uint64_t b)
 
 Node* insert(Node *head, Node *n)
 {
-  if (head == NULL)
+  if (head == NULL) {    
     return n;
-
-  if (n->upper < head->lower) {
-    n->next = head;
-    head->prev = n;
   }
 
   Node *curr = head;
   while (curr) {
-    if (n->upper >= curr->lower && n->upper <= curr->upper) {
-      // merge n and curr
-      // free n
-      // return head
-    }
-    else if (n->upper < curr->lower) {
-      n->next = curr;
-      n->prev = curr->prev;
+    if (n->upper < curr->lower || (n->upper >= curr->lower && n->upper <= curr->upper)) {
+      if (curr == head) {
+        n->next = curr;
+        curr->prev = n;
+        head = n;        
+      }
+      else {
+        Node *prev = curr->prev;
+        n->next = curr;
+        n->prev = prev;
+        prev->next = n;
+        curr->prev = n;        
+      }
 
-      curr->prev->next = n;      
-      curr->prev = n;
-
-      // check for merge with prev?
-      
       return head;      
     }
     else if (!curr->next) {
       curr->next = n;
       n->prev = curr;
-
       return head;
     }
 
     curr = curr->next;
   }
 
-  return NULL; // actually an error condition later
+  return NULL; // actually would bean error condition
 }
 
 void print_list(Node *head)
@@ -88,8 +83,8 @@ void free_list(Node *head)
   }
 }
 
-int search(const Node *head, uint64_t v) {
-  Node *curr = head;
+int p1_check(const Node *head, uint64_t v) {
+  const Node *curr = head;
 
   while (curr) {
     if (v >= curr->lower && v <= curr->upper)
@@ -106,8 +101,9 @@ int main(void)
   char buffer[BUFF_LEN];
 
   int read_state = 0;
-  Node *head = NULL, *curr;
+  Node *head = NULL;
   int p1 = 0;
+  int x = 0;
   while (fgets(buffer, BUFF_LEN, fp)) {    
     if (buffer[0] == '\n' || buffer[0] == '\r') {
       read_state = 1;
@@ -116,22 +112,16 @@ int main(void)
       uint64_t a, b;
       sscanf(buffer, "%llu-%llu", &a, &b);
       
-      Node *n = make_node(a, b);
-      
-      if (!head) {
-        head = n;
-        curr = n; 
-      }
-      else {
-        curr->next = n;
-        curr = n;
-      }
-      
-      //head = insert(head, n);
+      Node *n = make_node(a, b);            
+      head = insert(head, n);
+
+      // ++x;
+      // if (x == 4)
+      //   break;
     }
     else {
       uint64_t v = strtoull(buffer, NULL, 10);
-      p1 += search(head, v);
+      p1 += p1_check(head, v);
     }
   }
 
