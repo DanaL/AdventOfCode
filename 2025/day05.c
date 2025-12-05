@@ -27,6 +27,16 @@ Node* make_node(uint64_t a, uint64_t b)
   return n;
 }
 
+void free_list(Node *head) 
+{
+  Node *n = head;
+  while (n) {
+    Node *c = n;
+    n = n->next;
+    free(c);
+  }
+}
+
 Node* insert(Node *head, Node *n)
 {
   if (head == NULL) {    
@@ -35,21 +45,21 @@ Node* insert(Node *head, Node *n)
 
   Node *curr = head;
   while (curr) {
-    if (n->upper < curr->lower || (n->upper >= curr->lower && n->upper <= curr->upper)) {
+    if (n->lower < curr->lower) {
       if (curr == head) {
         n->next = curr;
         curr->prev = n;
-        head = n;        
+        head = n;
       }
       else {
         Node *prev = curr->prev;
         n->next = curr;
         n->prev = prev;
         prev->next = n;
-        curr->prev = n;        
+        curr->prev = n;
       }
 
-      return head;      
+      return head;
     }
     else if (!curr->next) {
       curr->next = n;
@@ -63,24 +73,35 @@ Node* insert(Node *head, Node *n)
   return NULL; // actually would bean error condition
 }
 
-void print_list(Node *head)
+Node* merge(Node *head)
 {
-  printf("\nListy list:\n");
-  Node *n = head;
-  while (n) {
-    printf("  %llu - %llu\n", n->lower, n->upper);
-    n = n->next;
-  }
-}
+  Node *curr = head;
 
-void free_list(Node *head) 
-{
-  Node *n = head;
-  while (n) {
-    Node *c = n;
-    n = n->next;
-    free(c);
+  while (curr && curr->next) {
+    Node *next = curr->next;
+
+    if (curr->upper >= next->lower) {
+      // merge with the next in the list and drop/free curr
+      if (next->upper > curr->upper) {
+        curr->upper = next->upper;
+      }
+      if (next->lower < curr->lower) {
+        curr->lower = next->lower;
+      }
+
+      curr->next = next->next;
+      if (next->next) {
+        next->next->prev = curr;
+      }
+
+      free(next);
+    }
+    else {
+      curr = next;
+    }
   }
+
+  return head;
 }
 
 int p1_check(const Node *head, uint64_t v) {
@@ -103,7 +124,6 @@ int main(void)
   int read_state = 0;
   Node *head = NULL;
   int p1 = 0;
-  int x = 0;
   while (fgets(buffer, BUFF_LEN, fp)) {    
     if (buffer[0] == '\n' || buffer[0] == '\r') {
       read_state = 1;
@@ -114,10 +134,6 @@ int main(void)
       
       Node *n = make_node(a, b);            
       head = insert(head, n);
-
-      // ++x;
-      // if (x == 4)
-      //   break;
     }
     else {
       uint64_t v = strtoull(buffer, NULL, 10);
@@ -127,11 +143,15 @@ int main(void)
 
   printf("P1: %d\n", p1);
 
-  //printf("%llu %llu\n", head->lower, head->upper);
+  head = merge(head);
 
-  //Node *n0 = make_node(6, 8);
-  //head = insert(head, n0);
-  //print_list(head);
+  uint64_t p2 = 0;
+  Node *n = head;
+  while (n) {
+    p2 += n->upper - n->lower + 1;
+    n = n->next;
+  }
+  printf("P2: %llu\n", p2);
 
   free_list(head);
 
