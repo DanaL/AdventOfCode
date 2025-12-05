@@ -5,114 +5,44 @@
 
 #define BUFF_LEN 128
 
-typedef struct node_t {
+typedef struct {
   uint64_t lower;
   uint64_t upper;
-  struct node_t *prev;
-  struct node_t *next;
-} Node;
+} Range;
 
-Node* make_node(uint64_t a, uint64_t b)
+int compare_ranges(const void *a, const void *b)
 {
-  Node *n = malloc(sizeof(Node));
-  if (!n) {
-    return NULL;
-  }
+  Range *r1 = (Range *)a;
+  Range *r2 = (Range *)b;
 
-  n->lower = a;
-  n->upper = b;
-  n->prev = NULL;
-  n->next = NULL;
-
-  return n;
+  return (r1->lower > r2->lower) - (r1->lower < r2->lower);
 }
 
-void free_list(Node *head) 
+size_t merge(Range *ranges, size_t range_count)
 {
-  Node *n = head;
-  while (n) {
-    Node *c = n;
-    n = n->next;
-    free(c);
-  }
-}
+  qsort(ranges, range_count, sizeof(Range), compare_ranges);
 
-Node* insert(Node *head, Node *n)
-{
-  if (head == NULL) {    
-    return n;
-  }
-
-  Node *curr = head;
-  while (curr) {
-    if (n->lower < curr->lower) {
-      if (curr == head) {
-        n->next = curr;
-        curr->prev = n;
-        head = n;
-      }
-      else {
-        Node *prev = curr->prev;
-        n->next = curr;
-        n->prev = prev;
-        prev->next = n;
-        curr->prev = n;
-      }
-
-      return head;
-    }
-    else if (!curr->next) {
-      curr->next = n;
-      n->prev = curr;
-      return head;
-    }
-
-    curr = curr->next;
-  }
-
-  return NULL; // actually would bean error condition
-}
-
-Node* merge(Node *head)
-{
-  Node *curr = head;
-
-  while (curr && curr->next) {
-    Node *next = curr->next;
-
-    if (curr->upper >= next->lower) {
-      // merge with the next in the list and drop/free curr
-      if (next->upper > curr->upper) {
-        curr->upper = next->upper;
-      }
-      if (next->lower < curr->lower) {
-        curr->lower = next->lower;
-      }
-
-      curr->next = next->next;
-      if (next->next) {
-        next->next->prev = curr;
-      }
-
-      free(next);
+  size_t write_idx = 0;
+  for (size_t j = 1; j < range_count; j++) {
+    if (ranges[write_idx].upper >= ranges[j].lower) {
+      if (ranges[j].upper > ranges[write_idx].upper)
+        ranges[write_idx].upper = ranges[j].upper;
     }
     else {
-      curr = next;
+      ranges[++write_idx] = ranges[j];
     }
   }
 
-  return head;
+  return write_idx + 1;
 }
 
-int p1_check(const Node *head, uint64_t v) {
-  const Node *curr = head;
-
-  while (curr) {
-    if (v >= curr->lower && v <= curr->upper)
+int p1_check(const Range ranges[], size_t range_count, uint64_t v) {
+  for (size_t j = 0; j < range_count; j++)
+  {
+    if (v >= ranges[j].lower && v <= ranges[j].upper)
       return 1;
-    curr = curr->next;
   }
-
+ 
   return 0;
 }
 
@@ -121,8 +51,9 @@ int main(void)
   FILE *fp = fopen("data/day05.txt", "rb");
   char buffer[BUFF_LEN];
 
-  int read_state = 0;
-  Node *head = NULL;
+  Range ranges[1000];
+  size_t range_count = 0;
+  int read_state = 0;  
   int p1 = 0;
   while (fgets(buffer, BUFF_LEN, fp)) {    
     if (buffer[0] == '\n' || buffer[0] == '\r') {
@@ -131,31 +62,25 @@ int main(void)
     else if (read_state == 0) {
       uint64_t a, b;
       sscanf(buffer, "%llu-%llu", &a, &b);
-      
-      Node *n = make_node(a, b);            
-      head = insert(head, n);
+      ranges[range_count].lower = a;
+      ranges[range_count].upper = b;
+      ++range_count;
     }
     else {
       uint64_t v = strtoull(buffer, NULL, 10);
-      p1 += p1_check(head, v);
+      p1 += p1_check(ranges, range_count, v);
     }
   }
+  fclose(fp);
 
   printf("P1: %d\n", p1);
 
-  head = merge(head);
-
+  range_count = merge(ranges, range_count);
   uint64_t p2 = 0;
-  Node *n = head;
-  while (n) {
-    p2 += n->upper - n->lower + 1;
-    n = n->next;
+  for (size_t j = 0; j < range_count; j++) {
+    p2 += ranges[j].upper - ranges[j].lower + 1;
   }
   printf("P2: %llu\n", p2);
-
-  free_list(head);
-
-  fclose(fp);
 
   return 0;
 }
