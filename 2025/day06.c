@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
 
 void skip_spaces(const char *s, size_t *pos) {
   while (s[*pos] == ' ' && s[*pos] != '\0') {
@@ -17,12 +18,11 @@ uint64_t scan_p1(const char *s, size_t *pos) {
     ++(*pos);
   }
   digits[write_idx] = '\0';
-  uint64_t result = atoi(digits);
-
-  return result;
+  
+  return strtoull(digits, NULL, 10);
 }
 
-int main(void)
+void p1(void)
 {
   char buffer[4096];
   char ops[4096];
@@ -69,6 +69,64 @@ int main(void)
   }
   
   printf("P1: %llu\n", p1);
+}
+
+void p2(void)
+{
+  char lines[10][4096];
+  size_t rows = 0;
+
+  FILE *fp = fopen("data/day06.txt", "r");
+  while (fgets(lines[rows], 4096, fp)) {
+    size_t len = strlen(lines[rows]);
+    if (lines[rows][len - 1] == '\n') {
+      lines[rows][len - 1] = '\0';
+    }
+    ++rows;
+  }
+
+  uint64_t nums[10];
+  size_t num_idx = 0;
+  uint64_t total = 0;
+  for (int col = strlen(lines[0]) - 1; col >= 0; col--) {
+    uint64_t n = 0;
+    bool digit_found = false;
+
+    for (size_t r = 0; r < rows; r++) {
+      char ch = lines[r][col];
+      if (ch >= '0' && ch <= '9') {
+        n = n * 10 + ch - '0';
+        digit_found = true;
+      }
+      else if (ch == '*') {
+        uint64_t prod = n;
+        for (size_t j = 0; j < num_idx; j++)
+          prod *= nums[j];
+        total += prod;
+      }
+      else if (ch == '+') {
+        uint64_t sum = n;
+        for (size_t j = 0; j < num_idx; j++)
+          sum += nums[j];
+        total += sum;
+      }
+    }
+
+    if (digit_found) {
+      nums[num_idx++] = n;
+    }
+    else {
+      num_idx = 0; // spacer column
+    }
+  }
+
+  printf("P2: %llu\n", total);
+}
+
+int main(void) 
+{
+  p1();
+  p2();
 
   return 0;
 }
