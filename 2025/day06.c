@@ -4,8 +4,11 @@
 #include <string.h>
 #include <stdbool.h>
 
+#define GRID_HEIGHT 10
+#define GRID_WIDTH 2048
+
 void skip_spaces(const char *s, size_t *pos) {
-  while (s[*pos] == ' ' && s[*pos] != '\0') {
+  while (s[*pos] == ' ') {
    ++(*pos);
   }
 }
@@ -26,7 +29,7 @@ void p1(void)
 {
   char buffer[4096];
   char ops[4096];
-  uint64_t grid[10][2048];
+  uint64_t *grid = malloc(GRID_HEIGHT * GRID_WIDTH * sizeof(uint64_t));
 
   size_t rows = 0;
   FILE *fp = fopen("data/day06.txt", "r");
@@ -34,10 +37,9 @@ void p1(void)
     if (buffer[0] >= '0' && buffer[0] <= '9') {
       buffer[strlen(buffer) - 1] = '\0'; // skip the newline char
       
-      size_t cols = 0;
-      size_t pos = 0;
+      size_t cols = 0, pos = 0;
       do {        
-        grid[rows][cols++] = scan_p1(buffer, &pos);
+        grid[rows * GRID_WIDTH + cols++] = scan_p1(buffer, &pos);
         skip_spaces(buffer, &pos);
       } 
       while (buffer[pos] != '\0');
@@ -54,13 +56,13 @@ void p1(void)
   uint64_t p1 = 0;
   size_t col = 0, pos = 0;
   while (ops[pos] != '\0') {
-    uint64_t n = grid[0][col];
+    uint64_t n = grid[col];
     char op = ops[pos++];
     for (size_t r = 1; r < rows; r++) {
       if (op == '+')
-        n += grid[r][col];
+        n += grid[r * GRID_WIDTH + col];
       else
-        n *= grid[r][col];
+        n *= grid[r * GRID_WIDTH + col];
     }
     p1 += n;
     ++col;
@@ -69,6 +71,8 @@ void p1(void)
   }
   
   printf("P1: %llu\n", p1);
+
+  free(grid);
 }
 
 void p2(void)
