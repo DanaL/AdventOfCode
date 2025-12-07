@@ -24,10 +24,7 @@ void p1(Data *data)
       if (!beams[b]) 
         continue;
       
-      if (CELL(data, row, b) == '.') {
-        CELL(data, row, b) = '|';
-      }
-      else if (CELL(data, row, b) == '^') {
+      if (CELL(data, row, b) == '^') {
         ++splits;
         beams[b] = false;
         if (b > 0) beams[b-1] = true;
@@ -36,11 +33,48 @@ void p1(Data *data)
     }
   }
 
-  //printf("%s\n", data->data);
-
   printf("P1: %d\n", splits);
 
   free(beams);
+}
+
+unsigned long long memoized[150][150] = { 0 };
+
+unsigned long long count_paths(Data *data, size_t row, size_t col)
+{
+  if (row >= data->height)
+    return 1;
+
+  if (memoized[row][col] != 0)
+    return memoized[row][col];
+  
+  unsigned long long result;
+  char cell = CELL(data, row, col);
+  if (cell == '.')
+    result = count_paths(data, row + 1, col);
+  else {
+    unsigned long long left = 0, right = 0;
+    if (col > 0)
+      left = count_paths(data, row + 1, col - 1);
+    if (col < data->row_width - 1)
+      right = count_paths(data, row + 1, col + 1);
+
+    result = left + right;
+  }
+
+  memoized[row][col] = result;
+
+  return result;
+}
+
+void p2(Data *data) 
+{
+  unsigned long long total = 0;
+
+  char *s = strchr(data->data, 'S');
+  size_t start_col = s - data->data;
+  
+  printf("P2: %llu\n", count_paths(data, 1, start_col));
 }
 
 int main(void)
@@ -69,6 +103,7 @@ int main(void)
   Data data = { .data=contents, .row_width=rw, .height=height };
   
   p1(&data);
+  p2(&data);
 
   free(contents);
 
