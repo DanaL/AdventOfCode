@@ -58,35 +58,42 @@ size_t num_pts = 0;
 size_t num_pairs;
 Pair *pairs;
 
-void p1(void)
-{    
+int* init_circuits()
+{
   int *circuits = malloc(num_pts * sizeof(int));
   for (size_t j = 0; j < num_pts; j++) {
     circuits[j] = -1;
   }
+
+  return circuits;
+}
+
+void p1(void)
+{    
+  int *circuits = init_circuits();
 
   for (size_t j = 0; j < 1000; j++) {
     union_set(circuits, pairs[j].a, pairs[j].b);
   }
 
   // count up the sizes of the sets (circuits)
-  int *set_sizes = calloc(num_pts, sizeof(int));
+  int *cadinalities = calloc(num_pts, sizeof(int));
   for (size_t j = 0; j < num_pts; j++) {
     int root = find(circuits, j);
-    set_sizes[root]++;
+    cadinalities[root]++;
   }
 
   int largest[3] = {1, 1, 1};
   for (size_t j = 0; j < num_pts; j++) {
-    if (set_sizes[j] > largest[0]) {
+    if (cadinalities[j] > largest[0]) {
       largest[2] = largest[1];
       largest[1] = largest[0];
-      largest[0] = set_sizes[j];
-    } else if (set_sizes[j] > largest[1]) {
+      largest[0] = cadinalities[j];
+    } else if (cadinalities[j] > largest[1]) {
       largest[2] = largest[1];
-      largest[1] = set_sizes[j];
-    } else if (set_sizes[j] > largest[2]) {
-      largest[2] = set_sizes[j];
+      largest[1] = cadinalities[j];
+    } else if (cadinalities[j] > largest[2]) {
+      largest[2] = cadinalities[j];
     }
   }
 
@@ -97,16 +104,13 @@ void p1(void)
 
   printf("P1: %llu\n", total_sets);
 
-  free(set_sizes);
+  free(cadinalities);
   free(circuits);
 }
 
 void p2(void)
 {
-  int *circuits = malloc(num_pts * sizeof(int));
-  for (size_t j = 0; j < num_pts; j++) {
-    circuits[j] = -1;
-  }
+  int *circuits = init_circuits();
 
   int num_sets = num_pts;
   size_t j = 0;
