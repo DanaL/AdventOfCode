@@ -97,8 +97,8 @@ void p1(void)
 
   printf("P1: %llu\n", total_sets);
 
-  free(set_sizes);  
-  free(circuits);  
+  free(set_sizes);
+  free(circuits);
 }
 
 void p2(void)
@@ -124,7 +124,9 @@ void p2(void)
   
   long long last_x1 = points[pairs[j].a].x;
   long long last_x2 = points[pairs[j].b].x;
-  printf("P2: %lld\n", last_x1 * last_x2);  
+  printf("P2: %lld\n", last_x1 * last_x2);
+
+  free(circuits);
 }
 
 int main(void)
