@@ -119,8 +119,15 @@ void p2(void)
     circuits[j] = -1;
   }
 
+  int num_sets = num_pts;
   size_t j = 0;
-  while (count_distinct_sets(circuits) > 1) {
+  while (num_sets > 1) {
+    int a = find(circuits, pairs[j].a);
+    int b = find(circuits, pairs[j].b);
+
+    if (a != b)
+      --num_sets;
+
     union_set(circuits, pairs[j].a, pairs[j].b);    
     ++j;
   }
