@@ -101,17 +101,6 @@ void p1(void)
   free(circuits);  
 }
 
-int count_distinct_sets(int *circuits)
-{
-  int result = 0;
-  for (size_t j = 0; j < num_pts; j++) {
-    if (circuits[j] == -1)
-      ++result;
-  }
-
-  return result;
-}
-
 void p2(void)
 {
   int *circuits = malloc(num_pts * sizeof(int));
