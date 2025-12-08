@@ -55,35 +55,11 @@ void union_set(int *circuits, int a, int b)
 Point points[LIST_LEN];
 size_t num_pts = 0;
 
-int main(void)
-{
-  char buffer[BUFF_LEN];
-  FILE *fp = fopen("data/day08.txt", "r");
-  long long x, y, z;
-  while (fgets(buffer, BUFF_LEN, fp)) {
-    sscanf(buffer, "%lld,%lld,%lld", &x, &y, &z);
-    points[num_pts].x = x;
-    points[num_pts].y = y;
-    points[num_pts].z = z;
-    ++num_pts;
-  }
-  fclose(fp);
+size_t num_pairs;
+Pair *pairs;
 
-  size_t num_pairs = (num_pts * (num_pts - 1)) / 2;
-  Pair *pairs = malloc(num_pairs * sizeof(Pair));
-  
-  size_t num_of_pairs = 0;
-  for (size_t i = 0; i < num_pts - 1; i++) {
-      for (size_t j = i + 1; j < num_pts; j++) {
-          pairs[num_of_pairs].a = i;
-          pairs[num_of_pairs].b = j;
-          pairs[num_of_pairs].d = distance(&points[i], &points[j]);
-          num_of_pairs++;
-      }
-  }
-
-  qsort(pairs, num_of_pairs, sizeof(Pair), cmp_pairs);
-
+void p1(void)
+{    
   int *circuits = malloc(num_pts * sizeof(int));
   for (size_t j = 0; j < num_pts; j++) {
     circuits[j] = -1;
@@ -122,7 +98,71 @@ int main(void)
   printf("P1: %llu\n", total_sets);
 
   free(set_sizes);  
-  free(circuits);
+  free(circuits);  
+}
+
+int count_distinct_sets(int *circuits)
+{
+  int result = 0;
+  for (size_t j = 0; j < num_pts; j++) {
+    if (circuits[j] == -1)
+      ++result;
+  }
+
+  return result;
+}
+
+void p2(void)
+{
+  int *circuits = malloc(num_pts * sizeof(int));
+  for (size_t j = 0; j < num_pts; j++) {
+    circuits[j] = -1;
+  }
+
+  size_t j = 0;
+  while (count_distinct_sets(circuits) > 1) {
+    union_set(circuits, pairs[j].a, pairs[j].b);    
+    ++j;
+  }
+  --j;
+  
+  long long last_x1 = points[pairs[j].a].x;
+  long long last_x2 = points[pairs[j].b].x;
+  printf("P2: %lld\n", last_x1 * last_x2);  
+}
+
+int main(void)
+{
+  char buffer[BUFF_LEN];
+  FILE *fp = fopen("data/day08.txt", "r");
+  long long x, y, z;
+  while (fgets(buffer, BUFF_LEN, fp)) {
+    sscanf(buffer, "%lld,%lld,%lld", &x, &y, &z);
+    points[num_pts].x = x;
+    points[num_pts].y = y;
+    points[num_pts].z = z;
+    ++num_pts;
+  }
+  fclose(fp);
+
+  num_pairs = (num_pts * (num_pts - 1)) / 2;
+  pairs = malloc(num_pairs * sizeof(Pair));
+  
+  size_t num_of_pairs = 0;
+  for (size_t i = 0; i < num_pts - 1; i++) {
+      for (size_t j = i + 1; j < num_pts; j++) {
+          pairs[num_of_pairs].a = i;
+          pairs[num_of_pairs].b = j;
+          pairs[num_of_pairs].d = distance(&points[i], &points[j]);
+          num_of_pairs++;
+      }
+  }
+
+  qsort(pairs, num_of_pairs, sizeof(Pair), cmp_pairs);
+
+  p1();
+  p2();
+
   free(pairs);
 
   return 0;
