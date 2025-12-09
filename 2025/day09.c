@@ -262,6 +262,39 @@ bool rect_contained(HTNode **ht, Point *a, Point *b)
   return true;
 }
 
+bool verify_rectangle(HTNode **ht, Point *a, Point *b)
+{
+  Point p;
+  if (a->x < b->x) {
+    
+    p.x = a->x;
+    p.y = b->y;
+  }
+  long long low_y = MIN(a->y, b->y), low_x = MIN(a->x, b->x);
+  long long hi_y = MAX(a->y, b->y), hi_x = MAX(a->x, b->x);
+
+  Point p = { .x=low_x, .y=low_y};
+  if (!ht_contains(ht, &p))
+    return false;
+  
+  p.x = hi_x;
+  p.y = hi_y;
+  if (!ht_contains(ht, &p))
+    return false;
+
+  p.x = low_x + 10;
+  p.y = low_y + 10;
+  if (!ht_contains(ht, &p))
+    return false;
+
+  p.x = hi_x - 10;
+  p.y = hi_y - 10;
+  if (!ht_contains(ht, &p))
+    return false;
+
+  return true;
+}
+
 void p2(Point *pts, size_t num_pts)
 {
   HTNode **ht = calloc(HASH_TABLE_CAPACITY, sizeof(HTNode*));
@@ -306,16 +339,20 @@ void p2(Point *pts, size_t num_pts)
   
   //print_grid(ht);
 
+  unsigned long long rectangles_tested = 0;
   unsigned long long largest_area = 0;
   for (size_t j = 0; j < num_pts; j++) {
-    for (size_t k = j + 1; k < num_pts; k++) {      
-      if (rect_contained(ht, &pts[j], &pts[k])) {
-        unsigned long long area = AREA(&pts[j], &pts[k]);
-        if (area > largest_area)
-          largest_area = area;
-      }
+    for (size_t k = j + 1; k < num_pts; k++) { 
+      if (!verify_rectangle(ht, &pts[j], &pts[k]))
+        continue;
+
+      ++rectangles_tested;
+      unsigned long long area = AREA(&pts[j], &pts[k]);
+      if (area > largest_area)
+          largest_area = area;              
     }
   }
+  printf("rectangles tested: %llu\n", rectangles_tested);
 
   printf("P2: %llu\n", largest_area);
 
@@ -327,7 +364,7 @@ void p2(Point *pts, size_t num_pts)
   // Point b = { .x=18, .y=9};
   // printf("\n?? %d\n", rect_contained(ht, &a, &b));
   // printf("area %lld\n", AREA(&a, &b));
-  
+
   ht_free_elts(ht);
   free(ht);
 }
