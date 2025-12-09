@@ -14,11 +14,33 @@ typedef struct ht_node {
   struct ht_node *next;
 } HTNode;
 
+int cmp_by_y_then_x(const void *a, const void *b)
+{
+  Point *pa = (Point *)a;
+  Point *pb = (Point *)b;
+  
+  if (pa->y != pb->y)
+    return (pa->y > pb->y) - (pa->y < pb->y);  // Sort by y first
+  
+  return (pa->x > pb->x) - (pa->x < pb->x);    // Then by x
+}
+
+int cmp_by_x_then_y(const void *a, const void *b)
+{
+  Point *pa = (Point *)a;
+  Point *pb = (Point *)b;
+  
+  if (pa->x != pb->x)
+    return (pa->x > pb->x) - (pa->x < pb->x);
+  
+  return (pa->y > pb->y) - (pa->y < pb->y);
+}
+
 /* A quick, dirty hashtable implementation */
 #define HASH_TABLE_CAPACITY 1000003
 #define HASH(x, y) ((((x) * 73856093) ^ ((y) * 19349663)) % HASH_TABLE_CAPACITY)
 #define CMP_PT(a, b) ((a)->x == (b)->x && (a)->y == (b)->y)
-bool ht_contains(HTNode **ht, Point *p)
+bool ht_contains(const HTNode **ht, Point *p)
 {
   size_t hash = HASH(p->x, p->y);
   HTNode *node = ht[hash];
@@ -58,7 +80,7 @@ void ht_free(HTNode **ht)
   }
 }
 
-void p1(Point *pts, size_t num_pts)
+void p1(const Point *pts, const size_t num_pts)
 {
   long long largest_area = 0;
   for (size_t j = 0; j < num_pts; j++) {
@@ -72,7 +94,7 @@ void p1(Point *pts, size_t num_pts)
   printf("P1: %lld\n", largest_area);
 }
 
-void p2(Point *pts, size_t num_pts)
+void p2(const Point *pts, const size_t num_pts)
 {
   HTNode *ht[HASH_TABLE_CAPACITY] = {0};
   
