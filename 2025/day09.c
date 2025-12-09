@@ -76,9 +76,14 @@ void p2(Point *pts, size_t num_pts)
 {
   HTNode *ht[HASH_TABLE_CAPACITY] = {0};
   
-  for (size_t j = 0; j < num_pts; j++)
+  Point nw_est = pts[0];
+  for (size_t j = 0; j < num_pts; j++) {
     ht_insert(ht, &pts[j]);
-  
+
+    if (pts[j].y < nw_est.y || (pts[j].y == nw_est.y && pts[j].x < nw_est.x))
+      nw_est = pts[j];
+  }
+
   Point p = { .x = 88676, .y = 18691};
 
   printf("%d\n", ht_contains(ht, &pts[0]));
