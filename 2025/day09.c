@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <limits.h>
 
-#define AREA(a, b) llabs(((a)->x - (b)->x + 1) * ((a)->y - (b)->y + 1))
+#define AREA(a, b) ((llabs((a)->x - (b)->x) + 1) * (llabs((a)->y - (b)->y) + 1))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
@@ -230,6 +230,38 @@ bool pt_in_polygon(HTNode **ht, Point *pt)
   return result == INSIDE;
 }
 
+bool rect_contained(HTNode **ht, Point *a, Point *b)
+{  
+  long long low_y = MIN(a->y, b->y), low_x = MIN(a->x, b->x);
+  long long hi_y = MAX(a->y, b->y), hi_x = MAX(a->x, b->x);
+  
+  Point p;
+  for (long long y = low_y; y <= hi_y; y++) {
+    
+    p.x = low_x;
+    p.y = y;
+    if (!pt_in_polygon(ht, &p))
+      return false;
+
+    p.x = hi_x;
+    if (!pt_in_polygon(ht, &p))
+      return false;
+  }
+
+  for (long long x = low_x; x <= hi_x; x++) {
+    p.y = low_y;
+    p.x = x;
+    if (!pt_in_polygon(ht, &p))
+      return false;
+
+    p.y = hi_y;
+    if (!pt_in_polygon(ht, &p))
+      return false;
+  }
+
+  return true;
+}
+
 void p2(Point *pts, size_t num_pts)
 {
   HTNode **ht = calloc(HASH_TABLE_CAPACITY, sizeof(HTNode*));
@@ -272,11 +304,30 @@ void p2(Point *pts, size_t num_pts)
     }
   }
   
-  print_grid(ht);
+  //print_grid(ht);
 
-  Point p = { .x=10, .y=11};
-  printf("%s\n", pt_in_polygon(ht, &p) ? "inside" : "outside");
+  unsigned long long largest_area = 0;
+  for (size_t j = 0; j < num_pts; j++) {
+    for (size_t k = j + 1; k < num_pts; k++) {      
+      if (rect_contained(ht, &pts[j], &pts[k])) {
+        unsigned long long area = AREA(&pts[j], &pts[k]);
+        if (area > largest_area)
+          largest_area = area;
+      }
+    }
+  }
 
+  printf("P2: %llu\n", largest_area);
+
+  // Point pp = { .x=9, .y=3 };
+  // printf("hmm %d\n", ht_contains(ht, &pp));
+
+  // print_grid(ht);
+  // Point a = { .x=16, .y=0};
+  // Point b = { .x=18, .y=9};
+  // printf("\n?? %d\n", rect_contained(ht, &a, &b));
+  // printf("area %lld\n", AREA(&a, &b));
+  
   ht_free_elts(ht);
   free(ht);
 }
